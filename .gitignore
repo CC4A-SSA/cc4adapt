@@ -23,13 +23,19 @@ data/outputs/**
 data/naturebase/**
 data/papers/**
 
-# Keep the MANIFEST + folder stubs so new clones know where to drop data.
+# Keep the MANIFEST + folder stubs so new clones know where to drop data,
+# and .gitkeep-preserve every subfolder so the expected scaffolding is
+# visible immediately after clone (without committing any actual data).
 !data/inputs/
+!data/inputs/*/
 !data/inputs/MANIFEST.md
+!data/inputs/**/.gitkeep
 !data/staging/
-!data/staging/.gitkeep
+!data/staging/*/
+!data/staging/**/.gitkeep
 !data/outputs/
-!data/outputs/.gitkeep
+!data/outputs/*/
+!data/outputs/**/.gitkeep
 
 # ---- Policy / scoping PDFs (may be embargoed) --------------------------
 text/policy/**
