@@ -1,0 +1,97 @@
+# ------------------------------------------------------------------------------
+# ccadapt/.gitignore
+#
+# Policy: the repo commits CODE + CONFIG + TEXT only. Every byte in the data
+# folders is reproducible by re-running the pipeline (or clearly documented
+# as a manual drop in data/inputs/MANIFEST.md), so none of it belongs in
+# version control.
+#
+# If you need to share a reproduced output with collaborators, push it to the
+# team S3 bucket under the `cca` STAC collection rather than committing it.
+# ------------------------------------------------------------------------------
+
+# ---- Downloaded / generated data ----------------------------------------
+# Everything the pipeline fetches (GADM, Naturebase, Sanderman, ERA, FAO,
+# MapSPAM, WorldClim, SoilGrids, etc.) is either auto-fetchable via
+# code/inputs/*.R or a documented manual drop. The Naturebase bundle
+# (data/naturebase/**, ~500 MB unzipped) is fetched by fetch_naturebase.R.
+# Reference PDFs under data/papers/ are personal copies and kept off the
+# public repo; a bibliography file stays if you add one later.
+data/inputs/**
+data/staging/**
+data/outputs/**
+data/naturebase/**
+data/papers/**
+
+# Keep the MANIFEST + folder stubs so new clones know where to drop data.
+!data/inputs/
+!data/inputs/MANIFEST.md
+!data/staging/
+!data/staging/.gitkeep
+!data/outputs/
+!data/outputs/.gitkeep
+
+# ---- Policy / scoping PDFs (may be embargoed) --------------------------
+text/policy/**
+
+# ---- Investment / proposal documents (contain internal grant IDs) -------
+# The pipeline reads scope from practices.yaml and neb_config.yaml, not from
+# the investment document, so keeping it off version control is safe.
+text/Investment Document*.docx
+text/Investment Document*.pdf
+text/INV-*
+
+# ---- Logs + scratch -----------------------------------------------------
+*.log
+fetch.log
+*.out
+
+# ---- R artefacts --------------------------------------------------------
+.Rhistory
+.Rapp.history
+.RData
+.Ruserdata
+*.Rproj.user/
+*-Ex.R
+/*.tar.gz
+/*.Rcheck/
+
+# ---- Python / Jupyter artefacts (if ever added) ------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# ---- OS cruft -----------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+
+# ---- Editor / IDE -------------------------------------------------------
+.vscode/
+.idea/
+.project
+.Rproj.user
+*.Rproj
+
+# ---- Temporary / partial download files --------------------------------
+*.part
+*.tmp
+*.bak
+
+# ---- Large raster / vector products (defensive, redundant with data/**)
+*.tif
+*.tiff
+*.gpkg
+*.geojson
+*.parquet
+*.gz
+*.zip
+*.nc
+*.nc4
+
+# ---- BUT keep small example / config rasters if any are ever committed
+!examples/**/*.tif

@@ -1,0 +1,19 @@
+# code/activity2/config/thresholds.yaml
+#
+# Knobs that define the Step 4 classification + zoning. All knobs are
+# stakeholder-decided (Activity 1 workshops); defaults below are documented
+# in the plan file under open questions.
+
+classification:
+  # Percentile cut-off applied INSIDE each country for each of the three
+  # layers (mitigation, production, adaptation). A pixel qualifies as "high"
+  # on a layer if its in-country value is at or above this quantile.
+  quantile_cutoff: 0.60
+
+opportunity_zones:
+  # Minimum area for a contiguous cluster to count as an opportunity zone.
+  # 0 = keep every contiguous patch. Set to a project-relevant threshold
+  # (e.g. 10000 for 10000 ha) after stakeholder review.
+  min_area_ha: 0
+  # 4 or 8 connectivity when doing contiguity analysis.
+  connectivity: 8

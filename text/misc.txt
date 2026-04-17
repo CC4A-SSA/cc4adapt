@@ -1,0 +1,22 @@
+https://www.alliedmarketresearch.com/biochar-market-A11816
+https://cascade-erw-gis.projects.earthengine.app/view/erw-explorer
+
+
+
+Intro: why Atlas and ERA? Adaptation-linked carbon credits require scientific / technical knowledge of (i) what hazards matter, (ii) what practices reduce climate risks, and (iii) what resilience or co-benefits they generate. ERA + the Adaptation Atlas provide this missing evidence backbone.
+Why 'adaptation linked' is not straightforward for carbon credits?
+Adaptation benefits are location-specific, hazard-specific, and often not standardized.
+Tracking adaptation benefits is an ongoing challenge
+Carbon methodologies focus on mitigation; with any adaption benefits loosely / vaguely defined 
+What the Atlas provides? identify what hazards impact agriculture, where. Explain Atlas, data backbone, and framework for notebook development. The key is the carbon projects will need reliable hazard and adaptation need / climate risk data. Atlas provides,
+Spatial mapping of drought, heat, excess rainfall, flood, pests, and climate variability.
+Crop- and livestock-specific hazard exposure profiles.
+Forward-looking scenario layers for long-term adaptation planning.
+Hotspot identification for targeting adaptation-linked credit projects.
+Atlas example risk assessment (?)
+What ERA provides? Identify what practices work for which hazards and what their adaptation benefits are. Describe ERA. ERA provides,
+20+ years of evidence on adaptation effectiveness.
+Structured hazard × practice × outcome matrix.
+Quantifies adaptation benefits: yield stability, resilience, input efficiency, emissions intensity, water use, gender impacts.
+Evidence strength scoring for due diligence and MRV design.
+Example ERA data agroforestry or another practice

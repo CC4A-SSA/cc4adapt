@@ -1,0 +1,28 @@
+# code/activity3/neb_config.yaml
+#
+# Parameters for Activity 3 Net Economic Benefit calculation. All knobs are
+# editable; the defaults below are drawn from the investment document and
+# are explicitly flagged as stakeholder-review items in the plan file.
+
+carbon_price_usd_per_tco2e: [5, 15, 40, 80]
+
+# Annualisation
+horizon_years: 20
+discount_rate: 0.08
+
+# Per-practice costs (USD/ha; transition = one-time at t=0 unless noted)
+costs:
+  agroforestry_cropland:        { transition: 400, implementation: 60,  mrv: 3 }
+  cover_crops:                  { transition: 40,  implementation: 40,  mrv: 3 }
+  biochar:                      { transition: 120, implementation: 80,  mrv: 3 }
+  awd_rice:                     { transition: 15,  implementation: 12,  mrv: 3 }
+  enhanced_rock_weathering:     { transition: 200, implementation: 120, mrv: 3 }
+  grassland_soil_carbon:        { transition: 50,  implementation: 30,  mrv: 3 }
+  grassland_reduced_emissions:  { transition: 30,  implementation: 25,  mrv: 3 }
+  grassland_restoration:        { transition: 200, implementation: 30,  mrv: 3 }
+  savanna_agroforestry:         { transition: 300, implementation: 50,  mrv: 3 }
+
+# Adoption scenarios (fraction of eligible area that adopts). Each run
+# produces one raster per (adoption, carbon_price) combination so the
+# interactive tool can pre-compute the parameter sweep.
+adoption_scenarios: [0.05, 0.15, 0.30, 0.50]

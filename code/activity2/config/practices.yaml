@@ -1,0 +1,131 @@
+# ------------------------------------------------------------------------------
+# code/activity2/config/practices.yaml
+#
+# Canonical CCA practice catalogue. Keys are stable project-internal identifiers
+# (used in output filenames `mitigation_<practice>_<iso3>_5arcmin.tif` etc.).
+# The mitigation "source" field says where the Step-1 tCO2e layer comes from:
+#   * naturebase      -- a local TIF under data/naturebase/all_pathways/
+#   * external_pending -- needs a download not yet executed (see data/inputs/MANIFEST.md)
+#
+# Why a config rather than hardcoded mapping:
+#   The practice list may evolve after Activity-1 stakeholder consultation
+#   (Ethiopia practices are flagged TBD in the investment document; "cover
+#   crops" and "agroforestry" are the agreed placeholders). Editing YAML is
+#   safer than editing R source.
+# ------------------------------------------------------------------------------
+
+practices:
+  agroforestry_cropland:
+    label: "Cropland-based agroforestry"
+    land_use: cropland
+    mitigation:
+      source: naturebase
+      file: crp_cba_total.tif
+      units: tCO2e_per_pixel_per_year
+      notes: >
+        Naturebase v3 "Trees in Croplands". Values are total tCO2e per 1-km
+        pixel per year. Already incorporates the Naturebase cropland-extent
+        mask (Tubiello 2022 cropland agreement >=3 of 6 products), so an
+        additional MapSPAM cropland mask is optional and off by default.
+
+  cover_crops:
+    label: "Cover crops (soil carbon increase, cover-crop subcomponent)"
+    land_use: cropland
+    mitigation:
+      source: naturebase
+      file: crp_scc_cc.tif
+      units: tCO2e_per_pixel_per_year
+      notes: >
+        Cover-crop subcomponent of Naturebase crp_scc ("Increased Soil Carbon
+        in Croplands"). crp_scc_total.tif also bundles reduced tillage and
+        biochar; for cover-crops-only we use crp_scc_cc.tif present in the
+        local data package.
+
+  biochar:
+    label: "Biochar (cropland residues)"
+    land_use: cropland
+    mitigation:
+      source: staged
+      # Relative to data/staging/.
+      file: biochar/sanderman2020_crop_MG_bundle_tco2e_ha_yr.tif
+      suitability_file: suitability/biochar_suitability_5arcmin.tif
+      citation: "Sanderman et al. 2020 (Harvard Dataverse DOI 10.7910/DVN/HA17D3)"
+      notes: >
+        Source is the Sanderman 2020 "management bundle" (cover crops +
+        residue + biochar). We multiply by the biochar fuzzy suitability
+        (pH/OC/clay/rainfall) to attribute the biochar share per pixel.
+
+  awd_rice:
+    label: "Alternate Wetting and Drying (AWD) rice"
+    land_use: rice_cropland
+    mitigation:
+      source: staged
+      file: awd/awd_potential_tco2e_ha_yr_T1fallback.tif
+      alt_file: awd/awd_potential_tco2e_ha_yr_Cao2026.tif
+      citation: "IPCC 2019 Tier-1 (fallback); Cao 2026 when published"
+      notes: >
+        Step 1 prefers the Cao 2026 raster if present, otherwise uses the
+        IPCC Tier-1 fallback. Either requires MapSPAM rice as the rice-area
+        mask which fetch_cao_awd.R builds on first run.
+
+  enhanced_rock_weathering:
+    label: "Enhanced Rock Weathering (ERW)"
+    land_use: cropland
+    mitigation:
+      source: staged_optional
+      file: erw/erw_potential_tco2e_ha_yr.tif
+      suitability_file: suitability/erw_suitability_5arcmin.tif
+      citation: "Beerling et al. 2020 Nature (cross-check); Zenodo ERW rasters when available"
+      notes: >
+        No open global ERW pixel raster yet. When one lands under
+        data/staging/erw/ it will be consumed. Until then Step 1 skips ERW
+        with a clear log message.
+
+  grassland_soil_carbon:
+    label: "Increased soil carbon in grazing lands"
+    land_use: grassland
+    mitigation:
+      source: naturebase
+      file: grs_scg_total.tif
+      units: tCO2e_per_pixel_per_year
+
+  grassland_reduced_emissions:
+    label: "Reduced emissions in grazing lands"
+    land_use: grassland
+    mitigation:
+      source: naturebase
+      file: grs_reg_total.tif
+      units: tCO2e_per_pixel_per_year
+
+  grassland_restoration:
+    label: "Grassland restoration"
+    land_use: grassland
+    mitigation:
+      source: naturebase
+      file: grs_grr_total.tif
+      units: tCO2e_per_pixel_per_year
+
+  savanna_agroforestry:
+    label: "Savanna-based agroforestry"
+    land_use: grassland
+    mitigation:
+      source: naturebase
+      file: grs_sba_total.tif
+      units: tCO2e_per_pixel_per_year
+
+# Country x practice priority (from investment document + stakeholder default
+# for Ethiopia). A practice listed here is run at Step 1; others are skipped.
+country_practices:
+  NGA:
+    - awd_rice
+    - biochar
+    - agroforestry_cropland
+    - cover_crops
+  KEN:
+    - biochar
+    - enhanced_rock_weathering
+    - agroforestry_cropland
+    - grassland_soil_carbon
+  ETH:
+    - agroforestry_cropland
+    - cover_crops
