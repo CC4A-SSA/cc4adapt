@@ -21,57 +21,69 @@ All heavy work is in R using `terra`, `geodata`, `yaml`, `arrow`, `jsonlite`, `d
 
 ## Pipeline flowchart
 
-```mermaid
-flowchart TD
-  subgraph B["Bootstrap (external fetchers)"]
-    direction TB
-    NB["fetch_naturebase.R<br/>NCS all_pathways.zip (~500 MB)"]
-    ERA["fetch_era.R<br/>ERA_Derived.rda"]
-    MS["fetch_mapspam.R<br/>IFPRI MAPSPAM 2010 V2r0"]
-    TMPL["build_cca_template.R<br/>GADM -> 5-arcmin templates"]
-    FAO["fetch_fao_prices.R<br/>FAOSTAT Producer Prices"]
-    CON["fetch_constraint_masks.R<br/>WDPA + slope + GHSL + GMIA"]
-    BIO["fetch_biochar_potential.R<br/>Sanderman 2020 MG bundle"]
-    ERWS["fetch_erw_potential.R<br/>Zenodo / Beerling SI"]
-    BAS["fetch_basalt.R<br/>GLiM + USGS MRDS"]
-    AWDS["fetch_cao_awd.R<br/>Cao 2026 or IPCC T1 fallback"]
-    SUIT["build_biochar_suitability.R<br/>build_erw_suitability.R<br/>SoilGrids + WorldClim"]
-    RES["build_residue_proxy.R<br/>MapSPAM x IPCC T11.2"]
-    BUF["build_buffering_coefficients.R<br/>ERA meta-analysis"]
-  end
+```text
+ ┌─────────────────────────────────────────────────────────────────────────┐
+ │ STAGE 0 — BOOTSTRAP: external fetchers + pre-processing                 │
+ │                                                                         │
+ │  Admin / grid          Mitigation inputs        Production inputs       │
+ │  ─────────────         ──────────────────       ──────────────────      │
+ │  build_cca_template    fetch_naturebase (NCS)   fetch_mapspam (IFPRI)   │
+ │    └─ GADM via            └─ all_pathways.zip     └─ 2010 V2r0          │
+ │       geodata                                                           │
+ │                        fetch_biochar_potential  fetch_fao_prices        │
+ │                           └─ Sanderman MG          └─ FAOSTAT bulk      │
+ │  Constraint layer                                                       │
+ │  ─────────────         fetch_erw_potential      fetch_era               │
+ │  fetch_constraint_        └─ Zenodo/Beerling       └─ ERA_Derived.rda   │
+ │    masks (WDPA +                                                        │
+ │    slope + GHSL +      fetch_cao_awd            Derived builders        │
+ │    GMIA)                  └─ Cao 2026 / IPCC    ──────────────────      │
+ │                                                 build_biochar_suit      │
+ │                        fetch_basalt             build_erw_suit          │
+ │                           └─ GLiM + MRDS        build_residue_proxy     │
+ │                                                 build_buffering_coef    │
+ └─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+ ┌─────────────────────────────────────────────────────────────────────────┐
+ │ STAGE 1 — ACTIVITY 2: technical potential (per country, 5-arcmin COGs)  │
+ │                                                                         │
+ │   step1_mitigation    ──►  M  (tCO2e / ha / yr)                         │
+ │   step2_production    ──►  P  (USD / ha / yr, Δyield × price)           │
+ │   step3_adaptation    ──►  A  (USD / ha / yr, avoided loss)             │
+ │                                                                         │
+ │   step4_integration   ──►  class raster + opportunity-zone polygons     │
+ │                            {Triple Win | M+P | M+A | Constrained |      │
+ │                             Non-priority}                               │
+ │                                                                         │
+ │   step5_uncertainty   ──►  P10 / P50 / P90 per-pixel (Monte Carlo)      │
+ └─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+ ┌─────────────────────────────────────────────────────────────────────────┐
+ │ STAGE 2 — ACTIVITY 3: Net Economic Benefit                              │
+ │                                                                         │
+ │   neb.R  ──►  NPV tables   sweep over                                   │
+ │                              carbon_price ∈ {5, 15, 40, 80} USD/tCO2e   │
+ │                              adoption    ∈ {5%, 15%, 30%, 50%}          │
+ │                            per country × practice, 20-yr horizon, r=8%  │
+ └─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+                     country_profiles   +   scenario_explorer
+                     (static reports)       (future web UI)
 
-  subgraph A2["Activity 2 -- technical potential"]
-    direction TB
-    S1["step1_mitigation.R<br/>(M: tCO2e/ha/yr)"]
-    S2["step2_production.R<br/>(P: USD/ha/yr dyield)"]
-    S3["step3_adaptation.R<br/>(A: USD/ha/yr avoided loss)"]
-    S4["step4_integration.R<br/>classification + opportunity zones"]
-    S5["step5_uncertainty.R<br/>Monte Carlo P10 / P50 / P90"]
-  end
-
-  subgraph A3["Activity 3 -- NEB"]
-    NEB["neb.R<br/>NPV sweep over carbon_price x adoption"]
-  end
-
-  TMPL --> S1 & S2 & S3 & S4
-  NB --> S1
-  BIO --> S1
-  SUIT --> S1
-  AWDS --> S1
-  ERWS --> S1
-  MS --> S2 & S3 & RES & AWDS
-  FAO --> S2 & S3 & NEB
-  ERA --> S2 & BUF
-  RES --> S1
-  BUF --> S3
-  CON --> S4
-  S1 --> S2 & S3 & S4 & S5 & NEB
-  S2 --> S4 & S5 & NEB
-  S3 --> S4 & S5 & NEB
-
-  NEB --> OUT[country_profiles +<br/>scenario_explorer consumers]
-  S4 --> OUT
-  S5 --> OUT
+ Cross-cutting dependencies (simplified):
+   template       → step1, step2, step3, step4
+   mapspam        → step2, step3, residue_proxy, cao_awd
+   fao_prices     → step2, step3, neb
+   era            → step2, buffering_coef
+   buffering_coef → step3
+   residue_proxy  → step1 (crop-residue biochar supply)
+   constraints    → step4 (mask out protected/urban/high-slope)
+   step1 (M)      → step2, step3, step4, step5, neb
+   step2 (P)      → step4, step5, neb
+   step3 (A)      → step4, step5, neb
 ```
 
 ---
