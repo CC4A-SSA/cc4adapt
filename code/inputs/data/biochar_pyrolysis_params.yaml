@@ -1,0 +1,74 @@
+# ------------------------------------------------------------------------------
+# code/inputs/data/biochar_pyrolysis_params.yaml
+#
+# Scalar parameters used by code/inputs/build_biochar_potential.R to convert
+# a per-pixel crop-residue biomass raster (tonnes dry residue / pixel / yr,
+# from build_residue_proxy.R) into a per-pixel biochar mitigation-potential
+# raster (tCO2e / ha / yr).
+#
+# Methodology and citations: docs/methodology_biochar.md
+#
+# Why this file exists rather than constants in the .R script:
+#   * Step 5 (Monte Carlo uncertainty) reads min/max for each parameter to
+#     define log-normal CVs without code edits.
+#   * Stakeholder workshops can update a single value (e.g. set R_available
+#     to 0.30 if regional residue surveys show competing uses are higher
+#     than Woolf's conservative 0.50) without rebuilding the orchestrator.
+#   * Every value carries a citation field so a reviewer can audit each
+#     number independently.
+# ------------------------------------------------------------------------------
+
+# Fraction of dry residue free for pyrolysis after competing uses (fodder,
+# fuel, mulch, in-field decomposition). Woolf 2010 used 0.50 in their
+# "conservative sustainable" scenario for cereal residues globally; we keep
+# that as the central value. Stakeholder review may push lower for SSA
+# where livestock fodder competition is high (Tittonell 2008).
+R_available:
+  value: 0.50
+  min:   0.30
+  max:   0.70
+  citation: "Woolf et al. 2010 Nat Comm, conservative sustainable scenario (Table 1)"
+
+# Pyrolysis biochar yield: kg biochar produced per kg dry residue feedstock,
+# slow pyrolysis at ~500 C (the technology assumed in country-scale biochar
+# studies for SSA). Roberts et al. 2010 and Woolf 2010 both report 0.30-0.35
+# for cereal straws; we use 0.32 as the central value.
+Y_biochar:
+  value: 0.32
+  min:   0.25
+  max:   0.40
+  citation: "Woolf et al. 2010 Nat Comm Table 2; Roberts et al. 2010 ES&T"
+
+# Carbon mass fraction of biochar. Lehmann & Joseph 2015 give 0.65-0.85
+# depending on feedstock and pyrolysis temperature; 0.74 is the meta-mean
+# for slow-pyrolysed crop residues.
+C_biochar:
+  value: 0.74
+  min:   0.65
+  max:   0.85
+  citation: "Lehmann & Joseph 2015 'Biochar for Environmental Management' Table 5.1"
+
+# Fraction of biochar carbon stable over a 100-year horizon. The Wang et al.
+# 2016 meta-analysis (24 incubation studies) finds a labile pool of ~3% with
+# the recalcitrant remainder having mean residence time >100 yr. The 0.80
+# central value is the labile-decay-corrected stable fraction at year 100.
+P_stable_100yr:
+  value: 0.80
+  min:   0.70
+  max:   0.90
+  citation: "Wang et al. 2016 GCB Bioenergy meta-analysis (n=24 studies)"
+
+# Conversion factor: kg C -> kg CO2 equivalent. Molar masses 44 (CO2) / 12 (C).
+# Provided here only so it appears in the .method.json sidecar; the synthesiser
+# uses the literal 44/12 in the R code for clarity.
+C_to_CO2e: 3.6667
+
+# Cross-check envelope (cropland-area-weighted country mean, tCO2e / ha / yr).
+# Drawn from Woolf et al. 2010 Supplementary Information Table S6
+# (sustainable-residue scenario, country aggregates). The synthesiser logs
+# INFO if the country mean falls inside the envelope, WARN if outside; it
+# never aborts (the envelopes are themselves uncertain).
+woolf2010_envelope_tco2e_ha_yr:
+  NGA: { lo: 0.6, hi: 1.4 }
+  KEN: { lo: 0.3, hi: 0.9 }
+  ETH: { lo: 0.4, hi: 1.1 }

@@ -45,13 +45,26 @@ steps <- list(
   list(tag = "template",    path = file.path(inputs_dir, "build_cca_template.R")),
   list(tag = "fao_prices",  path = file.path(inputs_dir, "fetch_fao_prices.R")),
   list(tag = "constraints", path = file.path(inputs_dir, "fetch_constraint_masks.R")),
-  list(tag = "biochar_pot", path = file.path(inputs_dir, "fetch_biochar_potential.R")),
   list(tag = "erw_pot",     path = file.path(inputs_dir, "fetch_erw_potential.R")),
   list(tag = "basalt",      path = file.path(inputs_dir, "fetch_basalt.R")),
   list(tag = "awd",         path = file.path(inputs_dir, "fetch_cao_awd.R")),
   list(tag = "biochar_suit",path = file.path(inputs_dir, "build_biochar_suitability.R")),
   list(tag = "erw_suit",    path = file.path(inputs_dir, "build_erw_suitability.R")),
   list(tag = "residue",     path = file.path(inputs_dir, "build_residue_proxy.R")),
+  # Biochar potential is SYNTHESISED (no download). Must run after both
+  # `residue` (build_residue_proxy.R) and `biochar_suit` (build_biochar_suitability.R)
+  # because it multiplies their outputs together. Replaces the deprecated
+  # fetch_biochar_potential.R, which downloaded Sanderman 2020's MG bundle
+  # (cover crops + residue + biochar combined) and mislabelled it biochar-only.
+  # See docs/methodology_biochar.md.
+  list(tag = "biochar_pot", path = file.path(inputs_dir, "build_biochar_potential.R")),
+  # Hazard frequency rasters (drought / heat / waterlogging x moderate /
+  # severe / extreme x maiz / rice / sorg) are SYNTHESISED from WorldClim
+  # 2.1 monthly climatology + Ecocrop crop optima. Must run after
+  # `template` and after `biochar_suit` (which is what triggers the
+  # geodata::worldclim_global download that this script reads from disk).
+  # See docs/methodology_hazards.md for the derivation.
+  list(tag = "hazards",     path = file.path(inputs_dir, "build_hazard_frequencies.R")),
   list(tag = "buffering",   path = file.path(inputs_dir, "build_buffering_coefficients.R")),
   # --- Activity 2 + 3 phase --------------------------------------------
   list(tag = "step1",       path = file.path(activity_dir, "step1_mitigation.R")),

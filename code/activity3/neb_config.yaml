@@ -10,10 +10,20 @@ carbon_price_usd_per_tco2e: [5, 15, 40, 80]
 horizon_years: 20
 discount_rate: 0.08
 
-# Per-practice costs (USD/ha; transition = one-time at t=0 unless noted)
+# Per-practice costs (USD/ha; transition = one-time at t=0 unless noted).
+#
+# Provenance note for biochar (added 2026-04-18): the M (mitigation) layer
+# this NEB consumes for `biochar` is now the synthesised biochar-only raster
+# from code/inputs/build_biochar_potential.R (formula + parameter citations
+# in docs/methodology_biochar.md). The previous M layer was Sanderman 2020's
+# MG management bundle (cover crops + residue + biochar combined) and its
+# mitigation values were therefore higher than biochar alone justifies; the
+# new biochar-only M is lower per pixel, which raises the break-even carbon
+# price compared with pre-2026-04-18 NPV runs.
 costs:
   agroforestry_cropland:        { transition: 400, implementation: 60,  mrv: 3 }
   cover_crops:                  { transition: 40,  implementation: 40,  mrv: 3 }
+  # biochar source_method: docs/methodology_biochar.md
   biochar:                      { transition: 120, implementation: 80,  mrv: 3 }
   awd_rice:                     { transition: 15,  implementation: 12,  mrv: 3 }
   enhanced_rock_weathering:     { transition: 200, implementation: 120, mrv: 3 }

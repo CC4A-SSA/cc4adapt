@@ -16,11 +16,18 @@
 #
 # Inputs:
 #   * Step-1 mitigation mask (eligibility anchor).
-#   * Hazard frequency rasters (annual P of each severity) from
-#     atlas/hazards_prototype outputs. We look for them under:
-#         <atlas_root>/hazards_prototype/<crop>/<hazard>/<severity>.tif
-#     Where a hazard frequency raster is absent, the hazard is skipped with
-#     a clear log -- never silently imputed.
+#   * Hazard frequency rasters (annual P of each severity) from the CCA
+#     synthesiser:
+#         data/staging/hazards/<crop>/<hazard>/<severity>_5arcmin.tif
+#     Built by code/inputs/build_hazard_frequencies.R from WorldClim 2.1
+#     monthly climatology + Ecocrop crop optima + literature CVs. Full
+#     methodology: docs/methodology_hazards.md.
+#     Previously this script tried to read from atlas/hazards_prototype/
+#     directly, but that folder ships only source code (no rasters), and
+#     the canonical S3 publication is auth-gated; the synthesiser
+#     replaces both pathways for a fresh-clone pipeline. Where a hazard
+#     frequency raster is absent, the hazard is skipped with a clear log
+#     -- never silently imputed.
 #   * Buffering coefficient table from
 #     data/inputs/buffering_coef.csv (built by
 #     code/inputs/build_buffering_coefficients.R).
@@ -110,15 +117,67 @@ loss_table <- data.frame(
 )
 
 # ---- Helpers -----------------------------------------------------------
+#  Substring-keyword fallback: build_buffering_coefficients.R only maps a
+#  small subset of ERA practice labels to CCA practice keys, so most rows
+#  come through with practice = NA but a meaningful era_practice (e.g.
+#  "Mulch-Reduced Tillage", "Improved Varieties"). When the exact-key
+#  lookup misses, we scan era_practice for keywords associated with the
+#  requested CCA practice. The buffer_frac is then the mean across all
+#  matching rows for the (hazard, severity) (or hazard alone) combination.
+#  This is the right behaviour until Activity-1 stakeholder review locks
+#  down the ERA->CCA mapping in the build script -- documented in
+#  docs/methodology_hazards.md S7 and README "What needs checking" item 2.
+practice_keywords <- list(
+  agroforestry_cropland   = c("agroforest", "alley", "hedge", "silvopast",
+                              "parkland", "tree", "shrub"),
+  cover_crops             = c("cover crop", "green manure", "mulch", "residue retention"),
+  biochar                 = c("biochar"),
+  awd_rice                = c("awd", "alternate wetting", "intermittent flooding"),
+  enhanced_rock_weathering = c("rock weathering", "basalt"),
+  grassland_soil_carbon   = c("grazing", "grassland", "rotational"),
+  grassland_reduced_emissions = c("grazing"),
+  grassland_restoration   = c("restoration", "rehabilitation")
+)
+
 buffer_lookup <- function(practice, hazard, severity, crop) {
-  # Exact match first; then hazard-level fallback; then 0.
-  r <- buffer_tbl[buffer_tbl$practice == practice &
+  # 1. Exact match on the (already-mapped) practice column.
+  r <- buffer_tbl[!is.na(buffer_tbl$practice) &
+                  buffer_tbl$practice == practice &
                   buffer_tbl$hazard == hazard &
                   buffer_tbl$severity == severity, ]
-  if (!nrow(r)) r <- buffer_tbl[buffer_tbl$practice == practice &
+  if (!nrow(r)) r <- buffer_tbl[!is.na(buffer_tbl$practice) &
+                                buffer_tbl$practice == practice &
                                 buffer_tbl$hazard == hazard, ]
+  # 2. Substring-keyword fallback on era_practice when no mapped row exists.
+  if (!nrow(r)) {
+    kws <- practice_keywords[[practice]] %||% character(0)
+    if (length(kws)) {
+      pat <- paste(kws, collapse = "|")
+      mask <- !is.na(buffer_tbl$era_practice) &
+              grepl(pat, buffer_tbl$era_practice, ignore.case = TRUE) &
+              buffer_tbl$hazard == hazard &
+              buffer_tbl$severity == severity
+      r <- buffer_tbl[mask, ]
+      if (!nrow(r)) {
+        mask <- !is.na(buffer_tbl$era_practice) &
+                grepl(pat, buffer_tbl$era_practice, ignore.case = TRUE) &
+                buffer_tbl$hazard == hazard
+        r <- buffer_tbl[mask, ]
+      }
+    }
+  }
   if (!nrow(r)) return(0)
-  mean(as.numeric(r$buffer_frac), na.rm = TRUE) %||% 0
+  v <- suppressWarnings(mean(as.numeric(r$buffer_frac), na.rm = TRUE))
+  # mean() of an all-NA / empty numeric is NaN; coerce to 0 so downstream
+  # arithmetic and `== 0` checks behave (NaN || 0 -> NaN, which crashes
+  # the contribution-skip predicate). Cap at [0, 1] -- buffer_frac > 1 in
+  # build_buffering_coefficients.R means an ERA study reported the
+  # treatment EXCEEDING the control under hazard stress (RR_mean > 0),
+  # which physically means a practice that avoids 100% of the loss AND
+  # adds a yield bonus on top. The yield bonus belongs in Step 2
+  # (production benefit), not Step 3 (avoided loss); so we cap at 1.0
+  # here to avoid double-counting.
+  if (!is.finite(v)) 0 else max(0, min(1, v))
 }
 
 loss_lookup <- function(hazard, severity, crop) {
@@ -129,15 +188,22 @@ loss_lookup <- function(hazard, severity, crop) {
   as.numeric(r$loss_frac[1])
 }
 
-# Locate a hazard frequency raster per (iso3, crop, hazard, severity) in the
-# atlas hazards_prototype output tree. Returns NA if none exists.
-hazards_root <- normalizePath(file.path(CCA_ROOT, "..", "hazards_prototype"),
-                              mustWork = FALSE)
+# Locate a hazard frequency raster per (crop, hazard, severity) under the
+# CCA staging tree produced by code/inputs/build_hazard_frequencies.R.
+# Returns NA if none exists, in which case the (crop, hazard, severity)
+# contribution is skipped at the call site.
+hazards_root <- file.path(CCA_PATHS$staging_root, "hazards")
 find_haz_raster <- function(crop, hazard, severity) {
+  # Canonical layout: data/staging/hazards/<crop>/<hazard>/<severity>_<res>.tif
+  primary <- file.path(hazards_root, crop, hazard,
+                       sprintf("%s_%s.tif", severity, CCA_RES_LABEL))
+  if (file.exists(primary)) return(primary)
+  # Fallback glob in case a future release uses a slightly different name
+  # (e.g. multi-scenario suffixes); preserves forward-compatibility.
   if (!dir.exists(hazards_root)) return(NA_character_)
-  pat <- sprintf(".*%s.*%s.*%s.*\\.tif$", crop, hazard, severity)
-  hits <- list.files(hazards_root, pattern = pat, full.names = TRUE,
-                     recursive = TRUE, ignore.case = TRUE)
+  pat <- sprintf("^%s.*\\.tif$", severity)
+  hits <- list.files(file.path(hazards_root, crop, hazard), pattern = pat,
+                     full.names = TRUE, ignore.case = TRUE)
   if (!length(hits)) NA_character_ else hits[1]
 }
 
@@ -194,8 +260,14 @@ for (iso3 in CCA_COUNTRIES) {
                          pattern = sprintf("SPAM2020_Y_%s_A\\.tif$", crop),
                          full.names = TRUE, ignore.case = TRUE)
       if (!length(ytif)) next
-      y <- terra::project(terra::rast(ytif[1]), template, method = "bilinear")
-      y <- terra::mask(y, anchor, maskvalues = FALSE)
+      # MapSPAM Y is kg/ha. FAO prices are USD/tonne. Convert kg -> t on
+      # read so the unit chain (yield t/ha * price USD/t) cancels cleanly.
+      # Same fix that Step 2 already carries; this script omitted it
+      # because it had never produced output (no hazards in the tree
+      # before 2026-04-18).
+      y_kg <- terra::project(terra::rast(ytif[1]), template, method = "bilinear")
+      y    <- y_kg / 1000
+      y    <- terra::mask(y, anchor, maskvalues = FALSE)
 
       p_usd <- mean_price(country_name, spam_to_fao[[crop]])
       if (!is.finite(p_usd)) {

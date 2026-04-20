@@ -1,0 +1,4 @@
+spam_code,species,common_name,life_span,Temp_Opt_Min,Temp_Opt_Max,Temp_Abs_Min,Temp_Abs_Max,Rain_Opt_Min,Rain_Opt_Max,Rain_Abs_Min,Rain_Abs_Max,cycle_min,cycle_max,source
+maiz,Zea mays,Maize,annual,18,33,10,47,600,1200,400,1800,65,365,atlas/hazards_prototype/metadata/ecocrop.csv
+rice,Oryza sativa,Rice,annual,20,30,10,36,1500,2000,1000,4000,80,180,atlas/hazards_prototype/metadata/ecocrop.csv
+sorg,Sorghum bicolor,Sorghum,annual,22,35,8,40,400,600,300,700,90,300,atlas/hazards_prototype/metadata/ecocrop.csv

@@ -30,8 +30,17 @@ All heavy work is in R using `terra`, `geodata`, `yaml`, `arrow`, `jsonlite`, `d
  │  build_cca_template    fetch_naturebase (NCS)   fetch_mapspam (IFPRI)   │
  │    └─ GADM via            └─ all_pathways.zip     └─ 2010 V2r0          │
  │       geodata                                                           │
- │                        fetch_biochar_potential  fetch_fao_prices        │
- │                           └─ Sanderman MG          └─ FAOSTAT bulk      │
+ │                        build_biochar_potential  fetch_fao_prices        │
+ │                           └─ MapSPAM residues     └─ FAOSTAT bulk       │
+ │                              x pyrolysis params                         │
+ │                              (synthesised, no                           │
+ │                              external download)                         │
+ │                                                                         │
+ │  Adaptation inputs                                                      │
+ │  ─────────────                                                          │
+ │  build_hazard_frequencies                                               │
+ │    └─ WorldClim 2.1 climatology x Ecocrop crop optima                   │
+ │       (synthesised; 27 COGs = 3 crops x 3 hazards x 3 severities)       │
  │  Constraint layer                                                       │
  │  ─────────────         fetch_erw_potential      fetch_era               │
  │  fetch_constraint_        └─ Zenodo/Beerling       └─ ERA_Derived.rda   │
@@ -104,7 +113,7 @@ Rscript code/inputs/00_fetch_all.R
 CCA_FORCE=1 Rscript code/inputs/00_fetch_all.R
 ```
 
-Expected wall time on a fresh machine (25 Mbit/s down): ~45–60 minutes of which ~30 min is downloading external datasets (Naturebase 500 MB + Sanderman 488 MB + MapSPAM ~600 MB + SoilGrids ~1.2 GB + FAO 12 MB + minor). Incremental re-runs are seconds.
+Expected wall time on a fresh machine (25 Mbit/s down): ~45–60 minutes of which ~30 min is downloading external datasets (Naturebase 500 MB + MapSPAM ~600 MB + SoilGrids ~1.2 GB + FAO 12 MB + minor). Incremental re-runs are seconds. Biochar potential is **synthesised locally** from MapSPAM residues × pyrolysis parameters — no external biochar raster is downloaded; see [docs/methodology_biochar.md](docs/methodology_biochar.md).
 
 Per-stage invocation is also supported:
 
@@ -114,7 +123,6 @@ Rscript code/inputs/fetch_era.R                   # ERA_Derived.rda
 Rscript code/inputs/fetch_mapspam.R               # IFPRI MAPSPAM 2010 V2r0
 Rscript code/inputs/build_cca_template.R          # GADM + 5-arcmin template
 Rscript code/inputs/fetch_fao_prices.R            # FAOSTAT producer prices
-Rscript code/inputs/fetch_biochar_potential.R     # Sanderman 2020 Dataverse
 Rscript code/inputs/fetch_erw_potential.R         # Zenodo + Beerling SI
 Rscript code/inputs/fetch_basalt.R                # GLiM + MRDS (optional)
 Rscript code/inputs/fetch_cao_awd.R               # Cao 2026 or IPCC T1 fallback
@@ -122,6 +130,8 @@ Rscript code/inputs/fetch_constraint_masks.R      # WDPA / slope / GHSL / GMIA
 Rscript code/inputs/build_biochar_suitability.R   # pH / OC / clay / rain
 Rscript code/inputs/build_erw_suitability.R       # pH / clay / T / rain
 Rscript code/inputs/build_residue_proxy.R         # MapSPAM x IPCC T11.2
+Rscript code/inputs/build_biochar_potential.R     # synthesised from residues + pyrolysis params
+Rscript code/inputs/build_hazard_frequencies.R    # synthesised from WorldClim + Ecocrop
 Rscript code/inputs/build_buffering_coefficients.R
 Rscript code/activity2/step1_mitigation.R
 Rscript code/activity2/step2_production.R
@@ -155,7 +165,6 @@ ccadapt/
 │   │   ├── fetch_mapspam.R           # IFPRI MAPSPAM 2010 V2r0
 │   │   ├── build_cca_template.R      # GADM + 5-arcmin reference grid
 │   │   ├── fetch_fao_prices.R        # FAOSTAT producer prices
-│   │   ├── fetch_biochar_potential.R # Sanderman management bundle
 │   │   ├── fetch_erw_potential.R     # Zenodo / Beerling SI
 │   │   ├── fetch_basalt.R            # GLiM + USGS MRDS
 │   │   ├── fetch_cao_awd.R           # Cao 2026 + IPCC T1 fallback
@@ -163,7 +172,15 @@ ccadapt/
 │   │   ├── build_biochar_suitability.R
 │   │   ├── build_erw_suitability.R
 │   │   ├── build_residue_proxy.R
-│   │   └── build_buffering_coefficients.R
+│   │   ├── build_biochar_potential.R # SYNTHESISED — see docs/methodology_biochar.md
+│   │   ├── build_hazard_frequencies.R # SYNTHESISED — see docs/methodology_hazards.md
+│   │   ├── build_buffering_coefficients.R
+│   │   └── data/
+│   │       ├── biochar_pyrolysis_params.yaml   # parameters + citations
+│   │       ├── hazards_params.yaml             # CVs, growing seasons, severity offsets
+│   │       └── ecocrop_subset_cca.csv          # Ecocrop thresholds for maiz/rice/sorg
+│   ├── deprecated/                   # Retired scripts kept for reproducibility
+│   │   └── fetch_biochar_potential_SANDERMAN_MG_BUNDLE.R
 │   ├── activity2/
 │   │   ├── step1_mitigation.R
 │   │   ├── step2_production.R
@@ -217,12 +234,12 @@ Full per-dataset source URLs, cross-check rules, and manual-intervention flags a
 | 1 | GADM admin0/1/2 | `geodata::gadm` → <https://gadm.org> | `build_cca_template.R` | auto |
 | 2 | Naturebase NCS (16 pathways + adm0/1/2 totals) | The Nature Conservancy — `https://naturebase-shared-docs.s3.amazonaws.com/Data-download/all_pathways.zip` | `fetch_naturebase.R` | auto |
 | 3 | ERA derived yield effects | CGIAR Solutions / Zenodo | `fetch_era.R` | auto (sibling or manual-drop fallback) |
-| 4 | Sanderman 2020 "Soils Revealed" dSOC | Harvard Dataverse `10.7910/DVN/HA17D3` | `fetch_biochar_potential.R` | auto |
+| 4 | Biochar mitigation potential (synthesised, BIOCHAR-ONLY) | MapSPAM residues × pyrolysis parameters; see [`docs/methodology_biochar.md`](docs/methodology_biochar.md) | `build_biochar_potential.R` | auto (no external download) |
 | 5 | MapSPAM 2010 V2r0 (H, P, Y) | Harvard Dataverse `10.7910/DVN/PRFF8V` | `fetch_mapspam.R` | auto |
 | 6 | Beerling 2020 / Calabrese 2024 / Kanzaki 2023 ERW | Nature SI + Zenodo | `fetch_erw_potential.R` | auto (best-effort; pixel raster pending) |
 | 7 | Cao 2026 AWD rice CH4 | (anticipated) Zenodo + IPCC T1 fallback from MapSPAM | `fetch_cao_awd.R` | auto (fallback always runs; primary pending) |
 | 8 | GLiM mafic / USGS MRDS basalt | PANGAEA `10.1594/PANGAEA.788537` + <https://mrdata.usgs.gov/mrds/> | `fetch_basalt.R` | auto (optional; MRDS always; GLiM CDN sometimes 500) |
-| 9 | CMIP6 hazard frequencies | `atlas/hazards_prototype/` outputs | (external pipeline) | **deferred** |
+| 9 | Hazard frequencies (drought / heat / waterlogging × moderate / severe / extreme × maiz / rice / sorg) | SYNTHESISED locally from WorldClim 2.1 climatology × Ecocrop optima × literature CVs; see [`docs/methodology_hazards.md`](docs/methodology_hazards.md) | `build_hazard_frequencies.R` | auto (no external download); CMIP6 ensemble pull from atlas S3 is gated on credentials |
 | 10 | FAOSTAT producer prices | `bulks-faostat.fao.org` | `fetch_fao_prices.R` | auto |
 | 11 | SoilGrids v2.0 pH / OC / clay | `geodata::soil_world` | `build_{biochar,erw}_suitability.R` | auto |
 | 12 | WorldClim 2.1 monthly + bio | `geodata::worldclim_global` | `build_{biochar,erw}_suitability.R` | auto |
@@ -237,7 +254,7 @@ Full per-dataset source URLs, cross-check rules, and manual-intervention flags a
 
 ### Step 1 — Mitigation potential (tCO₂e/ha/yr)
 
-1. For each practice, read the source raster (Naturebase 1-km totals, Sanderman MG bundle, or a staged AWD/ERW raster).
+1. For each practice, read the source raster (Naturebase 1-km totals, the synthesised biochar-only potential, or a staged AWD/ERW raster).
 2. **Normalise to density before reprojection**: divide source totals by the source per-pixel area (ha) to get tCO₂e/ha/yr at the source grid, then `terra::project(..., method = "average")` onto the 5-arcmin country template. This order guarantees the output extent equals the template extent AND produces a properly area-weighted mean of contributing source cells. Staged layers (Sanderman MG bundle, AWD T1 fallback) are already densities and skip the divide-by-area step.
 3. Clip to the country polygon (scope boundary, not a mask).
 4. Optional multiplication by a fuzzy-suitability surface (biochar, ERW) if the practice YAML nominates one. No suitability cut-off is applied by default.
@@ -315,7 +332,7 @@ All parameters live in [`code/activity3/neb_config.yaml`](code/activity3/neb_con
   - Naturebase NCS `all_pathways.zip` (500 MB) downloaded + unpacked + range-validated.
   - ERA derived meta-analysis resolved via sibling-atlas → local-drop → Zenodo search.
   - MapSPAM 2010 V2r0 (3 per-variable mega-zips; ~600 MB) unzipped + CCA-clipped + aliased.
-  - Sanderman 2020 "Soils Revealed" management bundle (488 MB) pulled from Harvard Dataverse, clipped, converted to tCO₂e/ha/yr.
+  - Biochar mitigation potential (BIOCHAR-ONLY, tCO₂e/ha/yr) **synthesised locally** from MapSPAM crop residues × pyrolysis parameters (Woolf 2010 / Lehmann & Joseph 2015 / Wang et al. 2016) — no external download. Cross-checked against the Woolf 2010 country envelope. *(Replaces the prior Sanderman 2020 management bundle, which mislabelled cover crops + residue retention + biochar as biochar-only; fixed 2026-04-18, see [docs/methodology_biochar.md](docs/methodology_biochar.md).)*
   - FAOSTAT producer prices (11 MB zip) filtered to 3 countries × last 6 years, with spot-check assertions.
   - SoilGrids (pH / OC / clay) + WorldClim 2.1 (precip + bio) via `geodata`, with empirically-corrected unit handling.
   - SRTM 30″ → slope and GHSL SMOD 2020 urban-extent rasters at 5 arcmin.
@@ -325,11 +342,12 @@ All parameters live in [`code/activity3/neb_config.yaml`](code/activity3/neb_con
 - **Pre-processing**
   - Biochar + ERW fuzzy suitability surfaces (0–1, geometric mean of trapezoids over pH, clay, OC, rainfall, temperature).
   - Crop-residue biomass proxy (MapSPAM P × IPCC T11.2 ratios, auditable CSV).
+  - Hazard frequency rasters — 27 COGs (3 crops × 3 hazards × 3 severities) **synthesised locally** from WorldClim 2.1 climatology + Ecocrop crop optima + literature CVs. Cross-checks (sum-of-severities ≤ 1, country-mean plausibility) all pass. Confidence tier `Low` pending Activity-1 stakeholder review of growing-season windows + SSA CV calibration. *(Replaces the prior expectation that step3 could read rasters from `atlas/hazards_prototype/<crop>/<hazard>/<severity>.tif`, which never existed; the canonical S3 publication is auth-gated. Wired 2026-04-18, see [docs/methodology_hazards.md](docs/methodology_hazards.md).)*
   - ERA hazard-buffering coefficient skeleton (64 rows; flagged `confidence_tier = Low` until workshop review).
 - **Activity 2 (Technical potential)**
   - Step 1 mitigation rasters for every priority practice × country (10 COGs end-to-end); biochar scaled by suitability; admin totals cross-checked against Naturebase adm0 CSV.
   - Step 2 per-crop Δyield + aggregated Δvalue COGs (73 per-crop + 7 Δvalue, with admin CSVs).
-  - Step 3 framework runs end-to-end with a graceful skip when hazard frequency rasters are absent.
+  - Step 3 produces non-zero adaptation rasters end-to-end — pulls hazard frequencies from `data/staging/hazards/<crop>/<hazard>/<severity>_5arcmin.tif`, multiplies by per-(hazard, severity, crop) yield-loss fraction × ERA-derived buffering fraction × MapSPAM yield × FAO price. Two pre-existing issues fixed during this work: (i) `mean()` of an empty buffer-coefficient lookup returns `NaN` not 0 — coerced to 0; (ii) `buffer_frac > 1` from ERA studies (treatment exceeds control under stress) capped at 1.0 to avoid double-counting yield gains that already belong in Step 2. (iii) MapSPAM yield read in kg/ha → divided by 1000 to match Step 2's USD/tonne unit chain.
   - Step 4 pixel classification + opportunity-zone GPKG for all (practice, country) pairs.
   - Step 5 Monte-Carlo P10/P50/P90 (40 COGs at `N_SAMPLES = 50` for a smoke test; `CCA_MC_SAMPLES` envvar tunable).
 - **Activity 3 (NEB)**
@@ -347,13 +365,13 @@ All parameters live in [`code/activity3/neb_config.yaml`](code/activity3/neb_con
 
 Items that produce valid artefacts today but deserve a review before publication:
 
-1. **Hazard frequency surfaces for Step 3** — the current pipeline consumes `atlas/hazards_prototype/` outputs (CMIP6 indices × crop × severity). Until that pipeline is rerun for the CCA extent, Step 3 writes zero adaptation rasters and the Step-5 A-layer percentiles reflect M + P variance only.
+1. ~~**Hazard frequency surfaces for Step 3**~~ — **Resolved 2026-04-18.** Step 3 now reads 27 hazard frequency COGs (3 crops × 3 hazards × 3 severities) from `data/staging/hazards/`, synthesised by [`build_hazard_frequencies.R`](code/inputs/build_hazard_frequencies.R) from WorldClim 2.1 climatology × Ecocrop crop optima × literature CVs. The synthesiser preserves a two-tier resolution path: it first probes for atlas `hazards_prototype/Data/` cached outputs (the EiA-server pathway) and falls back to local synthesis for standalone runs. The synthesis is climatological (1970–2000 baseline, parametric inter-annual variability) and tagged `confidence_tier = "Low"` until Activity-1 stakeholder review. Full derivation + upgrade-path: [docs/methodology_hazards.md](docs/methodology_hazards.md).
 2. **ERA → CCA practice mapping + hazard classification** — `build_buffering_coefficients.R` uses a DRAFT free-text keyword scan of `C.Descrip + T.Descrip` to label hazard / severity, and a hard-coded practice-name lookup. Both deserve workshop sign-off; every output row is currently tagged `confidence_tier = Low` pending that review.
 3. **Ethiopia FAOSTAT prices** — FAOSTAT's Ethiopia coverage for 2018–2024 is sparse; Step 2 Δvalue is NA for Ethiopia which propagates through to a negative (cost-only) NPV in Activity 3. This is a FAOSTAT gap, not a code bug — a manual price sheet (`data/staging/faostat/manual_overrides.csv`) would unblock it.
 4. **Step 4 opportunity-zone area_ha** — when the high-priority seed raster is a single contiguous cluster covering most of a country, `terra::expanse()` returns an area inflated by non-seed pixels inside the polygon's envelope. Zone polygons and classification COGs are still correct; only the `area_ha` attribute is inflated. Fix: intersect each polygon with the country adm0 before computing area.
 5. **Yield-loss fraction table in Step 3** — the embedded `loss_table` uses literature defaults for 3 crops × 3 hazards × 3 severities. It should be replaced by a crop-calendar-aware table calibrated against `jagermeyer/` GGCMI Phase-3 projections.
 6. **Correlated hazards in Step 3** — hazards are currently summed as independent contributors. A copula-based formulation (e.g. drought ↔ heat co-occurrence) is a deferred extension; the TODO marker is in `step3_adaptation.R`.
-7. **Sanderman management bundle caveat** — the Step-1 biochar arm uses Sanderman's `scenario_crop_MG_dSOC_Y20.tif`, a *bundle* of cover crops + residue retention + biochar. The `.method.json` sidecar flags this. A biochar-only layer would require a pyrolysis coefficient applied to the MapSPAM residue proxy — scaffolding is in place but not wired.
+7. ~~**Sanderman management bundle caveat**~~ — **Resolved 2026-04-18.** The biochar layer is now synthesised by [`build_biochar_potential.R`](code/inputs/build_biochar_potential.R) from MapSPAM residues × pyrolysis parameters (R_available × Y_biochar × C_biochar × P_stable_100yr × 44/12 × suitability). Sanderman's MG bundle (cover + residue + biochar) is not used as a biochar input anywhere in the live pipeline. Quarantined under `data/staging/sanderman_mg_reference/`; deprecated fetcher under `code/deprecated/`. Full derivation + postmortem: [docs/methodology_biochar.md](docs/methodology_biochar.md).
 8. **Cao et al. 2026 AWD** — the Zenodo search returns false-positive records; auto-download is deliberately OFF until a human confirms the DOI. The IPCC Tier-1 fallback runs meanwhile.
 9. **GLiM PANGAEA 500 error** — PANGAEA's edge CDN returns HTTP 500 intermittently on the GLiM zip. `fetch_basalt.R` tries three URL variants and logs a WARN. MRDS still succeeds and provides thin Africa coverage.
 10. **WDPA + GMIA manual drops** — protectedplanet.net WDPA requires a guestbook-style clickthrough; FAO AQUASTAT GMIA v5 moved endpoints. Both are flagged as manual-drop in `fetch_constraint_masks.R` with exact paths.
@@ -365,7 +383,7 @@ Items that produce valid artefacts today but deserve a review before publication
 ## TODO list (prioritized)
 
 ### P0 — Blockers for country-profile publication
-- [ ] Run `atlas/hazards_prototype/` for NGA/KEN/ETH at CCA extent → unblocks Step 3.
+- [x] **DONE 2026-04-18** — Wire hazard frequencies into Step 3. `build_hazard_frequencies.R` synthesises 27 COGs locally (no S3 credentials required). For the higher-fidelity CMIP6 ensemble path, run `atlas/hazards_prototype/` against the digital-atlas S3 bucket and the synthesiser will short-circuit on the cache (see `try_atlas_cache()` in the script + the `confidence_tier` upgrade flag in `hazards_params.yaml`).
 - [ ] Commission stakeholder-workshop sign-off on the ERA → CCA practice mapping, hazard classification rules, and confidence-tier cut-offs used by `build_buffering_coefficients.R`.
 - [ ] Source an Ethiopia producer-price override table (USD/t for maize, teff, wheat, sorghum, pulses). Drop into `data/staging/faostat/manual_overrides.csv` with the schema `Area,Item,Year,Value,Unit`.
 - [ ] Intersect Step 4 opportunity-zone polygons with adm0 before computing `area_ha` so the attribute matches the classification COG.
@@ -373,7 +391,7 @@ Items that produce valid artefacts today but deserve a review before publication
 ### P1 — Quality + coverage
 - [ ] Replace the Step 3 yield-loss lookup table with a crop-calendar-aware calibration from `jagermeyer/` GGCMI outputs.
 - [ ] Confirm Cao et al. 2026 DOI, wire it into `fetch_cao_awd.R`, and regenerate AWD Step 1 rasters.
-- [ ] Pyrolysis-yield biochar attribution: multiply `residue_biomass_tonnes_per_pixel.tif` by a biochar yield coefficient + stability factor to produce a biochar-only layer that supersedes the Sanderman MG bundle.
+- [x] **DONE 2026-04-18** — Pyrolysis-yield biochar attribution: `build_biochar_potential.R` multiplies `residue_biomass_tonnes_per_pixel.tif` by R_available × Y_biochar × C_biochar × P_stable_100yr × 44/12 (parameters with citations in [`code/inputs/data/biochar_pyrolysis_params.yaml`](code/inputs/data/biochar_pyrolysis_params.yaml)) and the biochar fuzzy suitability surface, producing a biochar-only `tCO₂e/ha/yr` layer that supersedes the Sanderman MG bundle. See [docs/methodology_biochar.md](docs/methodology_biochar.md).
 - [ ] Review FAO AQUASTAT GMIA v5 current endpoint (or reuse atlas `atlas_exposure/` output) and flip `fetch_constraint_masks.R` §4 back to `auto`.
 - [ ] Publish a country-profile renderer (Quarto) that reads the admin CSVs + COGs and writes a 25-page PDF per country.
 
@@ -413,10 +431,12 @@ Items that produce valid artefacts today but deserve a review before publication
 | `fetch_era.R` | 1 RDA | 110 298 rows loaded |
 | `fetch_mapspam.R` | 60 CCA-clipped COGs + aliases | Kenya rice yield mean 1.7 t/ha |
 | `fetch_fao_prices.R` | 1 CSV | Kenya maize 384 USD/t ✓; Nigeria rice 486 USD/t ✓ |
-| `fetch_biochar_potential.R` | 1 COG + `.method.json` | mean 0.58 tCO₂e/ha/yr ✓ |
+| `build_biochar_potential.R` (synthesised) | 1 COG + `.method.json` | per-country cropland-area-weighted mean cross-checked against Woolf 2010 envelope (NGA 0.6–1.4 / KEN 0.3–0.9 / ETH 0.4–1.1 tCO₂e/ha/yr); WARN if outside, never aborts |
 | `build_{biochar,erw}_suitability.R` | 2 COG + 2 `.inf` | biochar mean 0.80; ERW mean 0.75 ✓ |
 | `step1_mitigation.R` | 10 COGs + 3 admin CSVs | biochar KEN mean 0.53 tCO₂e/ha/yr; extents == templates ✓ |
 | `step2_production.R` | 73 per-crop Δyield + 7 aggregated Δvalue + 3 admin CSVs | KEN biochar rice +1.13 t/ha × 491 USD/t → 557 USD/ha/yr ✓ |
+| `build_hazard_frequencies.R` | 27 hazard frequency COGs + 27 `.method.json` | sum-of-severities ≤ 1 per pixel ✓; KEN rice extreme drought 0.795 (sensible: most of KEN is too dry for rice) |
+| `step3_adaptation.R` | per-(practice, country) avoided-loss COGs + admin CSVs (per-hazard contribution columns) | NGA agroforestry ~$1–14/ha/yr per (crop, hazard, severity) ✓ |
 | `step4_integration.R` | 7 classification COGs + 7 opportunity-zone GPKGs | classification correct (area_ha inflated — see "What needs checking") |
 | `step5_uncertainty.R` (N=50) | 40 P10/P50/P90 COGs + 1 confidence CSV | percentile ordering assertion passes ✓ |
 | `neb.R` | 131 NPV COGs + 3 admin CSVs | KEN biochar national NPV $23 B at $5/tCO₂e × 0.30 adoption ✓ |

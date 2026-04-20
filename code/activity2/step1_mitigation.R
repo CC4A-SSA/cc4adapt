@@ -54,6 +54,18 @@
 #     skips them with a visible WARN so downstream steps know why there is no
 #     raster. When the download scripts under code/inputs/ land those layers,
 #     this script reads them through the same code path.
+#
+# [E] Biochar input provenance (changed 2026-04-18)
+#     The biochar mitigation source is now `data/staging/biochar/
+#     biochar_potential_tco2e_ha_yr.tif`, SYNTHESISED by
+#     code/inputs/build_biochar_potential.R from MapSPAM residues x pyrolysis
+#     parameters (Woolf 2010 + Lehmann & Joseph 2015 + Wang 2016). It is a
+#     genuine biochar-only layer in tCO2e/ha/yr.
+#     The previous source was Sanderman 2020's `scenario_crop_MG_dSOC_Y20.tif`
+#     "management bundle" (cover crops + residue retention + biochar
+#     combined) which mislabelled bundled mitigation as biochar. That fetcher
+#     is now under code/deprecated/. Full derivation + postmortem:
+#     docs/methodology_biochar.md.
 # ------------------------------------------------------------------------------
 
 # ---- Preamble ------------------------------------------------------------
@@ -127,8 +139,9 @@ reproject_and_densify <- function(src_tif, template,
   # area-weighted mean of contributing source cells. This is mathematically
   # equivalent to "sum the totals, divide by coarse cell area" but without the
   # extent-alignment quirks of terra::project(..., method="sum", align=TRUE).
-  # Staged layers (Sanderman MG bundle, AWD T1) already carry density units;
-  # callers pass src_is_total = FALSE so we skip the divide-by-area step.
+  # Staged layers (synthesised biochar potential, AWD T1 fallback) already
+  # carry density units; callers pass src_is_total = FALSE so we skip the
+  # divide-by-area step.
   if (src_is_total) {
     src_area_ha <- terra::cellSize(src, unit = "ha")
     src <- src / src_area_ha
@@ -234,10 +247,10 @@ for (iso3 in CCA_COUNTRIES) {
     }
 
     # Naturebase layers are totals per source pixel (file names end "_total.tif",
-    # per Naturebase ReadMe). Staged layers (Sanderman MG bundle, AWD T1
-    # fallback, ERW potential) are already density (tCO2e/ha/yr per their
-    # filename / method.json). We switch the normalisation step based on the
-    # practice source tag.
+    # per Naturebase ReadMe). Staged layers (synthesised biochar potential,
+    # AWD T1 fallback, ERW potential) are already density (tCO2e/ha/yr per
+    # their filename / method.json). We switch the normalisation step based
+    # on the practice source tag.
     is_total <- src == "naturebase"
     result <- reproject_and_densify(
       src_tif      = src_tif,
@@ -284,8 +297,10 @@ for (iso3 in CCA_COUNTRIES) {
 
     # ---- [C] Cross-check vs Naturebase adm0 CSV --------------------------
     # Only applicable for naturebase-sourced practices; for staged layers
-    # (Sanderman MG bundle, Cao AWD, ERW) we rely on the per-layer method.json
-    # sidecars for provenance instead.
+    # (synthesised biochar potential, Cao AWD, ERW) we rely on the per-layer
+    # method.json sidecars for provenance instead. The biochar synthesiser
+    # additionally cross-checks its output against the Woolf 2010 country
+    # envelope at build time (see code/inputs/build_biochar_potential.R).
     if (!is.null(nb_adm0) && src == "naturebase") {
       col_tco2e <- paste0(sub("_total$", "", tools::file_path_sans_ext(def$mitigation$file)),
                           "_tco2e")

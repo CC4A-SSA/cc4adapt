@@ -1,5 +1,36 @@
 # ------------------------------------------------------------------------------
-# code/inputs/fetch_biochar_potential.R
+# code/deprecated/fetch_biochar_potential_SANDERMAN_MG_BUNDLE.R
+#
+# *** DEPRECATED 2026-04-18 — DO NOT WIRE INTO THE PIPELINE ***
+#
+# This script downloaded `scenario_crop_MG_dSOC_Y20.tif` from Sanderman 2020
+# (Harvard Dataverse DOI 10.7910/DVN/HA17D3) and labelled it the biochar
+# mitigation-potential layer. That file is the *Management bundle* —
+# cover crops + crop-residue retention + biochar combined into a single
+# delta-SOC surface — NOT a biochar-only layer. Sanderman 2020 publishes no
+# biochar-only raster. Using the MG bundle as biochar triple-counts cover
+# crops and residue retention, which propagated through the entire CCA
+# pipeline (Step 1 mitigation, Step 4 opportunity zones, Activity 3 NEB).
+#
+# Replacement: code/inputs/build_biochar_potential.R synthesises a
+# biochar-only layer from MapSPAM residues and pyrolysis parameters.
+# Methodology: docs/methodology_biochar.md (postmortem in section 7).
+#
+# This file is kept under code/deprecated/ for two reasons:
+#   1. Reproducibility of pre-2026-04-18 numbers if anyone needs to rerun
+#      the old (incorrect) pipeline for comparison.
+#   2. The MG bundle remains a useful upper-bound sanity check on the
+#      *combined* (cover + residue + biochar) cropland soil-carbon practices.
+#
+# It is intentionally NOT in the orchestrator (code/inputs/00_fetch_all.R).
+# To run it manually for the upper-bound sanity check, invoke directly:
+#   Rscript code/deprecated/fetch_biochar_potential_SANDERMAN_MG_BUNDLE.R
+# The output is written to data/staging/sanderman_mg_reference/ (not the
+# biochar staging dir) so no downstream consumer can pick it up by mistake.
+# ------------------------------------------------------------------------------
+#
+# Original header preserved below for institutional memory.
+# ------------------------------------------------------------------------------
 #
 # Fetches a global biochar mitigation-potential raster and clips to the CCA
 # region (NGA/KEN/ETH + 5-arcmin snapped bbox).
@@ -61,8 +92,11 @@ suppressPackageStartupMessages({
 cca_banner("Fetch biochar potential (Sanderman 2020, Harvard Dataverse)")
 
 # ---- Target paths --------------------------------------------------------
-raw_dir      <- file.path(CCA_PATHS$inputs_root, "biochar")
-staging_dir  <- file.path(CCA_PATHS$staging_root, "biochar")
+# DEPRECATED 2026-04-18: outputs now go to data/staging/sanderman_mg_reference/
+# (not data/staging/biochar/) so the live pipeline can never accidentally
+# pick this up as the biochar mitigation layer.
+raw_dir      <- file.path(CCA_PATHS$inputs_root, "sanderman_mg_reference")
+staging_dir  <- file.path(CCA_PATHS$staging_root, "sanderman_mg_reference")
 dir.create(raw_dir,     recursive = TRUE, showWarnings = FALSE)
 dir.create(staging_dir, recursive = TRUE, showWarnings = FALSE)
 

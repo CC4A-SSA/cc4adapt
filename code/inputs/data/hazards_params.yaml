@@ -1,0 +1,78 @@
+# ------------------------------------------------------------------------------
+# code/inputs/data/hazards_params.yaml
+#
+# Parameters used by code/inputs/build_hazard_frequencies.R to convert
+# WorldClim 2.1 climatology + Ecocrop crop thresholds into per-pixel
+# hazard frequency rasters (P(hazard, severity, crop) in [0, 1]).
+#
+# Methodology and citations: docs/methodology_hazards.md
+#
+# Why this file exists rather than constants in the .R script:
+#   * Step 5 (Monte Carlo uncertainty) can read min/max for each parameter
+#     to define perturbation envelopes without code edits.
+#   * Stakeholder workshops (Activity 1) can update growing-season windows
+#     for Ethiopia or substitute regional CV estimates from CHIRPS without
+#     rebuilding the orchestrator.
+#   * Every value carries a citation field so a reviewer can audit it.
+# ------------------------------------------------------------------------------
+
+# Inter-annual coefficient of variation (sigma / mu) used as the spread of
+# the parametric exceedance distribution. Treated as constant across the
+# 3-country region as a first approximation; a future improvement is to
+# derive a per-pixel CV from CHIRPS / CRU TS time series (see
+# docs/methodology_hazards.md S7).
+cv:
+  precipitation:
+    value: 0.25
+    min:   0.15
+    max:   0.40
+    citation: "Nicholson 2018, 'Climate of Africa', rainfall CV tables 1981-2010 -- central 0.20-0.30 for the SSA growing season"
+  temperature_max:
+    value: 0.05
+    min:   0.03
+    max:   0.08
+    citation: "New, Hulme & Jones 2000 J. Clim. -- monthly Tmax CV 0.04-0.07 in tropical Africa"
+
+# Severity offsets / multipliers applied to the per-crop Ecocrop optima.
+# Bands are NON-OVERLAPPING by construction so the three severity rasters
+# for a given (hazard, crop) sum to <= 1 at every pixel.
+severity:
+
+  heat:                              # threshold = Temp_Opt_Max(crop) + delta_T (deg C)
+    moderate: { lo_offset: 1.0, hi_offset: 3.0, citation: "atlas/metadata/haz_classes.csv NTx-style band widths" }
+    severe:   { lo_offset: 3.0, hi_offset: 5.0, citation: "atlas/metadata/haz_classes.csv" }
+    extreme:  { lo_offset: 5.0, hi_offset: Inf, citation: "atlas/metadata/haz_classes.csv" }
+
+  drought:                           # threshold = Rain_Opt_Min(crop) * factor
+    moderate: { lo_factor: 0.5, hi_factor: 0.7, citation: "Smale et al. 2014 GFS, drought severity bins" }
+    severe:   { lo_factor: 0.3, hi_factor: 0.5, citation: "Smale et al. 2014 GFS" }
+    extreme:  { lo_factor: 0.0, hi_factor: 0.3, citation: "Smale et al. 2014 GFS" }
+
+  waterlogging:                      # threshold = Rain_Opt_Max(crop) * factor
+    moderate: { lo_factor: 1.2, hi_factor: 1.5, citation: "Lobell et al. 2011 NCC, excess-rainfall bins" }
+    severe:   { lo_factor: 1.5, hi_factor: 2.0, citation: "Lobell et al. 2011 NCC" }
+    extreme:  { lo_factor: 2.0, hi_factor: Inf, citation: "Lobell et al. 2011 NCC" }
+
+# Growing-season month windows (1=Jan ... 12=Dec). For NGA + KEN + ETH the
+# main crop calendar is the long rains (Mar-Aug for cereals in much of the
+# region). A future improvement is to use the GGCMI Phase 3 per-pixel
+# crop calendar (Zenodo 10.5281/zenodo.5062513) instead of these constants.
+growing_season:
+  maiz: { months: [3,4,5,6,7,8], citation: "FAO/HarvestChoice maize calendar SSA primary season" }
+  rice: { months: [4,5,6,7,8,9], citation: "FAO/HarvestChoice rice calendar SSA primary season" }
+  sorg: { months: [4,5,6,7,8,9], citation: "FAO/HarvestChoice sorghum calendar SSA primary season" }
+
+# Per-country plausibility bounds for the cross-check rule. Country-mean
+# hazard frequency outside this band logs a WARN (never an ERROR -- the
+# upper end is physically reachable for crops at the edge of their
+# climatic envelope).
+country_plausibility:
+  freq_lo: 0.0
+  freq_hi: 0.95
+
+# Confidence tier for the .method.json sidecar. Stays "Low" until
+# Activity-1 stakeholder review confirms (a) the growing-season windows
+# above for each country, (b) the SSA CV values, and (c) the severity
+# band widths.
+confidence_tier: "Low"
+

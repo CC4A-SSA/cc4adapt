@@ -70,12 +70,17 @@ All paths below are relative to the repo root `ccadapt/`. Resolution and CRS are
 
 ### 6. Biochar mitigation potential
 
-- **Status:** auto
-- **Source:** Sanderman J. et al. 2020, "Soils Revealed soil carbon futures" — Harvard Dataverse DOI [`10.7910/DVN/HA17D3`](https://doi.org/10.7910/DVN/HA17D3). File `scenario_crop_biochar_dSOC_Y20.tif` (delta-SOC over 20 yr).
-- **Why Sanderman (not Woolf 2021):** Woolf 2021 publishes a country-level inventory model, no raster. Naturebase itself cites Sanderman 2020 as the biochar basis; keeping our upstream identical to theirs makes the numbers directly comparable.
-- **Fetch script:** [fetch_biochar_potential.R](../../code/inputs/fetch_biochar_potential.R) (resolves file ID via Dataverse API, downloads, converts tC/ha over Y20 → tCO₂e/ha/yr, clips to CCA extent)
-- **Output:** `data/staging/biochar/biochar_potential_tco2e_ha_yr.tif` (COG, native ~1 km)
-- **Downstream:** multiplied by biochar suitability (§9) and residue-availability proxy (§14) in Step 1.
+- **Status:** auto (synthesised — no external download)
+- **Source:** SYNTHESISED locally from MapSPAM crop residues × pyrolysis parameters. Full derivation, formula, parameter citations, and Woolf 2010 cross-check envelope: [`docs/methodology_biochar.md`](../../docs/methodology_biochar.md).
+- **Why synthesised (not Sanderman / Woolf / Naturebase):**
+  - Sanderman 2020 (Harvard Dataverse DOI [`10.7910/DVN/HA17D3`](https://doi.org/10.7910/DVN/HA17D3)) publishes only *bundle* dSOC scenarios. Its `scenario_crop_MG_dSOC_Y20.tif` is the **management bundle** (cover crops + residue retention + biochar combined) — there is no biochar-only raster. Pre-2026-04-18 the pipeline downloaded the MG bundle and mislabelled it biochar; that is the bug this entry now fixes.
+  - Woolf et al. 2010 (Nat. Comm.) is the canonical global biochar-potential study but publishes country-level totals only, not a raster. We use it as a **cross-check envelope** (NGA 0.6–1.4, KEN 0.3–0.9, ETH 0.4–1.1 tCO₂e/ha/yr), not as an input layer.
+  - Naturebase NCS lists a "Biochar production" pathway, but the corresponding raster is empty/placeholder at the time of writing.
+- **Build script:** [build_biochar_potential.R](../../code/inputs/build_biochar_potential.R) (depends on `build_residue_proxy.R` and `build_biochar_suitability.R`).
+- **Parameters file:** [biochar_pyrolysis_params.yaml](../../code/inputs/data/biochar_pyrolysis_params.yaml) (R_available, Y_biochar, C_biochar, P_stable_100yr, with citations and Monte Carlo min/max).
+- **Output:** `data/staging/biochar/biochar_potential_tco2e_ha_yr.tif` (COG, 5-arcmin CCA grid) + `.method.json` provenance sidecar listing every parameter value, the formula, and the per-country Woolf envelope check result.
+- **Downstream:** consumed directly by `code/activity2/step1_mitigation.R` for the biochar arm, then multiplied by the biochar fuzzy suitability surface (§9). The residue-availability proxy (§14) is now consumed *upstream* of the biochar layer (it is an input to the synthesiser), not as a downstream multiplier.
+- **Quarantined upstream raster:** the deprecated Sanderman MG bundle download (if previously cached) is preserved at `data/staging/sanderman_mg_reference/` and the deprecated fetcher at [code/deprecated/fetch_biochar_potential_SANDERMAN_MG_BUNDLE.R](../../code/deprecated/fetch_biochar_potential_SANDERMAN_MG_BUNDLE.R) for upper-bound sanity checks only. They are not in the pipeline orchestrator.
 
 ### 7. Enhanced rock weathering (ERW) mitigation potential
 
@@ -141,6 +146,22 @@ All paths below are relative to the repo root `ccadapt/`. Resolution and CRS are
 - **Output:** `data/staging/constraints/{wdpa_<iso3>.gpkg,slope_deg_<iso3>_5arcmin.tif,ghsl_smod_5arcmin.tif,gmia_aei_pct_5arcmin.tif}`
 - **Applied only when:** a caller of `cca_mask_by_polygon()` / `cca_mask_by_threshold()` explicitly passes a non-NULL argument.
 
+### 13b. Hazard frequency rasters (drought / heat / waterlogging × moderate / severe / extreme × maiz / rice / sorg)
+
+- **Status:** auto (synthesised — no external download)
+- **Source:** SYNTHESISED locally from WorldClim 2.1 monthly climatology × Ecocrop per-crop optima × literature CVs. Full derivation, formula, parameter citations, severity-band convention: [`docs/methodology_hazards.md`](../../docs/methodology_hazards.md).
+- **Why synthesised (not the atlas hazards_prototype outputs):**
+  - The atlas `hazards_prototype/` folder ships only source code; the output rasters are written to a `Data/` directory only when the prototype is *run*, which has not happened in this checkout.
+  - The canonical published rasters at `s3://digital-atlas/domain=hazard_impact/...` require authenticated S3 access (HTTP 403 on every public probe).
+  - Even if S3 were public, those rasters multiply hazard frequency by exposure (`variable=vop_intld15` etc.); Step 3 needs *raw* P(hazard, severity, crop) which is not separately published.
+- **Build script:** [build_hazard_frequencies.R](../../code/inputs/build_hazard_frequencies.R) (depends on `build_cca_template.R` and a prior run of any script that triggers `geodata::worldclim_global` — `build_biochar_suitability.R` does this).
+- **Parameters file:** [hazards_params.yaml](../../code/inputs/data/hazards_params.yaml) (CV_precip, CV_tmax, severity offsets/factors, growing-season month windows, with citations and Monte Carlo min/max).
+- **Crop thresholds file:** [ecocrop_subset_cca.csv](../../code/inputs/data/ecocrop_subset_cca.csv) (snapshot of `atlas/hazards_prototype/metadata/ecocrop.csv` for Zea mays, Oryza sativa, Sorghum bicolor).
+- **Output:** 27 COGs (3 crops × 3 hazards × 3 severities) at `data/staging/hazards/<crop>/<hazard>/<severity>_5arcmin.tif` + per-layer `.method.json` provenance sidecar (records source path, parameter values, country-mean cross-check, sum-of-severities cross-check).
+- **Two-tier resolution:** the script first looks for atlas `hazards_prototype/Data/` cached outputs; if absent, falls back to local synthesis (the standalone-replicable path). Source path is recorded in the sidecar's `source` field.
+- **Confidence tier:** `Low` until Activity-1 stakeholder review confirms growing-season windows, SSA CV values, and severity band widths.
+- **Downstream:** consumed directly by `code/activity2/step3_adaptation.R` for the avoided-loss formula `Σ P(h,s,c) × loss_frac × buffer_frac × yield × price`.
+
 ### 14. Crop-residue biomass proxy (for biochar)
 
 - **Status:** auto (requires MapSPAM outputs from §15 or from `atlas/atlas_exposure/`)
@@ -166,6 +187,8 @@ All paths below are relative to the repo root `ccadapt/`. Resolution and CRS are
 
 Entries get dated when a dataset changes status (pending → auto → local). Keep the most recent first.
 
+- 2026-04-18 (later) — added §13b Hazard frequency rasters (synthesised). Step 3 adaptation arm previously produced zero rasters because it expected outputs under `atlas/hazards_prototype/<crop>/<hazard>/<severity>.tif` that never existed (prototype ships code only; canonical S3 publication is auth-gated). Fix: synthesise 27 hazard frequency COGs locally from WorldClim 2.1 climatology × Ecocrop optima × literature CVs via [build_hazard_frequencies.R](../../code/inputs/build_hazard_frequencies.R) + [hazards_params.yaml](../../code/inputs/data/hazards_params.yaml) + [ecocrop_subset_cca.csv](../../code/inputs/data/ecocrop_subset_cca.csv). Updated step3 to read from the new `data/staging/hazards/` layout. Confidence tier `Low` pending Activity-1 stakeholder review. Full methodology + postmortem: [docs/methodology_hazards.md](../../docs/methodology_hazards.md).
+- 2026-04-18 — §6 Biochar mitigation potential **rewritten end-to-end**. Investigation (prompted by an external review of `fetch_biochar_potential.R`) confirmed the script downloaded Sanderman 2020's MG management bundle (cover crops + residue retention + biochar combined) and labelled it biochar-only. Fix: synthesise a genuine biochar-only layer locally from MapSPAM residues × pyrolysis parameters via [build_biochar_potential.R](../../code/inputs/build_biochar_potential.R) + [biochar_pyrolysis_params.yaml](../../code/inputs/data/biochar_pyrolysis_params.yaml). Old fetcher quarantined under `code/deprecated/`. Full methodology + postmortem: [docs/methodology_biochar.md](../../docs/methodology_biochar.md). MANIFEST claim of `scenario_crop_biochar_dSOC_Y20.tif` (a filename that never existed on Dataverse) removed.
 - 2026-04-17 (late) — added §15 MapSPAM fetcher (IFPRI Dataverse). Originally targeted 2020 V2r0 (`10.7910/DVN/SWPENT`) but that package is guestbook-gated; pivoted to open-access 2010 V2r0 (`10.7910/DVN/PRFF8V`). Wired as the canonical source for Step 2 baseline yield, the biochar residue proxy, and the AWD IPCC T1 fallback.
 - 2026-04-17 (late) — fetch/pre-process scripts written for AWD, biochar, ERW, basalt, suitability, FAO prices, constraint masks, residue proxy, buffering coefficients. Status flipped from pending → auto for items 5–11, 13, 14. Item 12 (policy PDFs) remains manual.
 - 2026-04-17 — initial manifest created; Naturebase local, GADM auto, all others pending.

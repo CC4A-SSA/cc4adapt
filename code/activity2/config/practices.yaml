@@ -46,14 +46,23 @@ practices:
     land_use: cropland
     mitigation:
       source: staged
-      # Relative to data/staging/.
-      file: biochar/sanderman2020_crop_MG_bundle_tco2e_ha_yr.tif
+      # Relative to data/staging/. Synthesised -- not downloaded.
+      file: biochar/biochar_potential_tco2e_ha_yr.tif
       suitability_file: suitability/biochar_suitability_5arcmin.tif
-      citation: "Sanderman et al. 2020 (Harvard Dataverse DOI 10.7910/DVN/HA17D3)"
+      citation: "Synthesised: Woolf et al. 2010 + Lehmann & Joseph 2015 + Wang et al. 2016"
+      source_method: "docs/methodology_biochar.md"
       notes: >
-        Source is the Sanderman 2020 "management bundle" (cover crops +
-        residue + biochar). We multiply by the biochar fuzzy suitability
-        (pH/OC/clay/rainfall) to attribute the biochar share per pixel.
+        Per-pixel biochar mitigation potential, BIOCHAR-ONLY. Synthesised by
+        code/inputs/build_biochar_potential.R from MapSPAM crop residues
+        (build_residue_proxy.R) x pyrolysis biochar yield x biochar carbon
+        content x 100-yr stable C fraction x (44/12), then divided by pixel
+        area (ha) and multiplied by the biochar fuzzy suitability surface.
+        Replaces the prior Sanderman 2020 "management bundle" raster, which
+        bundled cover crops + residue retention + biochar and was therefore
+        not biochar-only. The bundle fetcher is preserved under
+        code/deprecated/ for reproducibility of pre-2026-04-18 outputs only.
+        See docs/methodology_biochar.md for the full derivation, parameter
+        citations, and Woolf 2010 country cross-check envelope.
 
   awd_rice:
     label: "Alternate Wetting and Drying (AWD) rice"
@@ -129,3 +138,4 @@ country_practices:
   ETH:
     - agroforestry_cropland
     - cover_crops
+
