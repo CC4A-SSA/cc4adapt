@@ -157,6 +157,30 @@ for (f in fs_files) {
   if (!grepl("aux.xml$", f)) log_file(paste0("dixon_", f), file.path(FS_DIR, f), "local copy", dst)
 }
 
+# ---- 6. MapSPAM 2020 (Atlas harmonised) maize production and area ---------
+# Windowed /vsicurl read of the maize layer over the three countries; the
+# object's current x-amz-version-id is recorded as its pin.
+message("MapSPAM maize rasters (Atlas harmonised COGs)")
+SPAM_KEYS <- c(
+  prod_t       = "domain=exposure/type=crop/source=spam2020v1r2_ssa/region=ssa/processing=atlas-harmonized/variable=prod_t/spam_prod_t_all.tif",
+  harv_area_ha = "domain=exposure/type=crop/source=spam2020v1r2_ssa/region=ssa/processing=atlas-harmonized/variable=harv-area_ha/spam_harv-area_ha_all.tif"
+)
+gaul <- sf::st_as_sf(arrow::read_parquet(file.path(OUT, "gaul24_adm2_ken_eth_nga.parquet")))
+ext3 <- terra::ext(terra::vect(gaul)) + 0.5
+for (v in names(SPAM_KEYS)) {
+  path <- file.path(OUT, sprintf("spam2020_maize_%s.tif", v))
+  hdr  <- curlGetHeaders(paste0(S3, SPAM_KEYS[[v]]))
+  ver  <- trimws(sub("(?i)^x-amz-version-id:\\s*", "",
+                     grep("(?i)^x-amz-version-id", hdr, value = TRUE, perl = TRUE), perl = TRUE))
+  if (!file.exists(path)) {
+    r <- terra::rast(paste0("/vsicurl/", S3, SPAM_KEYS[[v]]))
+    if (!"maize" %in% names(r)) stop("No maize layer in ", SPAM_KEYS[[v]])
+    terra::writeRaster(terra::crop(r[["maize"]], ext3), path, overwrite = TRUE)
+  }
+  log_file(paste0("spam_maize_", v), paste0(S3, SPAM_KEYS[[v]]), ver, path,
+           "maize layer, cropped to KEN/ETH/NGA bbox + 0.5 deg; pin = version id at fetch")
+}
+
 # ---- Manifest ------------------------------------------------------------
 m <- do.call(rbind, manifest)
 utils::write.csv(m, file.path(OUT, "MANIFEST.csv"), row.names = FALSE)
