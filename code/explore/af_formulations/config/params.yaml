@@ -1,0 +1,52 @@
+# ------------------------------------------------------------------------------
+# code/explore/af_formulations/config/params.yaml
+#
+# EXPLORATORY parameter grid for the adaptation-factor formulation comparison
+# (brief step 5.3). All values are placeholders or scenario grids; none is an
+# estimate for reporting. Decisions: _claude/notes/2026-10-27 - DECISIONS - ...
+# ------------------------------------------------------------------------------
+
+crop: maize
+hazard_vars: "NDWS+NTx35+NDWL0"
+scenario: historic
+
+# Atlas single-hazard marginal -> loss-table hazard name.
+hazard_map:
+  dry: drought        # NDWS
+  heat: heat          # NTx35
+  wet: waterlogging   # NDWL0
+
+# Control yield loss share per severity BAND, maize (bronze placeholder copied
+# from code/activity2/step3_adaptation.R loss_table). Read as the loss in a
+# season whose index falls in that band; applied to band probabilities
+# obtained by differencing the Atlas cumulative tiers.
+loss_frac:
+  drought:      {moderate: 0.10, severe: 0.25, extreme: 0.45}
+  heat:         {moderate: 0.06, severe: 0.18, extreme: 0.35}
+  waterlogging: {moderate: 0.05, severe: 0.15, extreme: 0.30}
+
+practices:
+  cover_crops:
+    era_prname: "Green Manure"      # ERA's cover-crop practice; single-practice comparisons only
+    hazards: [dry, wet]
+  reduced_tillage:
+    era_prname: "Reduced Tillage"   # NoTill + MinTill; bundles (e.g. Mulch-Reduced Tillage) excluded
+    hazards: [dry]
+
+# Normal-year relative gain g: the ERA estimate per practice is added at run
+# time (03_params.R) alongside this scenario grid.
+g_grid: [-0.10, 0.00, 0.10, 0.25, 0.50, 1.00]
+
+# Buffering m per severity (signed). Constant profiles span the brief's grid;
+# declining profiles represent buffering that weakens as severity rises.
+m_profiles:
+  const_-0.20: {moderate: -0.20, severe: -0.20, extreme: -0.20}
+  const_0.00:  {moderate: 0.00,  severe: 0.00,  extreme: 0.00}
+  const_0.25:  {moderate: 0.25,  severe: 0.25,  extreme: 0.25}
+  const_0.50:  {moderate: 0.50,  severe: 0.50,  extreme: 0.50}
+  const_0.75:  {moderate: 0.75,  severe: 0.75,  extreme: 0.75}
+  const_1.00:  {moderate: 1.00,  severe: 1.00,  extreme: 1.00}
+  decl_hi:     {moderate: 1.00,  severe: 0.50,  extreme: 0.00}
+  decl_mid:    {moderate: 0.75,  severe: 0.50,  extreme: 0.25}
+  decl_lo:     {moderate: 0.50,  severe: 0.25,  extreme: 0.00}
+  decl_mal:    {moderate: 0.25,  severe: 0.00,  extreme: -0.20}
