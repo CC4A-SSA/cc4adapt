@@ -53,6 +53,15 @@ test_that("F0, F4, F5 over-counts have the closed forms in the decisions note", 
                (sy$A * sy$L^2 * sy$m / (1 - sy$L))[ok])
 })
 
+test_that("F1 - F3 gap is -L B g, independent of m; F5 - F3 is m times that", {
+  sy <- af_stress_year(grid$B, grid$g, grid$L, grid$m)
+  expect_equal(sy$F1_al - sy$F3_al, -sy$L * sy$B * sy$g)
+  expect_equal(sy$F5_al - sy$F3_al, -sy$L * sy$m * sy$B * sy$g)
+  ok <- sy$F3_al != 0
+  expect_equal(((sy$F1_al - sy$F3_al) / sy$F3_al)[ok],
+               (-sy$g / ((1 + sy$g) * sy$m))[ok])
+})
+
 test_that("sign behaviour: F2 never negative, F3 negative only when m < 0", {
   sy <- af_stress_year(grid$B, grid$g, grid$L, grid$m)
   expect_true(all(sy$F2_al >= 0))
