@@ -1,5 +1,7 @@
 # Carbon Credit linked Adaptation (CCA) — analysis pipeline
 
+> **Status: April 2026 prototype.** This repository is a reference, not the canonical CC4A method. Results it produces are exploratory. For the current work see the CC4A-SSA organisation and the tracking issues in this repository. The exploratory comparison of avoided-loss formulations lives in `code/explore/af_formulations/` and is published at https://cc4a-ssa.github.io/cc4adapt/af_formulations/.
+
 Reproducible spatial + economic analysis of agricultural carbon-credit practices with adaptation co-benefits across **Nigeria, Kenya, and Ethiopia** at **5 arc-minute (~10 km)** resolution.
 
 The pipeline is **standalone and replicable on any computer**: every external dataset is downloaded by a script, every pre-processed intermediate is derived from a documented input, and every output artefact (COG, GeoPackage, CSV) is written to a deterministic path. A fresh clone + `Rscript code/inputs/00_fetch_all.R` reproduces everything end-to-end.
@@ -447,4 +449,4 @@ Bugs caught during verification and since fixed: (i) Rscript `--file=` resolutio
 
 ## License
 
-Code: MIT (see `LICENSE` when present). Data: varies by source — see each entry in `data/inputs/MANIFEST.md` for the original licence.
+Code: MIT (`LICENSE`). Data and outputs produced by this repository: CC BY 4.0. Inputs keep their own licences — see `data/inputs/MANIFEST.md` and `text/REFERENCES.md`.
