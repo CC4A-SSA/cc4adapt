@@ -470,7 +470,7 @@ function drawStrata() {
   tbl("#era-g", [{t:"Practice"},{t:"Hazard"},{t:"Threshold"},{t:"g_norm",num:1},{t:"g_stress",num:1},{t:"studies norm / stress",num:1},{t:"site-seasons norm / stress",num:1}],
       (E.g || []).filter(r => r.hazard !== "heat").map(r => [pname[r.practice] || r.practice, r.hazard, r.threshold, pc(r.g_norm), pc(r.g_stress), `${r.studies_norm} / ${r.studies_stress ?? "–"}`, `${r.site_seasons_norm} / ${r.site_seasons_stress ?? "–"}`]));
   tbl("#era-test", [{t:"Practice"},{t:"Hazard"},{t:"stress obs / studies",num:1},{t:"proportional slope t",num:1},{t:"additive slope t",num:1},{t:"Supports"}],
-      (E.test || []).map(r => [pname[r.practice] || r.practice, r.hazard, `${r.n_obs} / ${r.n_studies}`, fmt(r.prop_t, 2), fmt(r.add_t, 2), Math.abs(r.prop_t) < Math.abs(r.add_t) ? "proportional" : "additive"]));
+      (E.test || []).map(r => [pname[r.practice] || r.practice, r.hazard, `${r.n_obs} / ${r.n_studies}`, fmt(r.prop_t, 2), fmt(r.add_t, 2), (Math.abs(r.prop_t) < 2 && Math.abs(r.add_t) < 2) ? "ambiguous" : Math.abs(r.prop_t) < Math.abs(r.add_t) ? "proportional" : "additive"]));
   tbl("#era-obs", [{t:"Country"},{t:"ERA sites",num:1},{t:"site-seasons",num:1},{t:"observed P(dry ≥ mod)",num:1},{t:"Atlas P(dry ≥ mod)",num:1},{t:"observed P(dry ≥ sev)",num:1},{t:"Atlas P(dry ≥ sev)",num:1},{t:"observed P(wet ≥ mod)",num:1},{t:"Atlas P(wet ≥ mod)",num:1}],
       (E.obs || []).map(r => [r.iso3, r.sites, r.seasons, fmt(r.obs_dry, 2), fmt(r.atlas_dry, 2), fmt(r.obs_dry_sev, 2), fmt(r.atlas_dry_sev, 2), fmt(r.obs_wet, 2), fmt(r.atlas_wet, 2)]));
 }
