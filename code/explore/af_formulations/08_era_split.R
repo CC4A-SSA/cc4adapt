@@ -56,9 +56,10 @@ gsplit <- rbindlist(lapply(names(HAZ), function(h) rbindlist(lapply(THRESH, func
   x <- copy(d)[, stress := ORD[b] >= ORD[[th]]]
   x <- x[!is.na(stress)]
   st <- x[, .(lrr = mean(lrr), n = .N), by = .(practice, Code, stress)]
-  st[, .(g = exp(mean(lrr)) - 1, g_median = exp(median(lrr)) - 1, n_studies = .N, n_obs = sum(n),
-         n_site_seasons = uniqueN(x[practice == practice[1] & stress == stress[1], .(Site.Key, slot, yr)])),
-     by = .(practice, stress)][, `:=`(hazard = h, threshold = th)]
+  ss <- x[, .(n_site_seasons = uniqueN(paste(Site.Key, slot, yr))), by = .(practice, stress)]
+  g  <- st[, .(g = exp(mean(lrr)) - 1, g_median = exp(median(lrr)) - 1, n_studies = .N, n_obs = sum(n)),
+           by = .(practice, stress)]
+  merge(g, ss, by = c("practice", "stress"))[, `:=`(hazard = h, threshold = th)]
 }))))
 gw <- dcast(gsplit, practice + hazard + threshold ~ stress, value.var = c("g", "g_median", "n_studies", "n_obs", "n_site_seasons"))
 setnames(gw, c("g_FALSE", "g_TRUE", "g_median_FALSE", "g_median_TRUE", "n_studies_FALSE", "n_studies_TRUE",
