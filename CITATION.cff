@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below."
+title: "cc4adapt: Carbon Credit linked Adaptation analysis pipeline (prototype)"
+type: software
+authors:
+  - name: "Alliance of Bioversity International and CIAT"
+    city: Rome
+    country: IT
+  - family-names: Steward
+    given-names: Peter
+    orcid: "https://orcid.org/0000-0003-3985-4911"
+repository-code: "https://github.com/CC4A-SSA/cc4adapt"
+license: MIT
+version: "0.1-prototype"
+date-released: "2026-04-20"
+abstract: >-
+  Prototype spatial and economic analysis of agricultural carbon-credit
+  practices with adaptation co-benefits for Kenya, Ethiopia and Nigeria,
+  and an exploratory comparison of avoided-loss formulations on Africa
+  Agriculture Adaptation Atlas hazard data. Code is MIT; data and outputs
+  are CC BY 4.0 unless an input's own licence says otherwise.
+keywords:
+  - carbon credits
+  - climate adaptation
+  - sub-Saharan Africa
+  - hazard exposure
+  - MapSPAM
