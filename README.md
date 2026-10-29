@@ -449,4 +449,4 @@ Bugs caught during verification and since fixed: (i) Rscript `--file=` resolutio
 
 ## License
 
-Code: MIT (`LICENSE`). Data and outputs produced by this repository: CC BY 4.0. Inputs keep their own licences — see `data/inputs/MANIFEST.md` and `text/REFERENCES.md`.
+Code: MIT (`LICENSE`). Data and outputs produced by this repository: [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), as agreed in the TNC–CIAT alignment report. Inputs keep their own licences — see `data/inputs/MANIFEST.md` and `text/REFERENCES.md`.
