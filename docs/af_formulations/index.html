@@ -107,7 +107,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <div class="tablewrap"><table>
 <tr><th>Here</th><th>Meaning</th><th>MELIAF</th></tr>
 <tr><td><b>B</b>, <b>A = B(1+g)</b></td><td>control and practice yield in a normal year</td><td>g<sub>norm</sub> = g (as a ratio)</td></tr>
-<tr><td><b>L</b></td><td>share of yield the control loses in a stress season</td><td>not stored; needed to convert between readings</td></tr>
+<tr><td><b>L</b></td><td>share of yield the control loses in a stress season</td><td>not in the indicator; needed to convert between readings</td></tr>
 <tr><td><b>m</b></td><td>share of that loss the practice avoids (signed)</td><td>g<sub>stress</sub> − g<sub>norm</sub> = (1+g)·L·m / (1−L) as in-season ratios</td></tr>
 <tr><td><b>P(h, s)</b></td><td>probability of hazard h at severity band s</td><td>P<sub>stress,h</sub> = Σ<sub>s</sub> P(h, s)</td></tr>
 <tr><td><b>B<sub>s</sub> = B(1−L)</b>, <b>A<sub>s</sub> = A(1 − L(1−m))</b></td><td>stress-year yields</td><td>the observed "stress season" outputs</td></tr>
@@ -214,10 +214,10 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 </ul>
 <h3>Questions for Adaptation Insights</h3>
 <ol>
-<li>In the reference database, are g<sub>stress</sub> and g<sub>norm</sub> stored as ratios or in kg/ha? If kg/ha, which yield converts them?</li>
-<li>Can the control's stress-season loss L<sub>c</sub> = 1 − B<sub>s</sub>/B be a mandatory field? Without it neither reading converts to the other.</li>
+<li>When g<sub>stress</sub> and g<sub>norm</sub> are estimated, will they be ratios or kg/ha? If kg/ha, which yield converts them? (The v3.0 reference database is a design, not yet a dataset, so this is a choice still open.)</li>
+<li>Can the control's stress-season loss L<sub>c</sub> = 1 − B<sub>s</sub>/B be recorded alongside each factor? Without it neither reading converts to the other.</li>
 <li>Which hazard benchmark, and would a severity-resolved factor with the exact merge be accepted as the primitive?</li>
-<li>Shared task: classify ERA maize site-seasons as stress or normal with the Atlas stack, so g<sub>norm</sub> and g<sub>stress</sub> can be estimated separately for the practices in scope.</li>
+<li>Shared task: classify ERA maize site-seasons as stress or normal, so g<sub>norm</sub> and g<sub>stress</sub> can be estimated separately for the practices in scope. The <a href="https://github.com/CGIAR-Climate-Data-Hub/climate-toolkit">CGIAR climate-toolkit</a> already does this at site level: NDWS, NDWL0 and NTx35 from observed daily CHIRPS v3 and AgERA5, Atlas-style severity bands, a sites table in and a season classification out. Its heat bands (10 / 20 / 25 days) would be set to the Atlas values (7 / 14 / 21) for the run.</li>
 </ol>
 </div>
 
