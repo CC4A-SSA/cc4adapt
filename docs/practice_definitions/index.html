@@ -1,53 +1,215 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CC4A practice definitions</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CC4A Practice Register</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-:root{--bg:#fbfaf7;--fg:#1f2328;--muted:#5d6670;--line:#d9dde3;--card:#fff;--l1:#e3ecf7;--l2:#f1f5fb;
---agreed:#d7f0dc;--priority:#dbe8f7;--proposed:#fbefc7;--dropped:#ececec;--accent:#2f6f8f}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2d333b;--card:#1c2026;--l1:#22303f;--l2:#1d2631;--agreed:#1f3a27;--priority:#1f2f44;--proposed:#3b3418;--dropped:#2a2d31;--accent:#7cb7d4}}
-:root[data-theme="dark"]{--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2d333b;--card:#1c2026;--l1:#22303f;--l2:#1d2631;--agreed:#1f3a27;--priority:#1f2f44;--proposed:#3b3418;--dropped:#2a2d31;--accent:#7cb7d4}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
-header{padding:20px 16px 8px;max-width:1400px;margin:auto}h1{font-size:20px;margin:0 0 4px}.sub{color:var(--muted);margin:0}
-.banner{margin:12px 0;padding:8px 12px;border-left:4px solid #c9821a;background:var(--card);border-radius:4px}
-.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 16px;max-width:1400px;margin:auto}
-.controls input,.controls select{padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg)}
-.chip{border:1px solid var(--line);border-radius:999px;padding:4px 10px;background:var(--card);color:var(--fg);cursor:pointer;font-size:12px}
-.chip[aria-pressed=false]{opacity:.45}
-main{padding:0 16px 40px;max-width:1400px;margin:auto}
-.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--card)}
-table{border-collapse:collapse;min-width:900px;width:100%}th,td{border-bottom:1px solid var(--line);padding:6px 8px;vertical-align:top;text-align:left}
-th{position:sticky;top:0;background:var(--card);font-size:12px;color:var(--muted);z-index:1}
-td{max-width:320px}tr.L1 td{background:var(--l1);font-weight:600}tr.L2 td{background:var(--l2);font-weight:600}
-tr.dropped td{color:var(--muted);font-style:italic}
-.st{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;white-space:nowrap}
-.st.agreed{background:var(--agreed)}.st.priority{background:var(--priority)}.st.proposed{background:var(--proposed)}.st.dropped{background:var(--dropped)}
-.ind3{padding-left:22px}h2{font-size:16px;margin:28px 0 8px}
-@media (max-width:700px){td{max-width:220px}}
-</style></head><body>
-<header><h1>CC4A practice definitions: TNC × Alliance</h1>
-<p class="sub">Simplified shared definition and footprint per practice. Hierarchy: domain › TNC pathway › practice › variant.</p>
-<div class="banner"><strong>DRAFT 29 Oct 2026, not yet agreed.</strong> Status column shows what is agreed versus proposed or open. Content: CC BY 4.0. Source: <a href="https://github.com/CC4A-SSA/cc4adapt">CC4A-SSA/cc4adapt</a>.</div></header>
-<div class="controls">
-<input id="q" type="search" placeholder="Search…" aria-label="Search">
-<select id="dom" aria-label="Domain"><option value="">All domains</option></select>
-<select id="st" aria-label="Status"><option value="">All statuses</option><option>Agreed</option><option>Priority</option><option>Proposed</option><option>Dropped / not taken forward</option></select>
-<span id="themes"></span></div>
-<main><div class="wrap"><table id="t"><thead></thead><tbody></tbody></table></div>
-<h2>Shared inputs to pin</h2><div class="wrap"><table id="inp"></table></div>
-<h2>Open questions</h2><div class="wrap"><table id="qs"></table></div></main>
+/* Layout: register list (left) + practice sheet (right); stacks on phones. Domain colours borrow land-cover legend tones. */
+:root{
+  --bg:#f5f6f3; --surface:#ffffff; --sunk:#eceee8; --fg:#1d2420; --muted:#5b6660; --line:#d6dbd3;
+  --accent:#1f6b5a; --accent-soft:#dcebe5;
+  --crop:#b8862c; --graze:#4f8a3c; --cross:#5d6b7a;
+  --ok:#2f7d4a; --ok-bg:#dff1e4; --pri:#2b5f9e; --pri-bg:#e0eaf7; --prop:#8a6410; --prop-bg:#f6ebcc; --out:#6b716d; --out-bg:#e7e9e6;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121614; --surface:#1a1f1c; --sunk:#232925; --fg:#e4e9e5; --muted:#9aa59f; --line:#2f3732;
+  --accent:#6cc3a8; --accent-soft:#1f3a32; --crop:#d6a548; --graze:#7fb86b; --cross:#93a3b4;
+  --ok:#7fd29a; --ok-bg:#1d3526; --pri:#8db6ea; --pri-bg:#1e2c40; --prop:#e2bd5e; --prop-bg:#3a3018; --out:#a3aaa5; --out-bg:#2a2f2c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121614; --surface:#1a1f1c; --sunk:#232925; --fg:#e4e9e5; --muted:#9aa59f; --line:#2f3732;
+  --accent:#6cc3a8; --accent-soft:#1f3a32; --crop:#d6a548; --graze:#7fb86b; --cross:#93a3b4;
+  --ok:#7fd29a; --ok-bg:#1d3526; --pri:#8db6ea; --pri-bg:#1e2c40; --prop:#e2bd5e; --prop-bg:#3a3018; --out:#a3aaa5; --out-bg:#2a2f2c; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--f-body);padding-inline:16px}
+h1,h2,h3{text-wrap:balance;margin:0}
+a{color:var(--accent)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-size:.85em}
+.wrap{max-width:1320px;margin:0 auto;padding-block:20px 48px;display:grid;gap:16px}
+header.top{display:grid;gap:10px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-size:26px;font-weight:700;letter-spacing:-.01em}
+.lede{color:var(--muted);max-width:70ch;margin:0}
+.draft{display:inline-flex;gap:8px;align-items:center;font-size:13px;padding:4px 10px;border-radius:999px;background:var(--prop-bg);color:var(--prop);font-weight:600;width:fit-content}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav.tabs button{background:none;border:0;padding:10px 12px;cursor:pointer;color:var(--muted);font-weight:600;border-bottom:2px solid transparent;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--accent)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.toolbar input[type=search]{flex:1 1 220px;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--fg)}
+.statusbar{display:flex;flex-wrap:wrap;gap:6px}
+.sbtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 10px;cursor:pointer;font-size:13px}
+.sbtn b{font-variant-numeric:tabular-nums}
+.sbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.d-agreed{background:var(--ok)}.d-priority{background:var(--pri)}.d-proposed{background:var(--prop)}.d-out{background:var(--out)}
+.tog{font-size:13px;color:var(--muted);display:inline-flex;gap:6px;align-items:center}
+.layout{display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
+.register{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);max-height:calc(100vh - 220px);overflow:auto;position:sticky;top:12px}
+@media (max-width:860px){.register{position:static;max-height:none}}
+.dom{border-bottom:1px solid var(--line)}
+.dom>h2{display:flex;align-items:center;gap:8px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding:12px 12px 6px;color:var(--muted)}
+.swatch{width:12px;height:12px;border-radius:2px;flex:none}
+.pw{padding:4px 12px 2px;font-size:12px;color:var(--muted);font-weight:600}
+.item{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:start;width:100%;text-align:left;background:none;border:0;border-left:3px solid transparent;padding:7px 12px;cursor:pointer}
+.item:hover{background:var(--sunk)}
+.item[aria-current="true"]{background:var(--accent-soft);border-left-color:var(--accent)}
+.item .id{color:var(--muted);font-family:var(--f-mono);font-size:12px;padding-top:2px;min-width:3.6em}
+.item .nm{font-size:14px}
+.item .nm small{display:block;color:var(--muted);font-size:12px}
+.item.out .nm{color:var(--muted)}
+.qbadge{font-size:11px;font-variant-numeric:tabular-nums;color:var(--prop);background:var(--prop-bg);border-radius:999px;padding:1px 7px;margin-top:2px}
+.empty{padding:16px;color:var(--muted)}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:grid;gap:22px;min-width:0}
+.sheet-head{display:grid;gap:8px}
+.crumbs{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.crumbs .swatch{width:10px;height:10px}
+.titlerow{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;justify-content:space-between}
+.titlerow h2{font-size:22px;font-weight:700}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.p-agreed{background:var(--ok-bg);color:var(--ok)}.p-priority{background:var(--pri-bg);color:var(--pri)}.p-proposed{background:var(--prop-bg);color:var(--prop)}.p-out{background:var(--out-bg);color:var(--out)}
+.basis{font-size:13px;color:var(--muted)}
+.copy{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:4px 10px;font-size:13px;cursor:pointer}
+section.blk{display:grid;gap:10px}
+section.blk>h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+dl.def{display:grid;grid-template-columns:minmax(110px,160px) minmax(0,1fr);gap:8px 16px;margin:0}
+dl.def dt{color:var(--muted);font-size:13px;font-weight:600;padding-top:1px}
+dl.def dd{margin:0;max-width:75ch}
+@media (max-width:560px){dl.def{grid-template-columns:minmax(0,1fr)}dl.def dd{margin-bottom:6px}}
+ol.mask{list-style:none;margin:0;padding:0;display:grid;gap:0;counter-reset:m}
+ol.mask li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;padding:8px 0;position:relative}
+ol.mask li::before{counter-increment:m;content:counter(m);width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font:600 12px/24px var(--f-mono);text-align:center;z-index:1}
+ol.mask li:not(:last-child)::after{content:"";position:absolute;left:11px;top:32px;bottom:-8px;width:2px;background:var(--line)}
+ol.mask .lab{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+ol.mask .unset{color:var(--muted);font-style:italic}
+ol.mask .inh{font-size:12px;color:var(--muted)}
+.layers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.layers{grid-template-columns:minmax(0,1fr)}}
+.lay{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:grid;gap:8px;align-content:start}
+.lay h4{margin:0;font-size:14px;display:flex;gap:8px;align-items:center}
+.lay .who{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;border-radius:999px;padding:2px 9px;background:var(--sunk);border:1px solid var(--line)}
+ul.open{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+ul.open li{border-left:3px solid var(--prop);background:var(--sunk);padding:8px 12px;border-radius:0 var(--r) var(--r) 0}
+ul.open li.disc{border-color:var(--pri)}
+ul.open li .tag{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--pri);margin-right:6px}
+.context{background:var(--sunk);border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--muted);display:grid;gap:4px}
+.context b{color:var(--fg);font-weight:600}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--sunk)}
+td a{cursor:pointer}
+.about{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:grid;gap:12px;max-width:80ch}
+.about p{margin:0}
+footer{color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:no-preference){.item,.sbtn{transition:background .12s}}
+</style></head>
+<body><div class="wrap">
+<header class="top">
+  <div class="eyebrow">Carbon Crediting for Adaptation · TNC × Alliance of Bioversity International and CIAT</div>
+  <h1>CC4A Practice Register</h1>
+  <p class="lede">One shared definition and footprint per practice, so TNC's mitigation layers and the Alliance's production and adaptation layers describe the same thing on the same land.</p>
+  <span class="draft">DRAFT · 29 Oct 2026 · not yet agreed</span>
+</header>
+<nav class="tabs" role="tablist" aria-label="Views">
+  <button role="tab" id="tab-practices" aria-selected="true" data-view="practices">Practices</button>
+  <button role="tab" id="tab-inputs" aria-selected="false" data-view="inputs">Shared inputs</button>
+  <button role="tab" id="tab-questions" aria-selected="false" data-view="questions">Open questions</button>
+  <button role="tab" id="tab-about" aria-selected="false" data-view="about">How to read</button>
+</nav>
+
+<div id="v-practices" class="view" style="display:grid;gap:12px">
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="Search practices, masks, crops, hazards…" aria-label="Search">
+    <div class="statusbar" id="statusbar"></div>
+    <label class="tog"><input type="checkbox" id="showout"> Show dropped / not taken forward</label>
+  </div>
+  <div class="layout">
+    <aside class="register" id="register" aria-label="Practice list"></aside>
+    <article class="sheet" id="sheet" aria-live="polite"></article>
+  </div>
+</div>
+<div id="v-inputs" class="view" hidden><div class="tablewrap"><table id="inputs"></table></div></div>
+<div id="v-questions" class="view" hidden><div class="tablewrap"><table id="questions"></table></div></div>
+<div id="v-about" class="view" hidden><div class="about">
+  <p><b>Hierarchy.</b> Land-use domain › TNC pathway › practice › variant. Settings on a domain or pathway apply to every practice under it and are shown as "Pathway context" on each practice sheet.</p>
+  <p><b>Footprint.</b> Each practice's area is built by applying masks in order: (1) base land cover, (2) farming or production system, (3) commodities, (4) a condition gate such as irrigation control or responsive soils, (5) exclusions and thresholds. TNC's mitigation-eligible area is the shared spatial anchor.</p>
+  <p><b>Status.</b> <span class="pill p-agreed">Agreed</span> both sides agreed, or the practice is agreed with one element still open. <span class="pill p-priority">Priority</span> agreed priority; data or mapping not settled. <span class="pill p-proposed">Proposed</span> one side's proposal. <span class="pill p-out">Out</span> dropped or not taken forward.</p>
+  <p><b>Sources.</b> TNC–Alliance alignment workbook (TNC and Alliance tabs, Crosswalk), CIAT–TNC geospatial subteam meeting of 13 Oct 2026, and team chats, 2–29 Oct 2026. Status basis is cited on each sheet.</p>
+  <p>Status column shows what is agreed versus proposed or open. Content: CC BY 4.0. Source: <a href="https://github.com/CC4A-SSA/cc4adapt">CC4A-SSA/cc4adapt</a>. Download the data as <a href="practice_definitions.csv">CSV</a>.</p>
+</div></div>
+<footer>Spatial grid 5 arcmin (≈10 km), EPSG:4326, sub-Saharan Africa; Kenya, Ethiopia and Nigeria deep-dives. Data <a href="practice_definitions.csv">CSV</a>.</footer>
+</div>
 <script>
 const D={"cols": [{"key": "id", "label": "ID", "theme": "Hierarchy"}, {"key": "level", "label": "Level", "theme": "Hierarchy"}, {"key": "domain", "label": "L1 Land-use domain", "theme": "Hierarchy"}, {"key": "pathway", "label": "L2 TNC pathway", "theme": "Hierarchy"}, {"key": "practice", "label": "L3 Practice", "theme": "Hierarchy"}, {"key": "variant", "label": "L4 Sub-practice / variant", "theme": "Hierarchy"}, {"key": "status", "label": "Status", "theme": "Status"}, {"key": "status_src", "label": "Status basis (who / when)", "theme": "Status"}, {"key": "defn", "label": "Definition: IN", "theme": "Definition"}, {"key": "out", "label": "Definition: OUT (explicit exclusions)", "theme": "Definition"}, {"key": "bundle", "label": "Bundle / double-counting rule", "theme": "Definition"}, {"key": "baseline", "label": "Counterfactual / baseline", "theme": "Definition"}, {"key": "landcover", "label": "Footprint 1: base land-cover mask", "theme": "Footprint"}, {"key": "system", "label": "Footprint 2: farming / production system", "theme": "Footprint"}, {"key": "commodity", "label": "Footprint 3: commodities in scope", "theme": "Footprint"}, {"key": "gate", "label": "Footprint 4: condition gate (biophysical / infrastructure)", "theme": "Footprint"}, {"key": "excl", "label": "Footprint 5: area exclusions / thresholds", "theme": "Footprint"}, {"key": "tnc_layer", "label": "TNC mitigation layer (current)", "theme": "Layers"}, {"key": "all_layer", "label": "Alliance production + adaptation layer", "theme": "Layers"}, {"key": "hazards", "label": "Hazards addressed (adaptation)", "theme": "Layers"}, {"key": "inputs", "label": "Shared inputs to pin", "theme": "Layers"}, {"key": "open", "label": "Open points (owner)", "theme": "Open"}], "rows": [{"id": "C", "level": "L1", "domain": "Cropland", "pathway": "", "practice": "", "variant": "", "status": "", "status_src": "", "defn": "Practices applied on cropland. Shared base: cropland extent x MapSPAM crop allocation (vintage to pin).", "out": "", "bundle": "", "baseline": "", "landcover": "", "system": "", "commodity": "", "gate": "", "excl": "", "tnc_layer": "", "all_layer": "", "hazards": "", "inputs": "Cropland product (TNC SOC layers: SoilsRevealed base; TNC trees: Potapov 2019 cropland); MapSPAM vintage", "open": ""}, {"id": "C1", "level": "L2", "domain": "Cropland", "pathway": "Reduced emissions in croplands", "practice": "", "variant": "", "status": "", "status_src": "", "defn": "", "out": "", "bundle": "", "baseline": "", "landcover": "", "system": "", "commodity": "", "gate": "", "excl": "", "tnc_layer": "", "all_layer": "", "hazards": "", "inputs": "", "open": ""}, {"id": "C1.1", "level": "L3", "domain": "Cropland", "pathway": "Reduced emissions in croplands", "practice": "Rice water management: moderate AWD (multiple drainage)", "variant": "", "status": "Agreed (scope open)", "status_src": "Crosswalk Go-caveated; 13 Oct: subset global layer, Nigeria test case", "defn": "Multiple-drainage / alternate wetting and drying in irrigated rice with field-level water control.", "out": "Rainfed lowland and upland rice; deepwater rice; schemes without field-level water control.", "bundle": "", "baseline": "Continuously flooded irrigated rice (TNC: 0% current AWD adoption).", "landcover": "Irrigated rice area (MapSPAM irrigated rice; TNC uses SPAM2010).", "system": "Irrigated rice schemes.", "commodity": "Rice (irrigated).", "gate": "Field-level water control (Alliance gate; no SSA dataset yet). Adaptation only where irrigation supply falls between flooding and AWD demand.", "excl": "Pixels without controllable irrigation (reason-coded null).", "tnc_layer": "crp_rec_rice: IPCC 2019 Tier 1 EFs, continuous vs multiple drainage, MapSPAM 2010 irrigated rice, GWP20/GWP*. Planned: SSA lit review, subset global layer.", "all_layer": "Conditional water-scarcity avoided-loss (distinct method). Production effect from evidence (small yield penalty/neutral).", "hazards": "Irrigation water scarcity / drought-related deficit", "inputs": "MapSPAM vintage; irrigation/water-control layer", "open": "Definition of 'irrigated with water control' and data source (Alliance, TNC). SSA EF (TNC). TNC to share rice work plan."}, {"id": "C1.2", "level": "L3", "domain": "Cropland", "pathway": "Reduced emissions in croplands", "practice": "Rice establishment: DSR / SRI", "variant": "", "status": "Proposed (Alliance)", "status_src": "Gates Big Bet / BCG preliminary list includes SRI, DSR and moderate AWD (VM0051); Alliance flagged DSR missing (10 Sep); not in TNC inventory", "defn": "Direct-seeded rice and System of Rice Intensification in irrigated/lowland rice.", "out": "Upland rice.", "bundle": "Shares AWD eligible area; do not stack with AWD water-saving benefit.", "baseline": "Transplanted, continuously flooded rice.", "landcover": "As C1.1.", "system": "Irrigated / lowland rice.", "commodity": "Rice.", "gate": "Same water-control gate as AWD.", "excl": "", "tnc_layer": "None. TNC to decide whether to add under Rice Cultivation.", "all_layer": "Proposed; evidence thin for DSR in SSA.", "hazards": "Water scarcity; establishment dry spells", "inputs": "", "open": "Discussion point: may be more relevant than AWD for SSA. Ask Gates for the signal; validate in NG and KE country workshops (e.g. Mwea). TNC to decide on a mitigation layer (TNC)."}, {"id": "C1.3", "level": "L3", "domain": "Cropland", "pathway": "Reduced emissions in croplands", "practice": "Nutrient management", "variant": "", "status": "Dropped", "status_src": "Both sides, Oct 2026 (Crosswalk row 7, L7)", "defn": "(dropped)", "out": "", "bundle": "", "baseline": "", "landcover": "", "system": "", "commodity": "", "gate": "", "excl": "", "tnc_layer": "crp_rec_ntm listed in Box ReadMe but not delivered.", "all_layer": "", "hazards": "", "inputs": "", "open": "None. Keep row for record."}, {"id": "C2", "level": "L2", "domain": "Cropland", "pathway": "Increased soil carbon in croplands", "practice": "", "variant": "", "status": "", "status_src": "", "defn": "TNC currently aggregates cover crops, reduced tillage and biochar; separate rasters now provided (crp_scc_cc / _redtill / _biochar). TNC flags the pathway name may be a misnomer.", "out": "", "bundle": "", "baseline": "", "landcover": "", "system": "", "commodity": "", "gate": "", "excl": "", "tnc_layer": "", "all_layer": "", "hazards": "", "inputs": "", "open": ""}, {"id": "C2.1", "level": "L3", "domain": "Cropland", "pathway": "Increased soil carbon in croplands", "practice": "Cover crops / soil cover", "variant": "", "status": "Agreed (bundle rule proposed)", "status_src": "Crosswalk Go 1:1; Alliance position 29 Oct: standalone row + bundle rule", "defn": "Living cover between or within main crop seasons (incl. green manures). TNC EF class = IPCC 'high input without manure' (cover crops, green manures, improved vegetated fallows, high-residue crops).", "out": "Perennial crops; paddy rice; residue retention alone (sits in C2.2).", "bundle": "Standalone row (TNC has a separate raster). Where it co-occurs with C2.2 the benefit is counted once at CA-bundle level, for both SOC and adaptation.", "baseline": "Medium-input cropping without cover (IPCC).", "landcover": "Cropland (TNC: SoilsRevealed/IPCC base).", "system": "Rainfed annual cropping only.", "commodity": "Rainfed annual field crops; default set = BCG staple list (maize, wheat, millet, sorghum, barley, oats, soybean, teff, beans).", "gate": "Enough rainfall / season length for a cover crop without harming the main crop; residue not fully committed to feed/fuel.", "excl": "Irrigated cropland; paddy rice; perennials; hyper-arid.", "tnc_layer": "crp_scc_cc: IPCC Tier 1 SOC change, 20-yr steady state extended to 2050.", "all_layer": "Production + drought/heavy-rain buffering from ERA. Alliance's template practice.", "hazards": "Drought; excess rainfall / waterlogging (erosion)", "inputs": "MapSPAM vintage; SSP choice", "open": "TNC to confirm the bundle rule (TNC). Which SSP (TNC asked, K8)."}, {"id": "C2.2", "level": "L3", "domain": "Cropland", "pathway": "Increased soil carbon in croplands", "practice": "Reduced tillage + residue management", "variant": "", "status": "Agreed", "status_src": "13 Oct: TNC - layer assumes retained residues/C inputs; label agreed", "defn": "Reduced / no tillage WITH residue retention (reduced tillage alone not credited).", "out": "Tillage reduction without residue/C input retention.", "bundle": "See C2.1 bundle rule. Residue use shared with biochar (C2.3) and feed (G1.1).", "baseline": "Conventional tillage (IPCC).", "landcover": "Cropland.", "system": "Rainfed annual cropping only.", "commodity": "As C2.1 (rainfed annual field crops, BCG staple list).", "gate": "Residue availability after feed/fuel use.", "excl": "Irrigated cropland; paddy rice.", "tnc_layer": "crp_scc_redtill: IPCC Tier 1, no-till vs conventional, 20-yr steady state to 2050.", "all_layer": "Evidence classified tillage-only vs tillage+residue; hazard-conditioned effects within comparable treatments.", "hazards": "Drought; excess rainfall", "inputs": "Shared residue-availability assumption", "open": "TNC to confirm bundle rule (TNC). Shared residue assumption (TNC + Alliance)."}, {"id": "C2.3", "level": "L3", "domain": "Cropland", "pathway": "Increased soil carbon in croplands", "practice": "Biochar", "variant": "", "status": "Agreed (method under review)", "status_src": "Crosswalk Go; 13 Oct: Alliance + Alliance to review TNC method", "defn": "Biochar from crop residues applied to cropland soils.", "out": "Forest-residue feedstock (TNC excludes to avoid perverse incentives).", "bundle": "Residue competition with C2.2 and livestock feed.", "baseline": "No biochar; residues per current use.", "landcover": "Cropland (MapSPAM residue production).", "system": "Rainfed and irrigated cropping (to confirm).", "commodity": "Residue-producing crops (MapSPAM).", "gate": "Alliance adaptation: responsive soils (acidic / degraded / low SOC).", "excl": "", "tnc_layer": "crp_scc_biochar: MapSPAM residue model, pyrolysis + mineralisation losses, C remaining after 100 yr; 5 arcmin.", "all_layer": "Drought buffering + productivity on responsive soils; likely route B/D (thin evidence).", "hazards": "Drought / soil-water stress", "inputs": "MapSPAM vintage (re-running TNC layer costly)", "open": "Is TNC residue/livestock-use assumption right for SSA? (Alliance after TNC's paper). Regenerate or mask? (TNC)"}, {"id": "C3", "level": "L2", "domain": "Cropland", "pathway": "Trees in croplands (cropland-based agroforestry)", "practice": "", "variant": "", "status": "", "status_src": "", "defn": "TNC parent layer crp_cba_total covers all trees-in-cropland practices together.", "out": "", "bundle": "", "baseline": "", "landcover": "Cropland (Potapov 2019) x tree cover (Sexton 2015).", "system": "", "commodity": "", "gate": "Additional tree cover = expert max per cropping system (Hyppolite 2024) minus current cover.", "excl": "TNC: 'historically supported forests' filter (an unpublished TNC forest-history filter.", "tnc_layer": "Cardinael 2018 EFs averaged across AF practices per IPCC zone (coarse fallback search). Planned: TNC's forthcoming agroforestry carbon database by sub-practice.", "all_layer": "", "hazards": "", "inputs": "", "open": "Does the historically-forested filter remove Sahel/dryland parklands? (TNC)"}, {"id": "C3.1", "level": "L3", "domain": "Cropland", "pathway": "Trees in croplands", "practice": "Trees in farmlands", "variant": "Parklands (scattered retained/regenerated trees; incl. FMNR on cropland)", "status": "Priority (data gap)", "status_src": "13 Oct priority; TNC 28-29 Oct: insufficient parkland records in TNC's forthcoming agroforestry carbon database", "defn": "Scattered trees retained or regenerated in crop fields (Faidherbia, shea, néré, baobab), crops underneath.", "out": "Dense woodlots; trees on grazing land (G2.1).", "bundle": "FMNR is an establishment route, not a separate row (Alliance, 29 Oct): on cropland it creates parklands (here); on grazing land, silvopasture (G2.1).", "baseline": "Current on-farm tree cover (Sexton) - additionality limited where parklands already exist (Takimoto 2008).", "landcover": "Cropland.", "system": "Dryland cereal / agro-pastoral cropping (Sahel, Sudan savanna, ET rift).", "commodity": "Sorghum, millet, maize, groundnut, cowpea (+ tree products).", "gate": "Tree-cover gap below expert max.", "excl": "", "tnc_layer": "Inside crp_cba_total. Separate EF: options = Cardinael 2018 parkland class; borrow nearest class; new SSA data (Takimoto 2008, Muthuri 2023).", "all_layer": "Microclimate / soil-water buffering of crops; shade competition can be negative.", "hazards": "Drought; heat", "inputs": "On-farm tree baseline", "open": "Which EF fallback (TNC). Retained vs new trees for additionality (TNC + Alliance)."}, {"id": "C3.2", "level": "L3", "domain": "Cropland", "pathway": "Trees in croplands", "practice": "Trees in farmlands", "variant": "Alley cropping / intercropping", "status": "Priority", "status_src": "13 Oct priority; TNC 28 Oct: separable", "defn": "Rows of trees/shrubs (often N-fixing) with annual crops in alleys.", "out": "", "bundle": "", "baseline": "", "landcover": "Cropland.", "system": "Rainfed annual cropping.", "commodity": "Annual field crops.", "gate": "Tree-cover gap below expert max.", "excl": "", "tnc_layer": "Separable sub-layer (TNC).", "all_layer": "Productivity + drought buffering from ERA (dense evidence).", "hazards": "Drought; heat", "inputs": "", "open": ""}, {"id": "C3.3", "level": "L3", "domain": "Cropland", "pathway": "Trees in croplands", "practice": "Trees in perennial systems", "variant": "Shaded perennials (coffee, cocoa, tea)", "status": "Priority (mapping TBD)", "status_src": "13 Oct priority (BCG gap); TNC 28 Oct: carbon data yes, mapping TBD", "defn": "Shade trees in perennial tree-crop systems.", "out": "Annual cropping.", "bundle": "", "baseline": "", "landcover": "Perennial tree-crop area (MapSPAM coffee/cocoa/tea).", "system": "Smallholder perennial tree crops.", "commodity": "Coffee, cocoa, tea (tea = discussion point).", "gate": "", "excl": "", "tnc_layer": "Carbon data available; mapping approach TBD (TNC).", "all_layer": "Heat / drought buffering of perennial yield.", "hazards": "Heat; drought", "inputs": "", "open": "Mapping footprint (TNC). Discussion point: include tea (relevant in KE)?"}, {"id": "C3.4", "level": "L3", "domain": "Cropland", "pathway": "Trees in croplands", "practice": "Boundary plantings", "variant": "", "status": "Not taken forward", "status_src": "Both, 13 Oct: no reliable SSA field-boundary data", "defn": "", "out": "", "bundle": "", "baseline": "", "landcover": "", "system": "", "commodity": "", "gate": "", "excl": "", "tnc_layer": "", "all_layer": "", "hazards": "", "inputs": "", "open": ""}, {"id": "C3.5", "level": "L3", "domain": "Cropland", "pathway": "Trees in croplands", "practice": "Improved fallow", "variant": "", "status": "Not taken forward (adaptation)", "status_src": "Alliance; TNC mitigation unaffected", "defn": "", "out": "", "bundle": "", "baseline": "", "landcover": "", "system": "", "commodity": "", "gate": "", "excl": "", "tnc_layer": "", "all_layer": "", "hazards": "", "inputs": "", "open": ""}, {"id": "C3.6", "level": "L3", "domain": "Cropland", "pathway": "Trees in croplands", "practice": "Riparian buffers", "variant": "", "status": "Not taken forward (adaptation)", "status_src": "Alliance; TNC mitigation unaffected", "defn": "", "out": "", "bundle": "", "baseline": "", "landcover": "", "system": "", "commodity": "", "gate": "", "excl": "", "tnc_layer": "", "all_layer": "", "hazards": "", "inputs": "", "open": ""}, {"id": "C3.7", "level": "L3", "domain": "Cropland", "pathway": "Trees in croplands", "practice": "Fodder banks", "variant": "", "status": "Dropped", "status_src": "Both, 13 Oct; function covered by G1.1 and G2.1", "defn": "", "out": "", "bundle": "", "baseline": "", "landcover": "", "system": "", "commodity": "", "gate": "", "excl": "", "tnc_layer": "", "all_layer": "", "hazards": "", "inputs": "", "open": ""}, {"id": "G", "level": "L1", "domain": "Grazing land & livestock", "pathway": "", "practice": "", "variant": "", "status": "", "status_src": "", "defn": "Livestock practices. Mitigation per ha (TNC, 9 Oct). Adaptation outcomes in milk / liveweight / mortality, USD/head and USD/ha.", "out": "", "bundle": "", "baseline": "", "landcover": "", "system": "", "commodity": "", "gate": "", "excl": "", "tnc_layer": "", "all_layer": "", "hazards": "", "inputs": "GLW4 vintage (TNC 2015 vs Alliance 2020); GPW grassland classes; production-system map", "open": ""}, {"id": "G1", "level": "L2", "domain": "Grazing land & livestock", "pathway": "Reduced emissions in grazing lands", "practice": "", "variant": "", "status": "", "status_src": "", "defn": "", "out": "", "bundle": "", "baseline": "", "landcover": "", "system": "", "commodity": "", "gate": "", "excl": "", "tnc_layer": "", "all_layer": "", "hazards": "", "inputs": "", "open": ""}, {"id": "G1.1", "level": "L3", "domain": "Grazing land & livestock", "pathway": "Reduced emissions in grazing lands", "practice": "Feed management: improved on-farm forage", "variant": "", "status": "Agreed in principle", "status_src": "TNC 7-9 Oct; Alliance summary 28 Oct (livestock chat)", "defn": "Improved forage grown on farm (improved grasses, legumes, fodder shrubs/trees, conserved feed: hay/silage), fed cut-and-carry or conserved.", "out": "Feed additives; bought-in concentrates as main lever; manure management.", "bundle": "Fodder-tree CH4 effect counted here, not in silvopasture (13 Oct).", "baseline": "Current diet in mixed/dairy systems.", "landcover": "Cropland + GPW cultivated grassland (TNC 9 Oct).", "system": "Mixed crop-livestock + smallholder dairy (ET dairy priority).", "commodity": "Cattle (dairy priority) and small ruminants (sheep, goats).", "gate": "Forage suitability as area of opportunity - only if an SSA layer exists (else dropped this round).", "excl": "TNC top-10% density 'intensive' mask removed (excluded most SSA cattle).", "tnc_layer": "Current grs_reg_feed = additives/diet in intensive systems: to be replaced. New: GLEAM or GPW inventory x EF per forage scenario.", "all_layer": "Avoided milk/liveweight loss under drought + THI; CH4 intensity indicator.", "hazards": "Drought / seasonal feed deficit; heat (THI)", "inputs": "GLW vintage; production-system map", "open": "Alliance: 3-4 forage scenarios with CH4 effect (per product, per ha). Forage-suitability layer exists? Intensity vs absolute accounting (TNC)."}, {"id": "G1.2", "level": "L3", "domain": "Grazing land & livestock", "pathway": "Reduced emissions / soil carbon in grazing lands", "practice": "Grazing management = sustainable rangeland management (planned rotational grazing)", "variant": "", "status": "Agreed (footprint open)", "status_src": "TNC 2 & 9 Oct ('SRM = grazing management'); 13 Oct GPW direction", "defn": "Planned rotational grazing: growing-season rest per unit, dry-season reserve, stocking at/below capacity.", "out": "Exclosures; reseeding / bush control; burning management; destocking alone; mixed/dairy pastures (sit in G1.1).", "bundle": "", "baseline": "Continuous / open grazing at current stocking (customary reserves: additionality flag).", "landcover": "GPW natural / semi-natural (non-cultivated) grassland.", "system": "Extensive pastoral / agro-pastoral.", "commodity": "Cattle, sheep, goats. Camels = discussion point.", "gate": "Light livestock-density filter (non-stringent, TNC 13 Oct).", "excl": "Hyper-arid excluded (Alliance position); minus cropland and forest.", "tnc_layer": "Not built (grs_reg_lrm / grs_scg_lrm missing). VM0032 under revision.", "all_layer": "Forage + livestock avoided loss under drought; positive low-confidence normal-year gain.", "hazards": "Drought / forage deficit; heat", "inputs": "GPW class; GLW vintage; aridity index", "open": "Which GPW class (TNC - asked 28 Oct). Density threshold (Alliance checking GPW fit ET/KE). Discussion point: camels (millions in the drylands, but would they respond to rotational grazing?). TNC to accept the hyper-arid exclusion? TNC pathway: reduced emissions or soil carbon in grazing lands?"}, {"id": "G2", "level": "L2", "domain": "Grazing land & livestock", "pathway": "Trees in pasturelands (savanna-based agroforestry)", "practice": "", "variant": "", "status": "", "status_src": "", "defn": "", "out": "", "bundle": "", "baseline": "", "landcover": "", "system": "", "commodity": "", "gate": "", "excl": "", "tnc_layer": "", "all_layer": "", "hazards": "", "inputs": "", "open": ""}, {"id": "G2.1", "level": "L3", "domain": "Grazing land & livestock", "pathway": "Trees in pasturelands", "practice": "Silvopasture", "variant": "", "status": "Agreed", "status_src": "TNC 8 Oct (nested under Trees in pasturelands); 13 Oct split with feed", "defn": "Trees integrated into grazing land; carbon = above-/below-ground biomass + SOC.", "out": "Fodder-related CH4 (G1.1); scattered trees on cropland (C3.1).", "bundle": "", "baseline": "Treeless pasture (<10 Mg biomass/ha).", "landcover": "Pasture (Chapman 2020).", "system": "OPEN: all pasture vs mixed/dairy only for adaptation.", "commodity": "Cattle, small ruminants.", "gate": "Historically forested (unpublished TNC filter); 10% of eligible area (30% max).", "excl": "Pixels >=10 Mg biomass/ha.", "tnc_layer": "grs_sba_total: Cardinael 2018 averaged across silvopasture, hedgerow, parkland per IPCC zone; 1 km.", "all_layer": "Heat (THI) shade buffering + browse/forage; avoided milk/liveweight loss.", "hazards": "Heat; drought / forage deficit", "inputs": "", "open": "Discussion point: restrict adaptation layer to mixed/dairy, or full TNC pasture footprint? Forested-history filter in drylands? (TNC). Does TNC model any productivity response? (TNC)"}, {"id": "X", "level": "L1", "domain": "Cross-cutting (Alliance addition)", "pathway": "", "practice": "", "variant": "", "status": "", "status_src": "", "defn": "", "out": "", "bundle": "", "baseline": "", "landcover": "", "system": "", "commodity": "", "gate": "", "excl": "", "tnc_layer": "", "all_layer": "", "hazards": "", "inputs": "", "open": ""}, {"id": "X1", "level": "L3", "domain": "Cross-cutting (Alliance addition)", "pathway": "(no TNC pathway)", "practice": "Enhanced rock weathering (ERW)", "variant": "", "status": "Proposed (Alliance)", "status_src": "Alliance addition; CIMMYT pipeline", "defn": "Basalt dust applied to cropland soils.", "out": "", "bundle": "", "baseline": "", "landcover": "Cropland (QED cropland mask, CIMMYT).", "system": "Rainfed cropping on acidic soils.", "commodity": "Crops in SPAM working grid.", "gate": "Soil pH / acidity; feedstock logistics (cost).", "excl": "", "tnc_layer": "None. CIMMYT CDR surface proposed.", "all_layer": "Productivity via acidity correction; adaptation NA until trial evidence.", "hazards": "None claimed yet", "inputs": "", "open": "TNC position on including a practice they do not map (TNC/Jordan call pending)."}], "inputs": [["MapSPAM", "TNC 2010 (rice, biochar); Alliance proposes SPAM2020", "Open", "TNC comparing 2010 vs 2020 + CropGRIDS (13 Oct action)", "C1, C2, C3"], ["Gridded Livestock of the World", "TNC GLWv4 2015; Alliance GLW4 2020", "Open", "Pin jointly", "G1, G2"], ["Global Pasture Watch grassland", "Cultivated vs natural/semi-natural classes", "Open", "TNC to name class; Alliance checking fit ET/KE", "G1.1, G1.2"], ["Cropland extent", "TNC trees: Potapov 2019; SOC: SoilsRevealed base; ERW: QED", "Open", "One cropland definition or document differences", "C"], ["Tree cover / AF gap", "Sexton 2015 tree cover; Hyppolite 2024 expert max", "TNC-held", "-", "C3"], ["Historically forested filter", "an unpublished TNC forest-history filter", "Question", "Effect on drylands", "C3, G2.1"], ["Pasture biomass", "Chapman 2020", "TNC-held", "-", "G2.1"], ["Production-system map", "TBD (mixed / dairy / pastoral)", "Open", "Needed for G1.1 and G2.1", "G"], ["Irrigation / water control", "No SSA product identified", "Gap", "Gates AWD adaptation", "C1"], ["Agroforestry EFs", "Cardinael 2018 now; TNC's forthcoming agroforestry carbon database", "Open", "Parkland data gap", "C3, G2.1"]], "questions": [["Discussion", "C1.2", "DSR/SRI: possibly more relevant than AWD for SSA. Gates/BCG preliminary list includes SRI, DSR, moderate AWD; confirm signal with Gates; test in NG/KE workshops."], ["Discussion", "C3.3", "Include tea in shaded perennials (relevant in KE)?"], ["Discussion", "G1.2", "Camels: millions in the drylands, but would they respond to rotational grazing?"], ["Discussion", "G2.1", "Silvopasture adaptation layer: mixed/dairy only, or full TNC pasture footprint?"], ["TNC", "C2.1", "Confirm bundle rule: cover crops standalone, counted once at CA-bundle level where it co-occurs with reduced tillage + residue; which SSP?"], ["TNC", "G1.2", "Which GPW class = 'extensive natural grassland'; density threshold; accept hyper-arid exclusion?"], ["TNC", "G1.2", "Which TNC pathway hosts grazing management (reduced emissions vs soil carbon in grazing lands)?"], ["TNC", "C3, G2.1", "Does the historically-forested filter remove Sahel/dryland parklands and savanna pastures?"], ["TNC", "C3.1", "Parkland EF fallback: Cardinael 2018 class, borrowed class, or new SSA data"], ["Alliance", "G1.1", "3-4 forage scenarios (cattle + small ruminants) with CH4 effect; any SSA forage-suitability layer"], ["TNC", "C1.1", "Rice work plan; SSA AWD EF; water-control definition"]]};
-const themes=[...new Set(D.cols.map(c=>c.theme))];const on=new Set(["Hierarchy","Status","Definition","Footprint","Open"]);
-const cls=s=>/^Agreed/.test(s)?"agreed":/^Priority/.test(s)?"priority":/^Proposed/.test(s)?"proposed":/Dropped|Not taken/.test(s)?"dropped":"";
-const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-const dom=document.getElementById("dom");[...new Set(D.rows.map(r=>r.domain))].forEach(d=>dom.add(new Option(d,d)));
-const th=document.getElementById("themes");themes.forEach(t=>{const b=document.createElement("button");b.className="chip";b.textContent=t;b.setAttribute("aria-pressed",on.has(t));b.onclick=()=>{on.has(t)?on.delete(t):on.add(t);b.setAttribute("aria-pressed",on.has(t));draw()};th.appendChild(b)});
-function draw(){const cols=D.cols.filter(c=>on.has(c.theme)&&!["level","domain"].includes(c.key));
-const q=document.getElementById("q").value.toLowerCase(),d=dom.value,s=document.getElementById("st").value;
-document.querySelector("#t thead").innerHTML="<tr>"+cols.map(c=>`<th>${esc(c.label)}</th>`).join("")+"</tr>";
-document.querySelector("#t tbody").innerHTML=D.rows.filter(r=>(!d||r.domain===d)&&(!q||JSON.stringify(r).toLowerCase().includes(q))&&(!s||(s.startsWith("Dropped")?cls(r.status)==="dropped":r.status.startsWith(s))||r.level!=="L3"))
-.map(r=>`<tr class="${r.level} ${cls(r.status)==="dropped"?"dropped":""}">`+cols.map(c=>{let v=r[c.key]||"";if(c.key==="status"&&v)v=`<span class="st ${cls(v)}">${esc(v)}</span>`;else v=esc(v);return `<td class="${c.key==="practice"&&r.level==="L3"?"ind3":""}">${v}</td>`}).join("")+"</tr>").join("")}
-["q","st"].forEach(i=>document.getElementById(i).oninput=draw);dom.onchange=draw;draw();
-document.getElementById("inp").innerHTML="<tr><th>Input</th><th>Versions in play</th><th>Status</th><th>Action / owner</th><th>Rows</th></tr>"+D.inputs.map(r=>"<tr>"+r.map(v=>`<td>${esc(v)}</td>`).join("")+"</tr>").join("");
-document.getElementById("qs").innerHTML="<tr><th>For</th><th>Row</th><th>Question</th></tr>"+D.questions.map(r=>"<tr>"+r.map(v=>`<td>${esc(v)}</td>`).join("")+"</tr>").join("");
-</script></body></html>
+const rows=D.rows, byId=Object.fromEntries(rows.map(r=>[r.id,r]));
+const practices=rows.filter(r=>r.level==="L3");
+const DOM={C:{name:"Cropland",c:"var(--crop)"},G:{name:"Grazing land & livestock",c:"var(--graze)"},X:{name:"Cross-cutting",c:"var(--cross)"}};
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const stat=s=>/^Agreed/.test(s)?"agreed":/^Priority/.test(s)?"priority":/^Proposed/.test(s)?"proposed":/Dropped|Not taken/.test(s)?"out":"proposed";
+const STLAB={agreed:"Agreed",priority:"Priority",proposed:"Proposed",out:"Out"};
+const pathOf=id=>id.split(".")[0];
+const title=r=>r.variant? r.variant : r.practice;
+const sub=r=>r.variant? r.practice : "";
+const sentences=t=>String(t||"").split(/(?<=[.?!])\s+(?=[A-Z])/).map(s=>s.trim()).filter(Boolean);
+let filt={q:"",st:new Set(),out:false}, cur=null;
+
+function counts(){const c={agreed:0,priority:0,proposed:0,out:0};practices.forEach(r=>c[stat(r.status)]++);return c}
+function drawStatus(){const c=counts();document.getElementById("statusbar").innerHTML=Object.keys(STLAB).map(k=>`<button class="sbtn" data-st="${k}" aria-pressed="${filt.st.has(k)}"><span class="dot d-${k}"></span>${STLAB[k]} <b>${c[k]}</b></button>`).join("");
+ document.querySelectorAll(".sbtn").forEach(b=>b.onclick=()=>{const k=b.dataset.st;filt.st.has(k)?filt.st.delete(k):filt.st.add(k);if(k==="out"&&filt.st.has("out")){filt.out=true;document.getElementById("showout").checked=true}drawStatus();drawList()})}
+function visible(r){const s=stat(r.status);if(s==="out"&&!filt.out&&!filt.st.has("out"))return false;if(filt.st.size&&!filt.st.has(s))return false;if(filt.q){const blob=Object.values(r).join(" ").toLowerCase();if(!blob.includes(filt.q))return false}return true}
+function nOpen(r){return sentences(r.open).filter(s=>!/^None\b/.test(s)).length}
+function drawList(){const el=document.getElementById("register");let h="";
+ for(const d of Object.keys(DOM)){const ps=practices.filter(r=>r.id[0]===d&&visible(r));if(!ps.length)continue;
+  h+=`<div class="dom"><h2><span class="swatch" style="background:${DOM[d].c}"></span>${DOM[d].name}</h2>`;let last="";
+  for(const r of ps){const p=pathOf(r.id);if(p!==last&&byId[p]&&byId[p].level==="L2"){h+=`<div class="pw">${esc(byId[p].pathway)}</div>`;last=p}
+   const o=nOpen(r);h+=`<button class="item ${stat(r.status)==="out"?"out":""}" data-id="${r.id}" aria-current="${cur===r.id}"><span class="id">${r.id}</span><span class="nm">${esc(title(r))}${sub(r)?`<small>${esc(sub(r))}</small>`:""}</span><span>${stat(r.status)==="out"?"":`<span class="dot d-${stat(r.status)}" title="${STLAB[stat(r.status)]}"></span>`}${o?`<div class="qbadge" title="Open points">${o}</div>`:""}</span></button>`}
+  h+="</div>"}
+ el.innerHTML=h||`<div class="empty">No practices match. Clear the search or status filters.</div>`;
+ el.querySelectorAll(".item").forEach(b=>b.onclick=()=>select(b.dataset.id,true))}
+function field(label,v){return v?`<dt>${label}</dt><dd>${esc(v)}</dd>`:""}
+function select(id,scroll){cur=id;const r=byId[id];if(!r)return;try{history.replaceState(null,"","#"+id)}catch(e){}
+ document.querySelectorAll(".item").forEach(b=>b.setAttribute("aria-current",b.dataset.id===id));
+ const p=byId[pathOf(id)],d=byId[id[0]],s=stat(r.status);
+ const ctx=[d,p&&p!==d?p:null].filter(x=>x&&x.level!=="L3").flatMap(x=>[["defn","Note"],["landcover","Base land cover"],["gate","Condition gate"],["excl","Exclusions"],["tnc_layer","TNC layer"],["inputs","Shared inputs"],["open","Open"]].filter(([k])=>x[k]).map(([k,l])=>`<div><b>${l}:</b> ${esc(x[k])}</div>`)).join("");
+ const steps=[["landcover","Base land cover"],["system","Farming / production system"],["commodity","Commodities"],["gate","Condition gate"],["excl","Exclusions & thresholds"]];
+ const inh=k=>(p&&p[k])||(d&&d[k])||"";
+ const mask=steps.map(([k,l])=>`<li><span></span><div><div class="lab">${l}</div>${r[k]?esc(r[k]):inh(k)?`${esc(inh(k))} <span class="inh">(from pathway)</span>`:`<span class="unset">Not set</span>`}</div></li>`).join("");
+ const hz=String(r.hazards||"").split(/;\s*/).filter(Boolean).map(h=>`<span class="chip">${esc(h)}</span>`).join("");
+ const op=sentences(r.open).map(t=>{const disc=/^Discussion point/i.test(t);return `<li class="${disc?"disc":""}">${disc?'<span class="tag">Discussion</span>':""}${esc(t.replace(/^Discussion point:\s*/i,""))}</li>`}).join("");
+ document.getElementById("sheet").innerHTML=`
+ <div class="sheet-head">
+  <div class="crumbs"><span class="swatch" style="background:${DOM[id[0]].c}"></span>${esc(DOM[id[0]].name)}${p&&p.level==="L2"?` › ${esc(p.pathway)}`:""}${sub(r)?` › ${esc(sub(r))}`:""}</div>
+  <div class="titlerow"><h2><span class="mono" style="color:var(--muted)">${r.id}</span> ${esc(title(r))}</h2>
+   <div style="display:flex;gap:8px;align-items:center"><span class="pill p-${s}"><span class="dot d-${s}"></span>${esc(r.status||"—")}</span><button class="copy" id="copylink">Copy link</button></div></div>
+  ${r.status_src?`<div class="basis">Basis: ${esc(r.status_src)}</div>`:""}
+ </div>
+ ${s==="out"&&!r.defn.replace("(dropped)","")?`<p class="basis">Out of scope for this round. Kept for the record.</p>`:`
+ <section class="blk"><h3>Definition</h3><dl class="def">${field("In",r.defn)}${field("Out",r.out)}${field("Bundle / overlap rule",r.bundle)}${field("Baseline",r.baseline)}</dl></section>
+ <section class="blk"><h3>Footprint, applied in order</h3><ol class="mask">${mask}</ol></section>
+ <section class="blk"><h3>Layers</h3><div class="layers">
+  <div class="lay"><div class="who">TNC</div><h4>Mitigation layer</h4><div>${esc(r.tnc_layer||inh("tnc_layer")||"Not yet defined")}</div></div>
+  <div class="lay"><div class="who">Alliance</div><h4>Production & adaptation layer</h4><div>${esc(r.all_layer||"Not yet defined")}</div>${hz?`<div class="chips" aria-label="Hazards">${hz}</div>`:""}</div>
+ </div>${r.inputs?`<div class="basis">Shared inputs to pin: ${esc(r.inputs)}</div>`:""}</section>`}
+ ${op?`<section class="blk"><h3>Open points</h3><ul class="open">${op}</ul></section>`:""}
+ ${ctx?`<section class="blk"><h3>Pathway context</h3><div class="context">${ctx}</div></section>`:""}`;
+ document.getElementById("copylink").onclick=e=>{const u=location.href.split("#")[0]+"#"+id;const b=e.currentTarget;(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>{b.textContent="Copied"},()=>{b.textContent=u}).finally(()=>setTimeout(()=>b.textContent="Copy link",2500))};
+ if(scroll&&window.matchMedia("(max-width:860px)").matches)document.getElementById("sheet").scrollIntoView({behavior:"smooth"})}
+function table(el,head,data,linkCol){el.innerHTML=`<thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${data.map(r=>`<tr>${r.map((v,i)=>`<td>${i===linkCol?String(v).split(/,\s*/).map(x=>byId[x.trim()]&&byId[x.trim()].level==="L3"?`<a data-go="${x.trim()}">${esc(x)}</a>`:esc(x)).join(", "):esc(v)}</td>`).join("")}</tr>`).join("")}</tbody>`;
+ el.querySelectorAll("a[data-go]").forEach(a=>a.onclick=()=>{show("practices");select(a.dataset.go,true)})}
+function show(v){document.querySelectorAll(".view").forEach(x=>x.hidden=x.id!=="v-"+v);document.getElementById("v-practices").style.display=v==="practices"?"grid":"";document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===v))}
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>show(b.dataset.view));
+document.getElementById("q").oninput=e=>{filt.q=e.target.value.trim().toLowerCase();drawList()};
+document.getElementById("showout").onchange=e=>{filt.out=e.target.checked;drawList()};
+table(document.getElementById("inputs"),["Input","Versions in play","Status","Action / owner","Practices"],D.inputs,4);
+table(document.getElementById("questions"),["For","Practice","Question"],D.questions,1);
+drawStatus();drawList();
+const h=decodeURIComponent(location.hash.slice(1));select(byId[h]&&byId[h].level==="L3"?h:"C2.1",false);
+</script>
+</body></html>
