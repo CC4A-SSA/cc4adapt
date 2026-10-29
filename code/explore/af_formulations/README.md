@@ -26,6 +26,9 @@ Rscript code/explore/af_formulations/run_all.R 3 6    # steps 3-6 only
 | 03b | `03b_era_site_years.R` | ERA maize comparisons for the two practices by site × year × season slot | `era_site_years.csv`, `era_comparisons.csv` |
 | 07 | `07_era_seasons.py` | Classify each ERA site-season by hazard band from observed daily climate (CHIRPS v3 + AgERA5 via Earth Engine, GGCMI maize window, Atlas bands). Needs `GCP_PROJECT_ID` and `PYTHONPATH=../climate-toolkit`; `--limit N` for a dry run, resumable | `era_site_season_hazards.csv` |
 | 08 | `08_era_split.R` | g_norm vs g_stress per practice × hazard; proportional-vs-additive test on stress seasons | `era_split/*.csv` |
+| 09 | `09_obs_vs_atlas.R` | Observed stress frequency at ERA sites vs the Atlas P of the containing admin-2 unit | `era_split/obs_vs_atlas_sites.csv` |
+
+`07 --window ggcmi` reruns the classification on the GGCMI (Atlas jagermeyr) window to separate the window effect from the GCM effect; output `era_site_season_hazards_ggcmi.csv`.
 
 Library: `R/formulations.R` (formulations, band conversion, expected annual), `R/paths.R`. Tests: `tests/testthat/` (`Rscript -e 'testthat::test_dir("code/explore/af_formulations/tests/testthat")'`). Runtime identity checks that must pass on every run: F1 = F2 = F3 expected totals; expected F1 − F3 gap = −g·B·E[L]; E[L] in 06 equals E[L] in 05.
 
@@ -73,7 +76,7 @@ Decomposition: Δs = Δn − L·Δn + B·L·m + g·B·L·m. F3 puts the hazard b
 | B | MapSPAM 2020 (Atlas SSA) mean-year yield `B_obs`; `B_norm = B_obs/(1 − E[L])` is what the formulations use. Inherits the loss table's uncertainty. |
 | L | **Placeholder**, bronze maize table from `step3_adaptation.R`, read per band. AEZ-invariant. |
 | m | **Scenario grid**, 10 signed profiles. No evidence-based values exist. |
-| g | ERA maize Crop Yield, single-practice comparisons, study-averaged median log RR. **Pooled across seasons**, so an upper bound on g_norm when m > 0 (MELIAF v3.0: pooled effects cannot be used as g_norm). `era_aez` uses the unit's AEZ16simple stratum where ≥ 3 studies. |
+| g | ERA maize Crop Yield, single-practice comparisons, study-averaged log RR. `era` is pooled across seasons (MELIAF v3.0: not usable as g_norm); `era_aez` uses the unit's AEZ16simple stratum where ≥ 3 studies; `era_norm` is g_norm from the season split (08, dry ≥ moderate). For these two practices the pooled and normal-season values are close. |
 | Season | GGCMI rainfed-maize window, one per year; bimodal units flagged. |
 | Price | Deferred. Scales totals, not the split. |
 
@@ -83,7 +86,7 @@ Decomposition: Δs = Δn − L·Δn + B·L·m + g·B·L·m. F3 puts the hazard b
 |---|---|
 | `iso3`, `admin1_name`, `admin2_name`, `gaul1_code`, `gaul2_code` | GAUL 2024 unit |
 | `practice`, `hazard` | parameter set; hazards are Atlas marginals `dry` (NDWS), `wet` (NDWL0) |
-| `g_source` | `grid` scenario, `era` all-SSA ERA median, `era_aez` stratum median |
+| `g_source` | `grid` scenario, `era` all-SSA ERA median (pooled), `era_aez` stratum median, `era_norm` normal-season g from the ERA season split |
 | `g`, `g_stratum_n` | normal-year gain used; number of ERA studies behind a stratum g (NA unless `era_aez`) |
 | `m_profile`, `param_id` | buffering profile (values per severity in `params/param_grid.csv`); set id, deterministic for grid/era sets, `era_aez` ids = era ids + 210 |
 | `p_source` | `adm2` or `adm1` hazard row used |

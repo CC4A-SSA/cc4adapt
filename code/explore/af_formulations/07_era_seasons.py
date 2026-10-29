@@ -137,18 +137,27 @@ def main():
     ap.add_argument("--limit", type=int, default=0, help="run only the first N site-slot groups (dry run)")
     ap.add_argument("--workers", type=int, default=2)
     ap.add_argument("--project", default=os.environ.get("GCP_PROJECT_ID", ""))
+    ap.add_argument("--window", choices=["site", "ggcmi"], default="site",
+                    help="site: 03c windows (ERA dates / climatology); ggcmi: GGCMI rainfed-maize window as the Atlas uses")
     a = ap.parse_args()
+    global OUT
+    if a.window == "ggcmi":
+        OUT = OUT.with_name("era_site_season_hazards_ggcmi.csv")
     if not a.project:
         sys.exit("Set GCP_PROJECT_ID or --project")
 
     sy = pd.read_csv(IN)
-    if WIN.exists():
+    if WIN.exists() and a.window == "site":
         for r in pd.read_csv(WIN).to_dict("records"):
             WINDOWS[(r["Site.Key"], int(r["slot"]))] = r
         print(f"windows loaded for {len(WINDOWS)} site-slots", flush=True)
     sy["slot"] = sy["season_idx"].fillna(1).astype(int)
     sy = sy[sy["yr"] >= MIN_YEAR]
     groups = list(sy.groupby(["Site.Key", "slot"]))
+    if a.window == "ggcmi":
+        # one GGCMI window per site: collapse slots so the Atlas-style single season is scored once
+        sy["slot"] = 1
+        groups = list(sy.groupby(["Site.Key", "slot"]))
     if a.limit:
         groups = groups[: a.limit]
     print(f"{len(groups)} site-slot groups, {sy['yr'].nunique()} distinct years, workers={a.workers}", flush=True)

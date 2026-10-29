@@ -164,7 +164,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <div class="controls">
   <label>Practice × hazard <select id="st-ph"></select></label>
   <label>Buffering profile <select id="st-prof"><option value="decl_mid">declining 0.75 / 0.50 / 0.25</option><option value="const_0.50">constant 0.50</option></select></label>
-  <label>Gain g <select id="st-g"><option value="era">ERA all-SSA median</option><option value="era_aez">ERA median by AEZ stratum</option></select></label>
+  <label>Gain g <select id="st-g"><option value="era">ERA all-SSA median</option><option value="era_aez">ERA median by AEZ stratum</option><option value="era_norm">ERA normal-season g (season split)</option></select></label>
   <label>Group by <select id="st-level"><option value="fs1">farming system</option><option value="aez">AEZ class</option><option value="country">country</option></select></label>
 </div>
 <div class="legend"><span style="--c: var(--f1)">F1 levels DiD</span><span style="--c: var(--f3)">F3 proportional</span><span style="--c: var(--f5)">F5 current pipeline</span></div>
@@ -188,6 +188,21 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <svg id="sev-svg" viewBox="0 0 640 360" role="img" aria-labelledby="sev-title"><title id="sev-title">Effective buffering against the extreme band's share of expected loss</title></svg>
 </div>
 
+
+<h2 id="era">What the ERA season split shows</h2>
+<p>MELIAF needs g<sub>norm</sub> and g<sub>stress</sub> estimated separately. ERA maize trials for the two practices were classified season by season from observed daily climate (CHIRPS v3 rainfall, AgERA5 temperature) on each site's own growing-season window, with the Atlas severity bands. Three things came out.</p>
+<div class="card">
+<h3>1. The climate-specific increment is small and positive</h3>
+<div class="tablewrap"><table id="era-g"></table></div>
+<p class="note">Study-averaged mean log response ratio, back-transformed. A site-season is "stress" when its NDWS band is at or above the threshold. Heat stress (NTx35) almost never occurs at ERA maize sites, so there is no heat estimate.</p>
+<h3>2. Stress-season effects scale with yield: proportional, not additive</h3>
+<div class="tablewrap"><table id="era-test"></table></div>
+<p class="note">On stress seasons only. <em>Proportional</em> regresses log(MeanT/MeanC) on log control yield; <em>additive</em> regresses MeanT − MeanC on control yield. t-statistics with study-clustered standard errors. A slope near zero is the model the data support: in three of four cases the ratio is flat and the difference is not, which is the proportional split (F3). The two tests are not symmetric and power is low.</p>
+<h3>3. Observed stress frequency at ERA sites is far below the Atlas P</h3>
+<div class="tablewrap"><table id="era-obs"></table></div>
+<p class="note">Share of ERA site-seasons at or above the band (observed, 1981–2016, site windows) against the Atlas P(h, ≥ moderate) of the admin-2 unit containing each site (NEX-GDDP 1995–2014, maize jagermeyr window). The observed share sits near MELIAF's ~0.2 benchmarks; the Atlas value is three to four times higher. Candidates: the Atlas's single maize window (for Kenyan pixels the short rains), GCM-based frequencies, water-balance parameters, and ERA sites being better-watered than their units. A rerun on the Atlas window at the same sites is the first test.</p>
+</div>
+
 <h2 id="limits">Limits and what to trust</h2>
 <div class="card">
 <div class="tablewrap"><table>
@@ -196,7 +211,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <tr><td>Baseline yield B</td><td><b>Real.</b> MapSPAM 2020 (Atlas SSA release). It is a mean-year yield; the page uses B<sub>norm</sub> = B / (1 − E[L]), which inherits the loss table's uncertainty.</td></tr>
 <tr><td>Loss shares L</td><td><b>Placeholder.</b> Bronze maize table (dry 0.10 / 0.25 / 0.45; wet 0.05 / 0.15 / 0.30), same in every AEZ.</td></tr>
 <tr><td>Buffering m</td><td><b>Scenario.</b> No evidence-based values exist yet.</td></tr>
-<tr><td>Gain g</td><td><b>Real but mis-specified.</b> ERA maize yield medians (cover crops +16 %, 31 studies; reduced tillage −3 %, 79 studies), pooled across seasons. MELIAF v3.0 states a pooled effect cannot be used as g<sub>norm</sub>. Under this model it is an upper bound.</td></tr>
+<tr><td>Gain g</td><td><b>Real, two versions.</b> "ERA" is the pooled-across-seasons median (cover crops +16 %, 31 studies; reduced tillage −3 %, 79 studies), which MELIAF v3.0 says cannot serve as g<sub>norm</sub>. "ERA normal-season" is g<sub>norm</sub> from the season split above (dry, ≥ moderate), available in the strata chart. The two are close for these practices.</td></tr>
 <tr><td>Price</td><td>Deferred. It scales totals, not the split.</td></tr>
 </table></div>
 <h3>Three things this comparison cannot settle</h3>
@@ -444,6 +459,20 @@ function drawStrata() {
   const t = document.createElement("table"); t.innerHTML = "<tr><th>buffering</th><th class=num>units</th><th class=num>adaptation-dominant (F3)</th><th class=num>differs under F1</th><th class=num>differs under F2</th><th class=num>differs under F5</th></tr>";
   rows.forEach(r => { const tr = document.createElement("tr"); [label[r.m_profile], r.units, pct(r.F3_adaptation, 1), pct(r.flip_F1_vs_F3, 1), pct(r.flip_F2_vs_F3, 1), pct(r.flip_F5_vs_F3, 1)].forEach((v, i) => { const td = document.createElement("td"); if (i) td.className = "num"; td.textContent = v; tr.appendChild(td); }); t.appendChild(tr); });
   $("#fl-table").replaceChildren(t);
+}
+
+// ---- ERA season split tables ---------------------------------------------------
+{
+  const E = D.era_split || {};
+  const tbl = (id, head, rows) => { const t = $(id); if (!t) return; t.replaceChildren(); const tr = document.createElement("tr"); head.forEach(h => { const th = document.createElement("th"); if (h.num) th.className = "num"; th.textContent = h.t; tr.appendChild(th); }); t.appendChild(tr); rows.forEach(r => { const tr2 = document.createElement("tr"); r.forEach((v, i) => { const td = document.createElement("td"); if (head[i].num) td.className = "num"; td.textContent = v; tr2.appendChild(td); }); t.appendChild(tr2); }); };
+  const pname = { cover_crops: "Cover crops", reduced_tillage: "Reduced tillage" };
+  const pc = v => (v == null || isNaN(v)) ? "–" : (v >= 0 ? "+" : "") + (100 * v).toFixed(0) + " %";
+  tbl("#era-g", [{t:"Practice"},{t:"Hazard"},{t:"Threshold"},{t:"g_norm",num:1},{t:"g_stress",num:1},{t:"studies norm / stress",num:1},{t:"site-seasons norm / stress",num:1}],
+      (E.g || []).filter(r => r.hazard !== "heat").map(r => [pname[r.practice] || r.practice, r.hazard, r.threshold, pc(r.g_norm), pc(r.g_stress), `${r.studies_norm} / ${r.studies_stress ?? "–"}`, `${r.site_seasons_norm} / ${r.site_seasons_stress ?? "–"}`]));
+  tbl("#era-test", [{t:"Practice"},{t:"Hazard"},{t:"stress obs / studies",num:1},{t:"proportional slope t",num:1},{t:"additive slope t",num:1},{t:"Supports"}],
+      (E.test || []).map(r => [pname[r.practice] || r.practice, r.hazard, `${r.n_obs} / ${r.n_studies}`, fmt(r.prop_t, 2), fmt(r.add_t, 2), Math.abs(r.prop_t) < Math.abs(r.add_t) ? "proportional" : "additive"]));
+  tbl("#era-obs", [{t:"Country"},{t:"ERA sites",num:1},{t:"site-seasons",num:1},{t:"observed P(dry ≥ mod)",num:1},{t:"Atlas P(dry ≥ mod)",num:1},{t:"observed P(dry ≥ sev)",num:1},{t:"Atlas P(dry ≥ sev)",num:1},{t:"observed P(wet ≥ mod)",num:1},{t:"Atlas P(wet ≥ mod)",num:1}],
+      (E.obs || []).map(r => [r.iso3, r.sites, r.seasons, fmt(r.obs_dry, 2), fmt(r.atlas_dry, 2), fmt(r.obs_dry_sev, 2), fmt(r.atlas_dry_sev, 2), fmt(r.obs_wet, 2), fmt(r.atlas_wet, 2)]));
 }
 
 // ---- Severity mix ------------------------------------------------------------
