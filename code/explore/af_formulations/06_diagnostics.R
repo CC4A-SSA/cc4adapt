@@ -138,7 +138,7 @@ strata_sum <- function(d) d[, .(
   F1_share_med = median(F1_share, na.rm = TRUE), F3_share_med = median(F3_share, na.rm = TRUE),
   F5_share_med = median(F5_share, na.rm = TRUE)
 )]
-era <- r[g_source %in% c("era", "era_aez") & m_profile %in% REF_PROFILES]
+era <- r[g_source %in% c("era", "era_aez", "era_norm") & m_profile %in% REF_PROFILES]
 by_vars <- c("practice", "hazard", "g_source", "m_profile")
 d4 <- rbind(
   era[, strata_sum(.SD), by = c(by_vars, "fs1", "aez")][, level := "fs1_x_aez"],

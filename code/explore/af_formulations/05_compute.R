@@ -32,11 +32,12 @@
 # the placeholder loss table, so this correction inherits its uncertainty;
 # both B_obs and B_norm are kept.
 #
-# g sources: "grid" (scenario values), "era" (ERA all-SSA median per practice),
-# "era_aez" (ERA median for the unit's AEZ16simple stratum where it rests on
-# at least MIN_STRATUM_STUDIES studies, else the all-SSA value; g_stratum_n
-# says which). ERA g is pooled across seasons and is therefore an upper bound
-# on g_norm when m > 0; see README.
+# g sources: "grid" (scenario values), "era" (ERA all-SSA median per practice,
+# pooled across seasons), "era_aez" (ERA median for the unit's AEZ16simple
+# stratum where it rests on at least MIN_STRATUM_STUDIES studies, else the
+# all-SSA value; g_stratum_n says which), and "era_norm" (normal-season g from
+# the ERA season split, 08_era_split.R: dry hazard, moderate threshold,
+# study-averaged mean; present only when era_split_g.csv exists).
 #
 # Outputs (AF_OUT_DIR, default data/outputs/af_formulations; copy to
 # AF_RECORD_DIR when set):
@@ -146,6 +147,14 @@ sets <- unique(grid[, .(param_id, practice, hazard, g_source, g, m_profile)])
 # era_aez sets reuse the era rows' (practice, hazard, m_profile) with a unit-specific g.
 aez_sets <- sets[g_source == "era"][, `:=`(g_source = "era_aez", param_id = param_id + max(sets$param_id))]
 sets <- rbind(sets, aez_sets)
+split_file <- file.path(af_out_dir(), "era_split", "era_split_g.csv")
+if (file.exists(split_file)) {
+  gn <- fread(split_file)[hazard == "dry" & threshold == "moderate", .(practice, g_norm)]
+  norm_sets <- sets[g_source == "era"][, `:=`(g_source = "era_norm", param_id = param_id + 2 * max(grid$param_id))]
+  norm_sets <- merge(norm_sets, gn, by = "practice")[, g := g_norm][, g_norm := NULL]
+  sets <- rbind(sets, norm_sets)
+  message("era_norm sets added from ", split_file)
+}
 
 ug <- merge(up[, .(gaul2_code, hazard, aez16simple, B_norm)], sets, by = "hazard", allow.cartesian = TRUE)
 ug <- merge(ug, era_strat, by = c("practice", "aez16simple"), all.x = TRUE)
