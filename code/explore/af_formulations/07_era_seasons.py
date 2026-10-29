@@ -94,7 +94,9 @@ def run_group(key, g, project):
     t0 = time.time()
     try:
         r = ct.evaluate_hazards(
-            "maize", (lat, lon), f"{years[0]}-01-01", f"{years[-1]}-12-31",
+            # Fetch through mid next year so a year-crossing window (e.g. Oct-Jan)
+            # of the last year is complete; rows are filtered back to `years`.
+            "maize", (lat, lon), f"{years[0]}-01-01", f"{years[-1] + 1}-06-30",
             source="paired", precip_source="chirps_v3_daily_rnl", temp_source="agera_5",
             fixed_season=token, calendar_source=None if token else "ggcmi",
             ee_project_id=project,
@@ -106,6 +108,8 @@ def run_group(key, g, project):
     win = (r.get("baseline_ltm") or {}).get("water_balance_methodology", {}).get("analysis_window", {})
     rows = []
     for c in r.get("baseline_ltm_comparisons", []):
+        if c.get("year") not in years:
+            continue
         met = c.get("metrics", {})
         counted = None
         for ps in (r.get("baseline_ltm") or {}).get("per_season", []):
