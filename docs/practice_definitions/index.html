@@ -108,6 +108,11 @@ td a{cursor:pointer}
 .about{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:grid;gap:12px;max-width:80ch}
 .about p{margin:0}
 footer{color:var(--muted);font-size:13px}
+.col{display:grid;gap:16px;min-width:0}
+.comments{gap:12px}
+.chead{display:grid;gap:4px}
+.chead h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.giscus{min-height:120px}
 @media (prefers-reduced-motion:no-preference){.item,.sbtn{transition:background .12s}}
 </style></head>
 <body><div class="wrap">
@@ -132,7 +137,14 @@ footer{color:var(--muted);font-size:13px}
   </div>
   <div class="layout">
     <aside class="register" id="register" aria-label="Practice list"></aside>
-    <article class="sheet" id="sheet" aria-live="polite"></article>
+    <div class="col">
+      <article class="sheet" id="sheet" aria-live="polite"></article>
+      <section class="sheet comments" id="cwrap" aria-label="Discussion">
+        <div class="chead"><h3>Discussion on <span id="cterm" class="mono"></span></h3>
+          <span class="basis">Comments and reactions use a GitHub account. Threads are public, in <a href="https://github.com/CC4A-SSA/cc4adapt/discussions" target="_blank" rel="noopener">GitHub Discussions</a>.</span></div>
+        <div class="giscus"></div>
+      </section>
+    </div>
   </div>
 </div>
 <div id="v-inputs" class="view" hidden><div class="tablewrap"><table id="inputs"></table></div></div>
@@ -142,6 +154,7 @@ footer{color:var(--muted);font-size:13px}
   <p><b>Footprint.</b> Each practice's area is built by applying masks in order: (1) base land cover, (2) farming or production system, (3) commodities, (4) a condition gate such as irrigation control or responsive soils, (5) exclusions and thresholds. TNC's mitigation-eligible area is the shared spatial anchor.</p>
   <p><b>Status.</b> <span class="pill p-agreed">Agreed</span> both sides agreed, or the practice is agreed with one element still open. <span class="pill p-priority">Priority</span> agreed priority; data or mapping not settled. <span class="pill p-proposed">Proposed</span> one side's proposal. <span class="pill p-out">Out</span> dropped or not taken forward.</p>
   <p><b>Sources.</b> TNC–Alliance alignment workbook (TNC and Alliance tabs, Crosswalk), CIAT–TNC geospatial subteam meeting of 13 Oct 2026, and team chats, 2–29 Oct 2026. Status basis is cited on each sheet.</p>
+  <p><b>Comments.</b> Each practice has its own discussion thread under its sheet (GitHub account needed). To propose a change, comment on the practice and say which field and what it should say.</p>
   <p>Status column shows what is agreed versus proposed or open. Content: CC BY 4.0. Source: <a href="https://github.com/CC4A-SSA/cc4adapt">CC4A-SSA/cc4adapt</a>. Download the data as <a href="practice_definitions.csv">CSV</a>.</p>
 </div></div>
 <footer>Spatial grid 5 arcmin (≈10 km), EPSG:4326, sub-Saharan Africa; Kenya, Ethiopia and Nigeria deep-dives. Data <a href="practice_definitions.csv">CSV</a>.</footer>
@@ -159,6 +172,18 @@ const title=r=>r.variant? r.variant : r.practice;
 const sub=r=>r.variant? r.practice : "";
 const sentences=t=>String(t||"").split(/(?<=[.?!])\s+(?=[A-Z])/).map(s=>s.trim()).filter(Boolean);
 let filt={q:"",st:new Set(),out:false}, cur=null;
+const G={repo:"CC4A-SSA/cc4adapt",repoId:"R_kgDOSFFFUA",cat:"Announcements",catId:"DIC_kwDOSFFFUM4DJ6ag"};
+let gLoaded=false;
+function loadGiscus(term){
+  document.getElementById("cterm").textContent=term;
+  const f=document.querySelector("iframe.giscus-frame");
+  if(f){f.contentWindow.postMessage({giscus:{setConfig:{term}}},"https://giscus.app");return}
+  const box=document.querySelector(".giscus");
+  if(gLoaded){box.innerHTML=""}
+  gLoaded=true;
+  const sc=document.createElement("script");sc.src="https://giscus.app/client.js";
+  Object.entries({"data-repo":G.repo,"data-repo-id":G.repoId,"data-category":G.cat,"data-category-id":G.catId,"data-mapping":"specific","data-term":term,"data-strict":"1","data-reactions-enabled":"1","data-emit-metadata":"0","data-input-position":"top","data-theme":"preferred_color_scheme","data-lang":"en","data-loading":"lazy"}).forEach(([k,v])=>sc.setAttribute(k,v));
+  sc.crossOrigin="anonymous";sc.async=true;box.appendChild(sc)}
 
 function counts(){const c={agreed:0,priority:0,proposed:0,out:0};practices.forEach(r=>c[stat(r.status)]++);return c}
 function drawStatus(){const c=counts();document.getElementById("statusbar").innerHTML=Object.keys(STLAB).map(k=>`<button class="sbtn" data-st="${k}" aria-pressed="${filt.st.has(k)}"><span class="dot d-${k}"></span>${STLAB[k]} <b>${c[k]}</b></button>`).join("");
@@ -199,6 +224,7 @@ function select(id,scroll){cur=id;const r=byId[id];if(!r)return;try{history.repl
  </div>${r.inputs?`<div class="basis">Shared inputs to pin: ${esc(r.inputs)}</div>`:""}</section>`}
  ${op?`<section class="blk"><h3>Open points</h3><ul class="open">${op}</ul></section>`:""}
  ${ctx?`<section class="blk"><h3>Pathway context</h3><div class="context">${ctx}</div></section>`:""}`;
+ loadGiscus("Practice "+id);
  document.getElementById("copylink").onclick=e=>{const u=location.href.split("#")[0]+"#"+id;const b=e.currentTarget;(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>{b.textContent="Copied"},()=>{b.textContent=u}).finally(()=>setTimeout(()=>b.textContent="Copy link",2500))};
  if(scroll&&window.matchMedia("(max-width:860px)").matches)document.getElementById("sheet").scrollIntoView({behavior:"smooth"})}
 function table(el,head,data,linkCol){el.innerHTML=`<thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${data.map(r=>`<tr>${r.map((v,i)=>`<td>${i===linkCol?String(v).split(/,\s*/).map(x=>byId[x.trim()]&&byId[x.trim()].level==="L3"?`<a data-go="${x.trim()}">${esc(x)}</a>`:esc(x)).join(", "):esc(v)}</td>`).join("")}</tr>`).join("")}</tbody>`;
