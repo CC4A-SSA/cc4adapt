@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Avoided-loss formulations</title>
+<meta name="description" content="How the choice of avoided-loss formulation moves a practice's benefit between the production and adaptation labels, tested on Atlas hazard regimes for maize in Kenya, Ethiopia and Nigeria. Exploratory.">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --f3: #2a78d6; --f1: #eb6834; --f5: #1baf7a; --gray: #b8b6ae;
+  --div-neg: #e34948; --div-pos: #2a78d6; --div-mid: #f0efec;
+  --warn-bg: #fff4d6; --warn-ink: #5a3d00; --warn-border: #eda100;
+  --seq-1: #cde2fb; --seq-2: #86b6ef; --seq-3: #3987e5; --seq-4: #1c5cab;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --f3: #3987e5; --f1: #d95926; --f5: #199e70; --gray: #5a5955;
+    --div-neg: #e66767; --div-pos: #3987e5; --div-mid: #383835;
+    --warn-bg: #3a2c00; --warn-ink: #ffe6a3; --warn-border: #c98500;
+    --seq-1: #184f95; --seq-2: #256abf; --seq-3: #5598e7; --seq-4: #9ec5f4;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --f3: #3987e5; --f1: #d95926; --f5: #199e70; --gray: #5a5955;
+  --div-neg: #e66767; --div-pos: #3987e5; --div-mid: #383835;
+  --warn-bg: #3a2c00; --warn-ink: #ffe6a3; --warn-border: #c98500;
+  --seq-1: #184f95; --seq-2: #256abf; --seq-3: #5598e7; --seq-4: #9ec5f4;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--page); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; padding: 0 16px 64px; }
+main { max-width: 980px; margin: 0 auto; }
+h1 { font-size: 1.9rem; line-height: 1.2; margin: 32px 0 8px; letter-spacing: -0.01em; }
+h2 { font-size: 1.3rem; margin: 48px 0 8px; }
+h3 { font-size: 1.05rem; margin: 24px 0 6px; }
+p, li { max-width: 72ch; }
+.lede { font-size: 1.1rem; color: var(--ink-2); }
+.banner { background: var(--warn-bg); color: var(--warn-ink); border-left: 4px solid var(--warn-border); padding: 10px 14px; border-radius: 6px; margin: 20px 0; font-size: 0.95rem; }
+.banner strong { font-weight: 600; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 16px 0; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; margin: 12px 0 8px; }
+.controls label { display: flex; flex-direction: column; font-size: 0.85rem; color: var(--ink-2); gap: 4px; }
+.controls input[type=range] { width: 160px; }
+.controls select, .controls button { font: inherit; font-size: 0.9rem; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--axis); background: var(--surface); color: var(--ink); }
+.controls output { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.85rem; color: var(--ink-2); margin: 6px 0 2px; }
+.legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+.legend .hollow::before { background: transparent; border: 2px solid var(--c); width: 8px; height: 8px; border-radius: 50%; }
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { font: 12px system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--ink-2); }
+svg .axis-title { fill: var(--muted); font-size: 11px; }
+svg .tick line { stroke: var(--grid); }
+svg .baseline { stroke: var(--axis); stroke-width: 1; }
+svg .mark:hover, svg .mark:focus { filter: brightness(1.12); outline: none; }
+.tt { position: fixed; pointer-events: none; z-index: 10; background: var(--surface); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 0.85rem; box-shadow: 0 4px 16px rgba(0,0,0,0.15); display: none; max-width: 280px; }
+.tt b { font-size: 0.95rem; }
+.tt .row { display: flex; gap: 8px; align-items: baseline; }
+.tt .key { display: inline-block; width: 14px; height: 2px; background: var(--c); vertical-align: middle; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; margin: 10px 0; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+th { color: var(--ink-2); font-weight: 600; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tablewrap { overflow-x: auto; }
+details summary { cursor: pointer; color: var(--ink-2); font-size: 0.9rem; margin: 6px 0; }
+.note { font-size: 0.85rem; color: var(--muted); max-width: 80ch; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 12px 0; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.kpi .label { font-size: 0.8rem; color: var(--ink-2); }
+.kpi .value { font-size: 1.6rem; font-weight: 600; line-height: 1.2; margin-top: 2px; }
+.kpi .sub { font-size: 0.8rem; color: var(--muted); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em; background: var(--div-mid); padding: 1px 4px; border-radius: 4px; }
+.math { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92em; }
+.toy-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 760px) { .toy-grid { grid-template-columns: 1.2fr 1fr; } }
+.terms { font-size: 0.9rem; }
+.terms b { color: var(--ink); }
+footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--grid); padding-top: 12px; }
+.sr { position: absolute; left: -9999px; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Same benefit, different label</h1>
+<p class="lede">How the choice of avoided-loss formulation moves a practice's yield benefit between the <em>production</em> and <em>adaptation</em> labels, and what that means for carbon-finance co-benefit claims. Maize in Kenya, Ethiopia and Nigeria, on Atlas hazard regimes.</p>
+
+<div class="banner"><strong>Exploratory. Every number is illustrative.</strong> Loss shares are bronze placeholders, buffering is a scenario grid, practice gains are ERA medians pooled across seasons. Nothing here is an estimate for reporting. See <a href="#limits">Limits</a>.</div>
+
+<div class="kpis" id="kpis"></div>
+
+<h2 id="takeaway">The one-line result</h2>
+<p>Defining "no adaptation" as <em>same tonnes lost</em> (levels difference-in-differences, which is how the CGIAR MELIAF indicator v3.0 defines its factor) rather than <em>same share lost</em> (proportional split) moves roughly a fifth to a third of a yield-raising practice's benefit from the adaptation label to the production label. The total does not change. The current CC4A pipeline sits between the two and over-counts the total.</p>
+<p>The size of that shift has a closed form: per stress year the gap between the two readings is <span class="math">−L·B·g</span>, so its expected annual value is <span class="math">−g · B · E[L]</span>. It does not depend on how much the practice buffers. Relative to the proportional split it is <span class="math">−g / ((1+g)·m)</span>, the same in every place for a given buffering. Location only scales the absolute size, through baseline yield and the hazard regime.</p>
+
+<h2 id="terms">In the indicator's terms</h2>
+<div class="card terms">
+<p>MELIAF: <span class="math">AB = A × [P<sub>stress</sub> × (g<sub>stress</sub> − g<sub>norm</sub>) + g<sub>risk</sub>] × Pr × s</span>. This page constructs stress-year yields from a loss share and a buffering share, so every MELIAF term has an expression here:</p>
+<div class="tablewrap"><table>
+<tr><th>Here</th><th>Meaning</th><th>MELIAF</th></tr>
+<tr><td><b>B</b>, <b>A = B(1+g)</b></td><td>control and practice yield in a normal year</td><td>g<sub>norm</sub> = g (as a ratio)</td></tr>
+<tr><td><b>L</b></td><td>share of yield the control loses in a stress season</td><td>not stored; needed to convert between readings</td></tr>
+<tr><td><b>m</b></td><td>share of that loss the practice avoids (signed)</td><td>g<sub>stress</sub> − g<sub>norm</sub> = (1+g)·L·m / (1−L) as in-season ratios</td></tr>
+<tr><td><b>P(h, s)</b></td><td>probability of hazard h at severity band s</td><td>P<sub>stress,h</sub> = Σ<sub>s</sub> P(h, s)</td></tr>
+<tr><td><b>B<sub>s</sub> = B(1−L)</b>, <b>A<sub>s</sub> = A(1 − L(1−m))</b></td><td>stress-year yields</td><td>the observed "stress season" outputs</td></tr>
+</table></div>
+<p>The stress-year gap between practice and control decomposes into four terms:</p>
+<p class="math">A<sub>s</sub> − B<sub>s</sub> &nbsp;=&nbsp; (A − B) &nbsp;−&nbsp; L·(A − B) &nbsp;+&nbsp; B·L·m &nbsp;+&nbsp; g·B·L·m</p>
+<p>normal gain · hazard bite on the gain · loss avoided on the baseline · loss avoided on the extra yield. The formulations differ only in where they file the second and fourth terms.</p>
+</div>
+
+<h2 id="toy">Three ways to label one benefit</h2>
+<p>Move the sliders. The total bar length never changes between F1, F2 and F3; only the split does. F5 (the current pipeline) and F0 do not conserve the total.</p>
+<div class="card">
+<div class="controls" id="toy-controls">
+  <label>Baseline yield B (t/ha) <input type="range" id="tB" min="0.5" max="6" step="0.1" value="2"><output for="tB">2.0</output></label>
+  <label>Normal-year gain g <input type="range" id="tg" min="-0.3" max="1" step="0.01" value="0.16"><output for="tg">+16%</output></label>
+  <label>Control loss share L <input type="range" id="tL" min="0" max="0.9" step="0.01" value="0.5"><output for="tL">50%</output></label>
+  <label>Buffering m <input type="range" id="tm" min="-0.5" max="1" step="0.01" value="0.5"><output for="tm">0.50</output></label>
+  <button type="button" id="toy-preset-a">Pete's 10 → 20 case</button>
+  <button type="button" id="toy-preset-b">Yield-reducing, no buffering</button>
+</div>
+<div class="toy-grid">
+  <div>
+    <div class="legend"><span style="--c: var(--gray)">Production (stress year)</span><span style="--c: var(--f3)">Avoided loss</span></div>
+    <svg id="toy-svg" viewBox="0 0 560 260" role="img" aria-labelledby="toy-title"><title id="toy-title">Stress-year production and avoided loss by formulation</title></svg>
+  </div>
+  <div id="toy-read" class="terms"></div>
+</div>
+</div>
+
+<h2 id="heat">The relative gap depends only on g and m</h2>
+<p>How far levels DiD (F1) sits below the proportional split (F3), as a share of F3's avoided loss: <span class="math">−g / ((1+g)·m)</span>. The zero line is <span class="math">m* = g/(1+g)</span>; below it, F1 reports negative avoided loss for a practice that does buffer. No location enters this chart.</p>
+<div class="card">
+<div class="legend"><span style="--c: var(--div-neg)">F1 below F3</span><span style="--c: var(--div-mid)">equal</span><span style="--c: var(--div-pos)">F1 above F3 (g &lt; 0)</span><span class="hollow" style="--c: var(--ink)">m* contour, F1 = 0</span></div>
+<svg id="heat-svg" viewBox="0 0 640 360" role="img" aria-labelledby="heat-title"><title id="heat-title">Relative gap between F1 and F3 by normal-year gain and buffering</title></svg>
+<p class="note">Cells beyond ±100 % are clipped to the end colours. Where m &lt; 0 the practice is maladaptive and both readings are negative.</p>
+</div>
+
+<h2 id="where">Where the absolute gap is large</h2>
+<p>Expected annual gap <span class="math">−g·B·E[L]</span> per admin-2 unit against the unit's expected control loss E[L] = Σ P(s)·L(s). Across these units, the hazard regime explains most of the spread; baseline yield explains little.</p>
+<div class="card">
+<div class="controls">
+  <label>Practice × hazard <select id="sel-ph"></select></label>
+  <label>Highlight <select id="sel-hi"><option value="none">none</option><option value="iso3">country</option><option value="fs1">farming system</option></select></label>
+  <label>Show <select id="sel-hi-val"></select></label>
+</div>
+<div class="legend" id="where-legend"><span style="--c: var(--f1)">unit (admin-2 hazard row)</span><span class="hollow" style="--c: var(--f1)">unit on admin-1 fallback</span><span style="--c: var(--gray)">P<sub>stress</sub> ≥ 0.99 (split unidentifiable)</span></div>
+<svg id="where-svg" viewBox="0 0 640 380" role="img" aria-labelledby="where-title"><title id="where-title">Absolute F1 minus F3 gap per unit against expected control loss</title></svg>
+<details><summary>Table view</summary><div class="tablewrap" id="where-table"></div></details>
+</div>
+
+<h2 id="strata">By farming system and country</h2>
+<p>Median adaptation share of the total benefit (avoided loss ÷ (|production| + |avoided loss|)) under each reading, with the ERA gain. Hover for unit counts, fallback counts and medians in t/ha/yr.</p>
+<div class="card">
+<div class="controls">
+  <label>Practice × hazard <select id="st-ph"></select></label>
+  <label>Buffering profile <select id="st-prof"><option value="decl_mid">declining 0.75 / 0.50 / 0.25</option><option value="const_0.50">constant 0.50</option></select></label>
+  <label>Gain g <select id="st-g"><option value="era">ERA all-SSA median</option><option value="era_aez">ERA median by AEZ stratum</option></select></label>
+  <label>Group by <select id="st-level"><option value="fs1">farming system</option><option value="aez">AEZ class</option><option value="country">country</option></select></label>
+</div>
+<div class="legend"><span style="--c: var(--f1)">F1 levels DiD</span><span style="--c: var(--f3)">F3 proportional</span><span style="--c: var(--f5)">F5 current pipeline</span></div>
+<svg id="st-svg" viewBox="0 0 640 420" role="img" aria-labelledby="st-title"><title id="st-title">Median adaptation share by stratum and formulation</title></svg>
+<details><summary>Table view</summary><div class="tablewrap" id="st-table"></div></details>
+</div>
+
+<h2 id="flips">Which units change label</h2>
+<p>A unit is "adaptation-dominant" when avoided loss exceeds production. Share of cover-crop × dry units that are adaptation-dominant under F3, and the share whose label differs under F1 or F5, across buffering profiles (ERA gain).</p>
+<div class="card">
+<div class="legend"><span style="--c: var(--f3)">adaptation-dominant under F3</span><span style="--c: var(--f1)">label differs under F1</span><span style="--c: var(--f5)">label differs under F5</span></div>
+<svg id="fl-svg" viewBox="0 0 640 340" role="img" aria-labelledby="fl-title"><title id="fl-title">Label flips by buffering profile</title></svg>
+<details><summary>Table view</summary><div class="tablewrap" id="fl-table"></div></details>
+</div>
+
+<h2 id="sev">Why severity classes stay</h2>
+<p>When buffering weakens with severity (0.75 moderate, 0.50 severe, 0.25 extreme), the effective buffering a unit experiences falls as extremes take a larger share of its expected loss. A single stress-or-normal factor would hide this; severity-resolved factors transfer across places.</p>
+<div class="card">
+<div class="controls"><label>Hazard <select id="sev-h"><option value="dry">dry (NDWS)</option><option value="wet">wet (NDWL0)</option></select></label></div>
+<div class="legend"><span style="--c: var(--f3)">unit</span></div>
+<svg id="sev-svg" viewBox="0 0 640 360" role="img" aria-labelledby="sev-title"><title id="sev-title">Effective buffering against the extreme band's share of expected loss</title></svg>
+</div>
+
+<h2 id="limits">Limits and what to trust</h2>
+<div class="card">
+<div class="tablewrap"><table>
+<tr><th>Input</th><th>Status</th></tr>
+<tr><td>Hazard frequencies P(h, s)</td><td><b>Real, with caveats.</b> Atlas NEX-GDDP 1995–2014 ensemble, production-weighted at admin-2, generic NDWS / NDWL0 thresholds, main maize season only. About a third of unit-hazard pairs use the admin-1 row. P<sub>stress</sub> ≥ 0.99 in about 6 % of pairs: no normal season exists, so the split is unidentifiable there. Units labelled large-scale irrigated get rainfed frequencies. Bimodal units (most of Kenya's maize) are under-exposed by the single season window.</td></tr>
+<tr><td>Baseline yield B</td><td><b>Real.</b> MapSPAM 2020 (Atlas SSA release). It is a mean-year yield; the page uses B<sub>norm</sub> = B / (1 − E[L]), which inherits the loss table's uncertainty.</td></tr>
+<tr><td>Loss shares L</td><td><b>Placeholder.</b> Bronze maize table (dry 0.10 / 0.25 / 0.45; wet 0.05 / 0.15 / 0.30), same in every AEZ.</td></tr>
+<tr><td>Buffering m</td><td><b>Scenario.</b> No evidence-based values exist yet.</td></tr>
+<tr><td>Gain g</td><td><b>Real but mis-specified.</b> ERA maize yield medians (cover crops +16 %, 31 studies; reduced tillage −3 %, 79 studies), pooled across seasons. MELIAF v3.0 states a pooled effect cannot be used as g<sub>norm</sub>. Under this model it is an upper bound.</td></tr>
+<tr><td>Price</td><td>Deferred. It scales totals, not the split.</td></tr>
+</table></div>
+<h3>Three things this comparison cannot settle</h3>
+<ul>
+<li><b>It is a labelling sensitivity, not a test.</b> Stress-year yields are constructed as A<sub>s</sub> = A(1 − L(1−m)), which bakes in "same share lost". A fair test needs empirical stress-season yields: classify ERA site-seasons with the Atlas hazard stack and ask whether the stress-season effect scales with control yield (proportional) or not (additive).</li>
+<li><b>MELIAF v3.0 is levels DiD by definition.</b> It defines g in kg/ha. Reading the factor in relative terms is a change request, not a clarification.</li>
+<li><b>Benchmarks differ.</b> Atlas "≥ moderate" gives P<sub>stress</sub> of 0.5–0.85; MELIAF's candidate benchmarks sit near 0.2. The severity-resolved factor merges exactly to a single factor, but not across benchmarks.</li>
+</ul>
+<h3>What the CCA analysis does</h3>
+<ul>
+<li>Use the proportional split (F3): production in a stress year = (A − B)(1 − L); avoided loss = A·L·m. Keep coefficients signed; no floors.</li>
+<li>Correct the pipeline: step 2 production scaled by (1 − Σ P·L) in stress years; step 3 avoided loss on the practice yield A, not the control B; remove the [0, 1] clamp on m.</li>
+<li>Keep severity classes as the primitive and serve MELIAF one factor per hazard by the exact merge.</li>
+<li>Report per hazard until co-occurrence is handled; P(no hazard) and P(dry ∩ wet) are already in the outputs.</li>
+</ul>
+<h3>Questions for Adaptation Insights</h3>
+<ol>
+<li>In the reference database, are g<sub>stress</sub> and g<sub>norm</sub> stored as ratios or in kg/ha? If kg/ha, which yield converts them?</li>
+<li>Can the control's stress-season loss L<sub>c</sub> = 1 − B<sub>s</sub>/B be a mandatory field? Without it neither reading converts to the other.</li>
+<li>Which hazard benchmark, and would a severity-resolved factor with the exact merge be accepted as the primitive?</li>
+<li>Shared task: classify ERA maize site-seasons as stress or normal with the Atlas stack, so g<sub>norm</sub> and g<sub>stress</sub> can be estimated separately for the practices in scope.</li>
+</ol>
+</div>
+
+<footer>
+<p id="prov"></p>
+<p>Code, pins and tests: <code>CC4A-SSA/cc4adapt</code>, branch <code>explore/af-formulations</code>, <code>code/explore/af_formulations/</code>. Tracking issue CC4A-SSA/cc4adapt#1. Hazard data: Africa Agriculture Adaptation Atlas hazard × exposure tiers (CC-BY-4.0), pinned by version id. Exposure: MapSPAM 2020 Atlas SSA release. Gains: ERA. Farming systems: Dixon et al. (FAO). AEZ: HarvestChoice AEZ16.</p>
+</footer>
+</main>
+<div class="tt" id="tt" role="status" aria-live="polite"></div>
+<script src="data.js"></script>
+<script>
+(() => {
+const D = window.AF_DATA;
+const $ = (s) => document.querySelector(s);
+const svgNS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(svgNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const txt = (parent, x, y, s, attrs = {}) => { const t = el("text", { x, y, ...attrs }, parent); t.textContent = s; return t; };
+const fmt = (v, d = 2) => (v == null || isNaN(v)) ? "–" : (+v).toFixed(d);
+const pct = (v, d = 0) => (v == null || isNaN(v)) ? "–" : (100 * v).toFixed(d) + " %";
+const cssv = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+// ---- tooltip ------------------------------------------------------------
+const tt = $("#tt");
+function showTT(ev, rows) {
+  tt.replaceChildren();
+  rows.forEach(([k, v, c], i) => {
+    const r = document.createElement("div"); r.className = "row";
+    if (c) { const key = document.createElement("span"); key.className = "key"; key.style.setProperty("--c", c); r.appendChild(key); }
+    const b = document.createElement(i === 0 ? "b" : "span"); b.textContent = v == null ? k : v; r.appendChild(b);
+    if (v != null) { const l = document.createElement("span"); l.textContent = k; l.style.color = "var(--ink-2)"; r.appendChild(l); }
+    tt.appendChild(r);
+  });
+  tt.style.display = "block"; moveTT(ev);
+}
+function moveTT(ev) { const w = tt.offsetWidth, h = tt.offsetHeight; let x = ev.clientX + 14, y = ev.clientY + 14; if (x + w > innerWidth - 8) x = ev.clientX - w - 14; if (y + h > innerHeight - 8) y = ev.clientY - h - 14; tt.style.left = x + "px"; tt.style.top = y + "px"; }
+const hideTT = () => tt.style.display = "none";
+function hover(node, rowsFn) { node.classList.add("mark"); node.setAttribute("tabindex", "0"); node.addEventListener("pointerenter", (e) => showTT(e, rowsFn())); node.addEventListener("pointermove", moveTT); node.addEventListener("pointerleave", hideTT); node.addEventListener("focus", (e) => { const r = node.getBoundingClientRect(); showTT({ clientX: r.left + r.width / 2, clientY: r.top }, rowsFn()); }); node.addEventListener("blur", hideTT); }
+
+// ---- formulations (mirror of R/formulations.R) ---------------------------
+function stress(B, g, L, m) {
+  const A = B * (1 + g), Bs = B * (1 - L), As = A * (1 - L * (1 - m)), dn = A - B, ds = As - Bs;
+  const F1 = L * (B - (1 - m) * A), F2 = Math.max(0, F1), F3 = A * L * m, F5 = B * L * m;
+  return { A, Bs, As, dn, ds,
+    F0: { prod: dn, al: ds }, F1: { prod: dn, al: F1 }, F2: { prod: ds - F2, al: F2 },
+    F3: { prod: dn * (1 - L), al: F3 }, F5: { prod: dn, al: F5 } };
+}
+
+// ---- KPIs ----------------------------------------------------------------
+{
+  const u = D.units.filter(x => x.hazard === "dry");
+  const k = [
+    ["Admin-2 units with maize", D.n_units, "Kenya, Ethiopia, Nigeria"],
+    ["Parameter sets per unit", D.n_param_sets, "g × buffering profile × practice × hazard"],
+    ["Median P(dry ≥ moderate)", fmt(median(u.map(x => x.p_stress)), 2), "main maize season, 1995–2014"],
+    ["Units with P ≥ 0.99 (dry)", u.filter(x => x.p_stress_ge_099).length, "no normal season; split unidentifiable"],
+  ];
+  $("#kpis").replaceChildren(...k.map(([l, v, s]) => { const d = document.createElement("div"); d.className = "kpi"; d.innerHTML = `<div class="label"></div><div class="value"></div><div class="sub"></div>`; d.children[0].textContent = l; d.children[1].textContent = v; d.children[2].textContent = s; return d; }));
+  $("#prov").textContent = `Generated ${D.generated} from af_results_maize_historic.parquet (${D.n_units} units × ${D.n_param_sets} parameter sets). Exploratory.`;
+}
+function median(a) { const s = a.filter(v => v != null && !isNaN(v)).sort((x, y) => x - y); const n = s.length; return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : NaN; }
+
+// ---- Toy -----------------------------------------------------------------
+const toy = { B: 2, g: 0.16, L: 0.5, m: 0.5 };
+const toyFmt = { tB: v => (+v).toFixed(1), tg: v => (v >= 0 ? "+" : "") + Math.round(v * 100) + "%", tL: v => Math.round(v * 100) + "%", tm: v => (+v).toFixed(2) };
+function drawToy() {
+  const s = stress(toy.B, toy.g, toy.L, toy.m);
+  const svg = $("#toy-svg"); svg.replaceChildren(el("title", {}, null) || undefined); svg.innerHTML = '<title id="toy-title">Stress-year production and avoided loss by formulation</title>';
+  const rows = [["F1", "Levels DiD (MELIAF v3.0)"], ["F2", "DiD floored at 0"], ["F3", "Proportional split"], ["F5", "Current pipeline"], ["F0", "v0.1, no split"]];
+  const W = 560, left = 150, right = 20, top = 16, rh = 40, plotW = W - left - right;
+  const vals = rows.flatMap(([f]) => [s[f].prod, s[f].al, s[f].prod + s[f].al]);
+  const lo = Math.min(0, ...vals), hi = Math.max(0, ...vals, 1e-9);
+  const x = v => left + (v - lo) / (hi - lo) * plotW;
+  const g = el("g", {}, svg);
+  const ticks = niceTicks(lo, hi, 5);
+  ticks.forEach(t => { el("line", { x1: x(t), x2: x(t), y1: top, y2: top + rows.length * rh, class: "tick", stroke: "var(--grid)" }, g); txt(g, x(t), top + rows.length * rh + 16, fmt(t, 1), { "text-anchor": "middle" }); });
+  el("line", { x1: x(0), x2: x(0), y1: top, y2: top + rows.length * rh, class: "baseline" }, g);
+  txt(g, left + plotW / 2, top + rows.length * rh + 34, "t/ha, stress year", { "text-anchor": "middle", class: "axis-title" });
+  rows.forEach(([f, name], i) => {
+    const y = top + i * rh + 6, h = rh - 14, p = s[f].prod, a = s[f].al;
+    txt(g, left - 10, y + h / 2 + 4, f + " · " + name, { "text-anchor": "end" });
+    const bar = (v0, v1, fill) => { const r = el("rect", { x: Math.min(x(v0), x(v1)), y, width: Math.max(0, Math.abs(x(v1) - x(v0)) - 2), height: h, rx: 3, fill }, g); return r; };
+    const bp = bar(0, p, "var(--gray)"); const ba = bar(p, p + a, "var(--f3)");
+    if (a < 0) ba.setAttribute("fill", "var(--div-neg)");
+    [bp, ba].forEach(b => hover(b, () => [[name, null], ["production", fmt(p, 2) + " t/ha", cssv("--gray")], ["avoided loss", fmt(a, 2) + " t/ha", cssv("--f3")], ["total", fmt(p + a, 2) + " t/ha"], ["adaptation share", pct(a / (Math.abs(p) + Math.abs(a)))]]));
+    txt(g, x(Math.max(p + a, p, 0)) + 6, y + h / 2 + 4, fmt(a, 2), { fill: "var(--ink)" });
+  });
+  const mstar = toy.g / (1 + toy.g);
+  $("#toy-read").innerHTML = `
+    <p><b>Normal year:</b> control ${fmt(toy.B)} → practice ${fmt(s.A)} t/ha (Δ<sub>n</sub> = ${fmt(s.dn)}).<br>
+    <b>Stress year:</b> control ${fmt(s.Bs)} → practice ${fmt(s.As)} (Δ<sub>s</sub> = ${fmt(s.ds)}). Control loses ${pct(toy.L)}; practice loses ${pct(toy.L * (1 - toy.m))}.</p>
+    <p class="math">Δ<sub>s</sub> = ${fmt(s.dn)} − ${fmt(toy.L * s.dn)} + ${fmt(toy.B * toy.L * toy.m)} + ${fmt(toy.g * toy.B * toy.L * toy.m)}</p>
+    <p><b>F1 − F3</b> avoided loss = −L·B·g = <b>${fmt(-toy.L * toy.B * toy.g)}</b> t/ha, whatever m.<br>
+    <b>m*</b> = g/(1+g) = <b>${fmt(mstar)}</b>: F1 is ${toy.m > mstar ? "positive" : toy.m < mstar ? "negative" : "zero"} here.<br>
+    <b>F5 over-count</b> of the total = L(A−B)(1−m) = <b>${fmt(toy.L * s.dn * (1 - toy.m))}</b> t/ha.</p>`;
+}
+["tB", "tg", "tL", "tm"].forEach(id => { const inp = $("#" + id); const out = document.querySelector(`output[for=${id}]`); inp.addEventListener("input", () => { toy[id[1]] = +inp.value; out.textContent = toyFmt[id](inp.value); drawToy(); }); });
+function setToy(v) { Object.assign(toy, v); ["B", "g", "L", "m"].forEach(k => { const inp = $("#t" + k); inp.value = toy[k]; document.querySelector(`output[for=t${k}]`).textContent = toyFmt["t" + k](toy[k]); }); drawToy(); }
+$("#toy-preset-a").addEventListener("click", () => setToy({ B: 6, g: 1, L: 0.5, m: 0.5 }));
+$("#toy-preset-b").addEventListener("click", () => setToy({ B: 2, g: -0.1, L: 0.5, m: 0 }));
+function niceTicks(lo, hi, n) { const span = hi - lo; const step0 = span / n; const p = Math.pow(10, Math.floor(Math.log10(step0))); const step = [1, 2, 2.5, 5, 10].map(s => s * p).find(s => span / s <= n) || p * 10; const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(10)); return out; }
+drawToy();
+
+// ---- Heat map ------------------------------------------------------------
+{
+  const svg = $("#heat-svg");
+  const gs = [-0.2, -0.1, 0, 0.05, 0.1, 0.16, 0.25, 0.5, 0.75, 1.0];
+  const ms = [-0.2, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.75, 0.9, 1.0];
+  const W = 640, left = 70, top = 20, cw = (W - left - 110) / ms.length, ch = 28;
+  const g = el("g", {}, svg);
+  const neg = cssv("--div-neg"), pos = cssv("--div-pos"), mid = cssv("--div-mid");
+  const mix = (a, b, t) => { const pa = hex(a), pb = hex(b); return `rgb(${pa.map((v, i) => Math.round(v + (pb[i] - v) * t)).join(",")})`; };
+  function hex(h) { h = h.replace("#", ""); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
+  const col = v => { if (v == null || !isFinite(v)) return "var(--grid)"; const t = Math.max(-1, Math.min(1, v)); return t < 0 ? mix(mid, neg, -t) : mix(mid, pos, t); };
+  gs.forEach((gv, i) => {
+    txt(g, left - 8, top + i * ch + ch / 2 + 4, (gv >= 0 ? "+" : "") + Math.round(gv * 100) + "%", { "text-anchor": "end" });
+    ms.forEach((mv, j) => {
+      const rel = (mv === 0) ? null : -gv / ((1 + gv) * mv);
+      const r = el("rect", { x: left + j * cw + 1, y: top + i * ch + 1, width: cw - 2, height: ch - 2, rx: 3, fill: col(rel) }, g);
+      hover(r, () => [[`g = ${Math.round(gv * 100)} %, m = ${mv}`, null], ["F1 − F3, share of F3", rel == null ? "undefined (m = 0)" : pct(rel, 0)], ["F1 sign", mv > gv / (1 + gv) ? "positive" : mv < gv / (1 + gv) ? "negative" : "zero"], ["m* = g/(1+g)", fmt(gv / (1 + gv), 3)]]);
+      if (Math.abs(rel ?? 0) >= 0.15 || rel == null) txt(g, left + j * cw + cw / 2, top + i * ch + ch / 2 + 4, rel == null ? "–" : Math.round(rel * 100) + "%", { "text-anchor": "middle", fill: "var(--ink)", "font-size": "11px" });
+    });
+  });
+  ms.forEach((mv, j) => txt(g, left + j * cw + cw / 2, top + gs.length * ch + 16, mv, { "text-anchor": "middle" }));
+  txt(g, left + ms.length * cw / 2, top + gs.length * ch + 34, "buffering m (share of control loss avoided)", { "text-anchor": "middle", class: "axis-title" });
+  txt(g, 14, top + gs.length * ch / 2, "normal-year gain g", { transform: `rotate(-90 14 ${top + gs.length * ch / 2})`, "text-anchor": "middle", class: "axis-title" });
+  // m* contour: for each g row, x position of m* within the m axis (piecewise linear between column centres)
+  const mx = mv => { let j = ms.findIndex(v => v >= mv); if (j <= 0) return left + cw / 2 + (mv - ms[0]) / (ms[1] - ms[0]) * cw; const a = ms[j - 1], b = ms[j]; return left + (j - 1) * cw + cw / 2 + (mv - a) / (b - a) * cw; };
+  const pts = gs.map((gv, i) => `${mx(gv / (1 + gv))},${top + i * ch + ch / 2}`);
+  el("polyline", { points: pts.join(" "), fill: "none", stroke: "var(--ink)", "stroke-width": 2, "stroke-dasharray": "4 3" }, g);
+  txt(g, mx(gs[0] / (1 + gs[0])) - 6, top - 6, "m* = g/(1+g): F1 = 0 on this line", { fill: "var(--ink)", "text-anchor": "start" });
+}
+
+// ---- Where: scatter of gap vs E[L] --------------------------------------
+const PH = [["cover_crops", "dry", "Cover crops × dry"], ["cover_crops", "wet", "Cover crops × wet"], ["reduced_tillage", "dry", "Reduced tillage × dry"]];
+const unitsIdx = {}; D.units.forEach(u => unitsIdx[u.gaul2_code + "|" + u.hazard] = u);
+function fillPH(sel) { sel.replaceChildren(...PH.map(([p, h, l]) => { const o = document.createElement("option"); o.value = p + "|" + h; o.textContent = l; return o; })); }
+fillPH($("#sel-ph")); fillPH($("#st-ph"));
+function drawWhere() {
+  const [p, h] = $("#sel-ph").value.split("|"); const hiKey = $("#sel-hi").value; const hiVal = $("#sel-hi-val").value;
+  const rows = D.ref.filter(r => r.practice === p && r.hazard === h && r.m_profile === "const_0.50").map(r => ({ ...r, u: unitsIdx[r.gaul2_code + "|" + h] })).filter(r => r.u);
+  rows.forEach(r => r.gap = r.F1_al - r.F3_al);
+  const svg = $("#where-svg"); svg.innerHTML = '<title id="where-title">Absolute F1 minus F3 gap per unit against expected control loss</title>';
+  const W = 640, H = 380, left = 64, right = 16, top = 16, bottom = 50, pw = W - left - right, ph = H - top - bottom;
+  const xs = rows.map(r => r.u.EL), ys = rows.map(r => r.gap);
+  const xmax = Math.max(...xs) * 1.05, ymin = Math.min(0, ...ys) * 1.05, ymax = Math.max(0, ...ys) * 1.05 + 1e-6;
+  const x = v => left + v / xmax * pw, y = v => top + (ymax - v) / (ymax - ymin) * ph;
+  const g = el("g", {}, svg);
+  niceTicks(0, xmax, 6).forEach(t => { el("line", { x1: x(t), x2: x(t), y1: top, y2: top + ph, stroke: "var(--grid)" }, g); txt(g, x(t), top + ph + 16, fmt(t, 2), { "text-anchor": "middle" }); });
+  niceTicks(ymin, ymax, 5).forEach(t => { el("line", { x1: left, x2: left + pw, y1: y(t), y2: y(t), stroke: "var(--grid)" }, g); txt(g, left - 8, y(t) + 4, fmt(t, 2), { "text-anchor": "end" }); });
+  el("line", { x1: left, x2: left + pw, y1: y(0), y2: y(0), class: "baseline" }, g);
+  txt(g, left + pw / 2, H - 8, "expected control loss share E[L] = Σ P(s)·L(s)", { "text-anchor": "middle", class: "axis-title" });
+  txt(g, 14, top + ph / 2, "F1 − F3 avoided loss, t/ha/yr", { transform: `rotate(-90 14 ${top + ph / 2})`, "text-anchor": "middle", class: "axis-title" });
+  const gval = rows[0]?.g;
+  rows.sort((a, b) => (a.u.p_stress_ge_099 ? 1 : 0) - (b.u.p_stress_ge_099 ? 1 : 0)).forEach(r => {
+    const dim = hiKey !== "none" && String(r.u[hiKey]) !== hiVal;
+    const c = r.u.p_stress_ge_099 ? "var(--gray)" : "var(--f1)";
+    const hollow = r.u.p_source === "adm1";
+    const circ = el("circle", { cx: x(r.u.EL), cy: y(r.gap), r: 4.5, fill: hollow ? "var(--surface)" : c, stroke: c, "stroke-width": hollow ? 2 : 1, opacity: dim ? 0.15 : 0.85 }, g);
+    const hit = el("circle", { cx: x(r.u.EL), cy: y(r.gap), r: 12, fill: "transparent" }, g);
+    hover(hit, () => [[`${r.u.admin2_name}, ${r.u.admin1_name} (${r.u.iso3})`, null], ["F1 − F3", fmt(r.gap, 3) + " t/ha/yr", cssv("--f1")], ["E[L]", fmt(r.u.EL, 3)], ["B_norm", fmt(r.u.B_norm, 2) + " t/ha"], ["P(≥ moderate)", fmt(r.u.p_stress, 2)], ["hazard row", r.u.p_source], ["farming system", r.u.fs1], ["AEZ", r.u.aez], ["F3 avoided loss", fmt(r.F3_al, 3) + " t/ha/yr", cssv("--f3")]]);
+  });
+  txt(g, left + pw - 4, top + 14, `g = ${gval != null ? (gval >= 0 ? "+" : "") + Math.round(gval * 100) + "%" : "?"} (ERA), ${rows.length} units`, { "text-anchor": "end", fill: "var(--ink)" });
+  // table
+  const t = document.createElement("table"); t.innerHTML = "<tr><th>Unit</th><th>Country</th><th>Farming system</th><th class=num>E[L]</th><th class=num>B_norm</th><th class=num>F1 − F3</th><th class=num>F3 avoided loss</th><th>row</th></tr>";
+  rows.slice().sort((a, b) => a.gap - b.gap).slice(0, 40).forEach(r => { const tr = document.createElement("tr"); [r.u.admin2_name + ", " + r.u.admin1_name, r.u.iso3, r.u.fs1, fmt(r.u.EL, 3), fmt(r.u.B_norm, 2), fmt(r.gap, 3), fmt(r.F3_al, 3), r.u.p_source].forEach((v, i) => { const td = document.createElement("td"); if (i >= 3 && i <= 6) td.className = "num"; td.textContent = v; tr.appendChild(td); }); t.appendChild(tr); });
+  const cap = document.createElement("p"); cap.className = "note"; cap.textContent = "Largest 40 gaps shown; full data in af_results_maize_historic.parquet.";
+  $("#where-table").replaceChildren(t, cap);
+}
+function fillHiVals() { const k = $("#sel-hi").value; const sel = $("#sel-hi-val"); if (k === "none") { sel.replaceChildren(); sel.disabled = true; return; } sel.disabled = false; const vals = [...new Set(D.units.map(u => u[k]).filter(Boolean))].sort(); sel.replaceChildren(...vals.map(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; return o; })); }
+$("#sel-hi").addEventListener("change", () => { fillHiVals(); drawWhere(); }); $("#sel-hi-val").addEventListener("change", drawWhere); $("#sel-ph").addEventListener("change", drawWhere);
+fillHiVals(); drawWhere();
+
+// ---- Strata grouped bars ---------------------------------------------------
+function drawStrata() {
+  const [p, h] = $("#st-ph").value.split("|"); const prof = $("#st-prof").value, gsrc = $("#st-g").value, level = $("#st-level").value;
+  const key = level === "country" ? "iso3" : level;
+  const rows = D.strata.filter(r => r.practice === p && r.hazard === h && r.m_profile === prof && r.g_source === gsrc && r.level === level && r[key]).sort((a, b) => b.F3_share_med - a.F3_share_med);
+  const svg = $("#st-svg"); svg.innerHTML = '<title id="st-title">Median adaptation share by stratum and formulation</title>';
+  const W = 640, left = 200, right = 40, top = 10, rh = 34, pw = W - left - right, H = top + rows.length * rh + 44;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const series = [["F1", "F1_share_med", "--f1"], ["F3", "F3_share_med", "--f3"], ["F5", "F5_share_med", "--f5"]];
+  const vals = rows.flatMap(r => series.map(s => r[s[1]]));
+  const lo = Math.min(0, ...vals), hi = Math.max(0.1, ...vals);
+  const x = v => left + (v - lo) / (hi - lo) * pw;
+  const g = el("g", {}, svg);
+  niceTicks(lo, hi, 5).forEach(t => { el("line", { x1: x(t), x2: x(t), y1: top, y2: top + rows.length * rh, stroke: "var(--grid)" }, g); txt(g, x(t), top + rows.length * rh + 16, pct(t), { "text-anchor": "middle" }); });
+  el("line", { x1: x(0), x2: x(0), y1: top, y2: top + rows.length * rh, class: "baseline" }, g);
+  txt(g, left + pw / 2, top + rows.length * rh + 34, "median adaptation share of total benefit", { "text-anchor": "middle", class: "axis-title" });
+  const bh = (rh - 10) / 3;
+  rows.forEach((r, i) => {
+    const y0 = top + i * rh + 4;
+    txt(g, left - 10, y0 + rh / 2, r[key], { "text-anchor": "end" });
+    series.forEach(([f, col, c], j) => {
+      const v = r[col]; const yy = y0 + j * bh;
+      const rect = el("rect", { x: Math.min(x(0), x(v)), y: yy, width: Math.max(0, Math.abs(x(v) - x(0)) - 2), height: bh - 2, rx: 2, fill: `var(${c})` }, g);
+      hover(rect, () => [[r[key], null], [f + " share", pct(v, 1), cssv(c)], ["units", r.units + " (" + r.units_adm1_fallback + " on admin-1; " + r.units_p_stress_ge_099 + " with P ≥ 0.99)"], ["maize", r.maize_kt + " kt"], ["B_norm median", fmt(r.B_norm_med, 2) + " t/ha"], ["E[L] median", fmt(r.EL_med, 3)], ["F1 avoided loss", fmt(r.F1_al_med, 3) + " t/ha/yr", cssv("--f1")], ["F3 avoided loss", fmt(r.F3_al_med, 3) + " t/ha/yr", cssv("--f3")], ["F5 avoided loss", fmt(r.F5_al_med, 3) + " t/ha/yr", cssv("--f5")], ["F1 − F3 median", fmt(r.gap_med, 3) + " t/ha/yr"]]);
+      if (j === 1) txt(g, x(Math.max(v, 0)) + 4, yy + bh / 2 + 3, pct(v), { fill: "var(--ink)", "font-size": "11px" });
+    });
+  });
+  const t = document.createElement("table"); t.innerHTML = `<tr><th>${level}</th><th class=num>units</th><th class=num>admin-1</th><th class=num>P≥0.99</th><th class=num>maize kt</th><th class=num>B_norm</th><th class=num>E[L]</th><th class=num>F1 share</th><th class=num>F3 share</th><th class=num>F5 share</th><th class=num>F1−F3 t/ha</th></tr>`;
+  rows.forEach(r => { const tr = document.createElement("tr"); [r[key], r.units, r.units_adm1_fallback, r.units_p_stress_ge_099, r.maize_kt, fmt(r.B_norm_med, 2), fmt(r.EL_med, 3), pct(r.F1_share_med, 1), pct(r.F3_share_med, 1), pct(r.F5_share_med, 1), fmt(r.gap_med, 3)].forEach((v, i) => { const td = document.createElement("td"); if (i) td.className = "num"; td.textContent = v; tr.appendChild(td); }); t.appendChild(tr); });
+  $("#st-table").replaceChildren(t);
+}
+["#st-ph", "#st-prof", "#st-g", "#st-level"].forEach(s => $(s).addEventListener("change", drawStrata)); drawStrata();
+
+// ---- Flips -----------------------------------------------------------------
+{
+  const order = ["const_0.00", "const_0.25", "const_0.50", "const_0.75", "const_1.00", "decl_lo", "decl_mid", "decl_hi", "decl_mal"];
+  const label = { "const_0.00": "0", "const_0.25": "0.25", "const_0.50": "0.50", "const_0.75": "0.75", "const_1.00": "1.0", decl_lo: "0.5/0.25/0", decl_mid: "0.75/0.5/0.25", decl_hi: "1/0.5/0", decl_mal: "0.25/0/−0.2" };
+  const rows = order.map(m => D.flips.find(r => r.practice === "cover_crops" && r.hazard === "dry" && r.m_profile === m)).filter(Boolean);
+  const svg = $("#fl-svg"); const W = 640, H = 340, left = 56, right = 16, top = 16, bottom = 64, pw = W - left - right, ph = H - top - bottom;
+  const g = el("g", {}, svg); const bw = pw / rows.length; const y = v => top + (1 - v) * ph;
+  [0, 0.25, 0.5, 0.75, 1].forEach(t => { el("line", { x1: left, x2: left + pw, y1: y(t), y2: y(t), stroke: "var(--grid)" }, g); txt(g, left - 8, y(t) + 4, pct(t), { "text-anchor": "end" }); });
+  el("line", { x1: left, x2: left + pw, y1: y(0), y2: y(0), class: "baseline" }, g);
+  const series = [["F3_adaptation", "--f3", "adaptation-dominant (F3)"], ["flip_F1_vs_F3", "--f1", "label differs under F1"], ["flip_F5_vs_F3", "--f5", "label differs under F5"]];
+  rows.forEach((r, i) => {
+    const x0 = left + i * bw + 6, sw = (bw - 12) / 3;
+    series.forEach(([k, c, n], j) => { const v = r[k]; const rect = el("rect", { x: x0 + j * sw, y: y(v), width: sw - 2, height: Math.max(0, y(0) - y(v)), rx: 2, fill: `var(${c})` }, g); hover(rect, () => [[`buffering ${label[r.m_profile]}`, null], [n, pct(v, 1), cssv(c)], ["units", r.units], ["g", (r.g >= 0 ? "+" : "") + Math.round(r.g * 100) + " % (ERA)"]]); });
+    const parts = label[r.m_profile].split("/");
+    txt(g, left + i * bw + bw / 2, y(0) + 16, parts[0], { "text-anchor": "middle", "font-size": "11px" });
+    if (parts.length > 1) txt(g, left + i * bw + bw / 2, y(0) + 30, parts.slice(1).join(" / "), { "text-anchor": "middle", "font-size": "11px" });
+  });
+  txt(g, left + pw / 2, H - 10, "buffering m (constant, or moderate / severe / extreme)", { "text-anchor": "middle", class: "axis-title" });
+  const t = document.createElement("table"); t.innerHTML = "<tr><th>buffering</th><th class=num>units</th><th class=num>adaptation-dominant (F3)</th><th class=num>differs under F1</th><th class=num>differs under F2</th><th class=num>differs under F5</th></tr>";
+  rows.forEach(r => { const tr = document.createElement("tr"); [label[r.m_profile], r.units, pct(r.F3_adaptation, 1), pct(r.flip_F1_vs_F3, 1), pct(r.flip_F2_vs_F3, 1), pct(r.flip_F5_vs_F3, 1)].forEach((v, i) => { const td = document.createElement("td"); if (i) td.className = "num"; td.textContent = v; tr.appendChild(td); }); t.appendChild(tr); });
+  $("#fl-table").replaceChildren(t);
+}
+
+// ---- Severity mix ------------------------------------------------------------
+function drawSev() {
+  const h = $("#sev-h").value;
+  const rows = D.sevmix.filter(r => r.hazard === h && r.m_profile === "decl_mid").map(r => ({ ...r, u: unitsIdx[r.gaul2_code + "|" + h] })).filter(r => r.u);
+  const svg = $("#sev-svg"); svg.innerHTML = '<title id="sev-title">Effective buffering against the extreme band\'s share of expected loss</title>';
+  const W = 640, H = 360, left = 64, right = 16, top = 16, bottom = 50, pw = W - left - right, ph = H - top - bottom;
+  const x = v => left + v * pw, y = v => top + (0.8 - v) / 0.6 * ph;
+  const g = el("g", {}, svg);
+  [0, 0.25, 0.5, 0.75, 1].forEach(t => { el("line", { x1: x(t), x2: x(t), y1: top, y2: top + ph, stroke: "var(--grid)" }, g); txt(g, x(t), top + ph + 16, pct(t), { "text-anchor": "middle" }); });
+  [0.25, 0.5, 0.75].forEach(t => { el("line", { x1: left, x2: left + pw, y1: y(t), y2: y(t), stroke: "var(--grid)" }, g); txt(g, left - 8, y(t) + 4, fmt(t, 2), { "text-anchor": "end" }); });
+  txt(g, left + pw / 2, H - 8, "extreme band's share of expected loss E[L]", { "text-anchor": "middle", class: "axis-title" });
+  txt(g, 14, top + ph / 2, "effective buffering m_eff", { transform: `rotate(-90 14 ${top + ph / 2})`, "text-anchor": "middle", class: "axis-title" });
+  rows.forEach(r => { el("circle", { cx: x(r.ext_share), cy: y(Math.min(0.8, Math.max(0.2, r.m_eff))), r: 4, fill: "var(--f3)", opacity: 0.55 }, g); const hit = el("circle", { cx: x(r.ext_share), cy: y(r.m_eff), r: 12, fill: "transparent" }, g); hover(hit, () => [[`${r.u.admin2_name}, ${r.u.admin1_name} (${r.u.iso3})`, null], ["m_eff", fmt(r.m_eff, 2), cssv("--f3")], ["extreme share of E[L]", pct(r.ext_share)], ["P bands mod / sev / ext", `${fmt(r.u.p_mod, 2)} / ${fmt(r.u.p_sev, 2)} / ${fmt(r.u.p_ext, 2)}`], ["farming system", r.u.fs1]]); });
+  txt(g, left + pw - 4, top + 14, `${rows.length} units, profile 0.75 / 0.50 / 0.25`, { "text-anchor": "end", fill: "var(--ink)" });
+}
+$("#sev-h").addEventListener("change", drawSev); drawSev();
+})();
+</script>
+</body>
+</html>
