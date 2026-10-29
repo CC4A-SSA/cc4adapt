@@ -22,6 +22,8 @@ data/staging/**
 data/outputs/**
 data/naturebase/**
 data/papers/**
+text/papers/**
+*.pdf
 
 # Keep the MANIFEST + folder stubs so new clones know where to drop data,
 # and .gitkeep-preserve every subfolder so the expected scaffolding is
