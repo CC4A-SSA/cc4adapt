@@ -11,6 +11,8 @@
 #   * data/inputs/era/ERA_Derived.rda (sibling solutions checkout, Apr 2026)
 # Outputs (data/staging/af_formulations/params/):
 #   * era_g.csv       g per practice, overall and by ERA AEZ16simple class
+#                     (stratum rows are joined per unit in 05_compute.R as
+#                     g_source = "era_aez")
 #   * param_grid.csv  one row per practice x hazard x severity x g x m profile
 #
 # ERA notes:
@@ -84,6 +86,10 @@ for (p in names(cfg$practices)) {
   }
 }
 grid <- rbindlist(rows)
-grid[, param_id := .GRP, by = .(practice, hazard, g_source, g, m_profile)]
+# Deterministic id: sorted string key, so ids survive yaml reordering and a
+# practice with no ERA rows.
+grid[, param_key := sprintf("%s|%s|%s|%.4f|%s", practice, hazard, g_source, g, m_profile)]
+keys <- sort(unique(grid$param_key))
+grid[, param_id := match(param_key, keys)]
 fwrite(grid, file.path(OUT, "param_grid.csv"))
 message(sprintf("param_grid.csv: %d rows, %d parameter sets", nrow(grid), uniqueN(grid$param_id)))

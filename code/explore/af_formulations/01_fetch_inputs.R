@@ -20,13 +20,22 @@
 #     x-amz-version-id equals the pin.
 #   * HarvestChoice AEZ16 r2.0 TIF (Harvard Dataverse doi:10.7910/DVN/M7XIUB,
 #     CC0, file id 2723111).
-#   * Dixon farming systems FS1/FS2 rasters, copied from the local
-#     AICCRA_EFA/Data/Farming_systems/ (not re-downloaded; path below).
+#   * Dixon farming systems FS1/FS2 rasters (Dixon et al. 2019/2021, FAO
+#     "Farming Systems and Food Security in Africa", level-1 and level-2
+#     subsystems, 5 arcmin). Copied from a local checkout of AICCRA_EFA
+#     (AF_FS_DIR, default ../AICCRA_EFA/Data/Farming_systems); not
+#     downloadable here. A collaborator needs that folder or the FAO source.
+#   * WorldClim 2.1 10' bio_1 and prec_01..12 via geodata::worldclim_global
+#     into data/inputs/soilgrids/climate/ (same cache the biochar step uses;
+#     skipped when present).
+#   * MapSPAM 2020 (Atlas harmonised) maize production and harvested area,
+#     windowed /vsicurl read of the SSA COGs. The object's version id at
+#     fetch time is stored in <file>.versionId and reused on later runs.
 #
-# WorldClim 2.1 10' bio_1 and prec_01..12 are already cached under
-# data/inputs/soilgrids/climate/wc2.1_10m/ and are read in place later.
+# ERA_Derived.rda is fetched separately by code/inputs/fetch_era.R.
 #
 # Re-running skips files that already exist; delete a file to re-fetch it.
+# Downloads go to <file>.part and are renamed on completion.
 # ------------------------------------------------------------------------------
 
 suppressPackageStartupMessages({
@@ -65,7 +74,9 @@ GAUL_KEY <- paste0(
 )
 GAUL_PIN <- "66c7MiKvkW8w_4q6wfQXly0wy7FRKEIa"
 AEZ_URL  <- "https://dataverse.harvard.edu/api/access/datafile/2723111"
-FS_DIR   <- normalizePath("../AICCRA_EFA/Data/Farming_systems", mustWork = FALSE)
+FS_DIR   <- normalizePath(Sys.getenv("AF_FS_DIR", "../AICCRA_EFA/Data/Farming_systems"), mustWork = FALSE)
+AEZ_MD5  <- "8e59b8bb5e19f19b6ce536f6f5ea8acb"  # Dataverse file 2723111, checked 2026-10-27
+WC_DIR   <- "data/inputs/soilgrids/climate"
 
 manifest <- list()
 log_file <- function(item, source, pin, path, note = "") {
@@ -78,8 +89,18 @@ log_file <- function(item, source, pin, path, note = "") {
 }
 
 con <- dbConnect(duckdb::duckdb())
-on.exit(dbDisconnect(con, shutdown = TRUE), add = TRUE)
 invisible(dbExecute(con, "INSTALL httpfs; LOAD httpfs;"))
+
+s3_version <- function(key) {
+  hdr <- curlGetHeaders(paste0(S3, key))
+  trimws(sub("(?i)^x-amz-version-id:\\s*", "",
+             grep("(?i)^x-amz-version-id", hdr, value = TRUE, perl = TRUE), perl = TRUE))
+}
+download_part <- function(url, path) {
+  tmp <- paste0(path, ".part")
+  utils::download.file(url, tmp, mode = "wb", quiet = TRUE)
+  invisible(file.rename(tmp, path))
+}
 q   <- function(x) as.character(dbQuoteString(con, x))
 inq <- function(x) paste(vapply(x, q, ""), collapse = ", ")
 
@@ -117,9 +138,7 @@ log_file("denominator_t_ha", paste0(S3, DENOM_KEY), DENOM_PIN, path)
 message("GAUL 2024 admin-2")
 path <- file.path(OUT, "gaul24_adm2_ken_eth_nga.parquet")
 if (!file.exists(path)) {
-  hdr <- curlGetHeaders(paste0(S3, GAUL_KEY))
-  ver <- sub("(?i)^x-amz-version-id:\\s*", "", grep("(?i)^x-amz-version-id", hdr, value = TRUE, perl = TRUE), perl = TRUE)
-  ver <- trimws(ver)
+  ver <- s3_version(GAUL_KEY)
   if (!identical(ver, GAUL_PIN)) stop("GAUL current version ", ver, " != pin ", GAUL_PIN)
   iso_col <- intersect(c("iso3", "ISO3", "iso3_code"),
                        dbGetQuery(con, sprintf("DESCRIBE SELECT * FROM read_parquet(%s)", q(paste0(S3, GAUL_KEY))))$column_name)[1]
@@ -133,7 +152,8 @@ log_file("gaul24_adm2", paste0(S3, GAUL_KEY), GAUL_PIN, path,
 # ---- 4. HarvestChoice AEZ16 ----------------------------------------------
 message("HarvestChoice AEZ")
 zip <- file.path(OUT, "aez_r2.0_tif.zip")
-if (!file.exists(zip)) utils::download.file(AEZ_URL, zip, mode = "wb", quiet = TRUE)
+if (!file.exists(zip)) download_part(AEZ_URL, zip)
+if (unname(tools::md5sum(zip)) != AEZ_MD5) stop("AEZ zip md5 mismatch; delete ", zip, " and re-run")
 aez_dir <- file.path(OUT, "aez")
 # The Dataverse zip holds one zip per scheme (AEZ5, AEZ8, AEZ16); unpack AEZ16.
 if (!length(list.files(aez_dir, pattern = "^AEZ16.*\\.tif$", recursive = TRUE))) {
@@ -154,8 +174,22 @@ dir.create(fs_out, showWarnings = FALSE)
 for (f in fs_files) {
   dst <- file.path(fs_out, f)
   if (!file.exists(dst)) file.copy(file.path(FS_DIR, f), dst)
-  if (!grepl("aux.xml$", f)) log_file(paste0("dixon_", f), file.path(FS_DIR, f), "local copy", dst)
+  if (!grepl("aux.xml$", f)) log_file(paste0("dixon_", f), file.path(FS_DIR, f), "local copy", dst,
+                                      "Dixon et al. FAO farming systems of Africa, 2016 update; not fetchable here")
 }
+
+# ---- 5b. WorldClim 2.1 10' (bio_1, monthly prec) --------------------------
+message("WorldClim 2.1 10'")
+wc_files <- file.path(WC_DIR, "wc2.1_10m", c("wc2.1_10m_bio_1.tif", sprintf("wc2.1_10m_prec_%02d.tif", 1:12)))
+if (!all(file.exists(wc_files))) {
+  dir.create(WC_DIR, recursive = TRUE, showWarnings = FALSE)
+  invisible(geodata::worldclim_global(var = "bio",  res = 10, path = WC_DIR))
+  invisible(geodata::worldclim_global(var = "prec", res = 10, path = WC_DIR))
+}
+if (!all(file.exists(wc_files))) stop("WorldClim files missing under ", WC_DIR)
+log_file("worldclim_bio_1", "WorldClim 2.1 via geodata::worldclim_global", "v2.1", wc_files[1])
+log_file("worldclim_prec_01", "WorldClim 2.1 via geodata::worldclim_global", "v2.1", wc_files[2],
+         "prec_01..12 all present; one logged")
 
 # ---- 6. MapSPAM 2020 (Atlas harmonised) maize production and area ---------
 # Windowed /vsicurl read of the maize layer over the three countries; the
@@ -168,15 +202,18 @@ SPAM_KEYS <- c(
 gaul <- sf::st_as_sf(arrow::read_parquet(file.path(OUT, "gaul24_adm2_ken_eth_nga.parquet")))
 ext3 <- terra::ext(terra::vect(gaul)) + 0.5
 for (v in names(SPAM_KEYS)) {
-  path <- file.path(OUT, sprintf("spam2020_maize_%s.tif", v))
-  hdr  <- curlGetHeaders(paste0(S3, SPAM_KEYS[[v]]))
-  ver  <- trimws(sub("(?i)^x-amz-version-id:\\s*", "",
-                     grep("(?i)^x-amz-version-id", hdr, value = TRUE, perl = TRUE), perl = TRUE))
+  path  <- file.path(OUT, sprintf("spam2020_maize_%s.tif", v))
+  vfile <- paste0(path, ".versionId")
   if (!file.exists(path)) {
+    ver <- s3_version(SPAM_KEYS[[v]])
     r <- terra::rast(paste0("/vsicurl/", S3, SPAM_KEYS[[v]]))
     if (!"maize" %in% names(r)) stop("No maize layer in ", SPAM_KEYS[[v]])
-    terra::writeRaster(terra::crop(r[["maize"]], ext3), path, overwrite = TRUE)
+    tmp <- paste0(path, ".part.tif")
+    terra::writeRaster(terra::crop(r[["maize"]], ext3), tmp, overwrite = TRUE)
+    invisible(file.rename(tmp, path))
+    writeLines(ver, vfile)
   }
+  ver <- if (file.exists(vfile)) readLines(vfile, warn = FALSE)[1] else "unknown (fetched before pins were stored)"
   log_file(paste0("spam_maize_", v), paste0(S3, SPAM_KEYS[[v]]), ver, path,
            "maize layer, cropped to KEN/ETH/NGA bbox + 0.5 deg; pin = version id at fetch")
 }
@@ -185,3 +222,4 @@ for (v in names(SPAM_KEYS)) {
 m <- do.call(rbind, manifest)
 utils::write.csv(m, file.path(OUT, "MANIFEST.csv"), row.names = FALSE)
 message("Wrote ", file.path(OUT, "MANIFEST.csv"), " (", nrow(m), " files)")
+dbDisconnect(con, shutdown = TRUE)

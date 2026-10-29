@@ -10,6 +10,9 @@
 #   maize_prod_t, maize_harv_ha   MapSPAM 2020 (Atlas harmonised), 0.05 deg
 #   B                             maize_prod_t / maize_harv_ha (t/ha)
 #   fs1, fs2                      dominant Dixon farming system (level 1 / 2)
+#   aez16simple                   dominant ERA-style class, warm/cool x aridity
+#                                 straight from the AEZ16 category names (ERA's
+#                                 AEZ16simple), used to join stratum g
 #   aez                           dominant AEZ class: HarvestChoice AEZ16
 #                                 collapsed to aridity (rule in hazards_prototype
 #                                 R/misc/0.7_create_aez_temp_zones.R) x mean
@@ -73,6 +76,11 @@ arid_rcl <- matrix(c(0, 1, 4, 1, 7, 1, 11, 1,
                      2, 3, 6, 3, 9, 3, 13, 3,
                      3, 4, 10, 4, 14, 4), ncol = 2, byrow = TRUE)
 aridity <- classify(aez16, arid_rcl, others = NA)
+# ERA AEZ16simple = <Warm|Cool>.<Arid|Semiarid|Subhumid|Humid>, from the AEZ16 labels
+aez_cats <- cats(aez16)[[1]]
+warm_codes <- aez_cats[[1]][grepl("warm", aez_cats[[2]], ignore.case = TRUE)]
+thermal <- classify(aez16, cbind(aez_cats[[1]], as.integer(aez_cats[[1]] %in% warm_codes) + 1L), others = NA)
+THERM_LAB <- c("Cool", "Warm")
 mat <- crop(rast(file.path(WC, "wc2.1_10m_bio_1.tif")), ext(tmpl) + 1)
 tclass <- classify(mat, matrix(c(-Inf, 15, 1, 15, 25, 2, 25, Inf, 3), ncol = 3, byrow = TRUE))
 ARID_LAB <- c("Arid", "Semiarid", "Subhumid", "Humid")
@@ -86,8 +94,8 @@ fs1 <- as.int(fs1); fs2 <- as.int(fs2)  # extract codes, relabel after
 
 # ---- Stack on the 0.05 deg MapSPAM grid ----------------------------------
 near <- function(r) resample(crop(r, ext(tmpl) + 1), tmpl, method = "near")
-stk <- c(prod, harv, near(bimodal), near(aridity), near(tclass), near(fs1), near(fs2))
-names(stk) <- c("prod", "harv", "bimodal", "arid", "temp", "fs1", "fs2")
+stk <- c(prod, harv, near(bimodal), near(aridity), near(tclass), near(thermal), near(fs1), near(fs2))
+names(stk) <- c("prod", "harv", "bimodal", "arid", "temp", "therm", "fs1", "fs2")
 
 cells <- as.data.table(terra::extract(stk, v, exact = TRUE))
 cells[, `:=`(prod = fifelse(is.na(prod), 0, prod * fraction),
@@ -110,6 +118,7 @@ units <- cells[, .(
                    else mean(bimodal, na.rm = TRUE),
   arid           = dominant(arid, prod, fraction),
   temp           = dominant(temp, prod, fraction),
+  therm          = dominant(therm, prod, fraction),
   fs1_code       = dominant(fs1, prod, fraction),
   fs2_code       = dominant(fs2, prod, fraction)
 ), by = ID]
@@ -120,10 +129,12 @@ units[, B := fifelse(maize_harv_ha > 0, maize_prod_t / maize_harv_ha, NA_real_)]
 units[, strata_weight := fifelse(maize_prod_t > 0, "maize_prod", "area")]
 units[, aez := fifelse(is.na(arid) | is.na(temp), NA_character_,
                        paste(TEMP_LAB[temp], "-", ARID_LAB[arid]))]
+units[, aez16simple := fifelse(is.na(arid) | is.na(therm), NA_character_,
+                               paste0(THERM_LAB[therm], ".", ARID_LAB[arid]))]
 units[, fs1 := fs1_lab[[2]][match(fs1_code, fs1_lab[[1]])]]
 units[, fs2 := fs2_lab[[2]][match(fs2_code, fs2_lab[[1]])]]
 units[, bimodal := bimodal_share >= 0.5]
-units[, c("ID", "arid", "temp") := NULL]
+units[, c("ID", "arid", "temp", "therm", "strata_weight") := NULL]
 
 arrow::write_parquet(units, file.path(IN, "units.parquet"))
 message(sprintf("units.parquet: %d units; %d with maize; %d bimodal",

@@ -105,3 +105,62 @@ test_that("expected annual values", {
   expect_error(af_expected_annual(transform(bands, p_band = 0.5), "unit"), "above 1")
   expect_error(af_expected_annual(transform(bands, g = seq_len(6) / 10), "unit"), "varies")
 })
+
+# ---- Added after the 29 Oct code review ----------------------------------
+
+base_bands <- data.frame(
+  unit = rep(c("u1", "u2"), each = 3),
+  severity = rep(c("moderate", "severe", "extreme"), 2),
+  p_band = c(0.2, 0.1, 0.05, 0.1, 0.05, 0),
+  B = 2, g = 0.5, L = rep(c(0.10, 0.25, 0.45), 2), m = rep(c(0.75, 0.5, 0.25), 2)
+)
+
+test_that("af_expected_annual: ids containing '.' do not collide", {
+  b <- transform(base_bands, a = c(rep("x.y", 3), rep("x", 3)), b = c(rep("z", 3), rep("y.z", 3)))
+  ea <- af_expected_annual(b, c("a", "b"))
+  expect_equal(nrow(ea), 2)
+  expect_equal(sort(ea$p_stress), c(0.15, 0.35))
+})
+
+test_that("af_expected_annual: shuffled input equals sorted; numeric ids order by value", {
+  set.seed(1)
+  sh <- base_bands[sample(nrow(base_bands)), ]
+  expect_equal(af_expected_annual(sh, "unit"), af_expected_annual(base_bands, "unit"))
+  b <- transform(base_bands, unit = rep(c(10, 2), each = 3))
+  ea <- af_expected_annual(b, "unit")
+  expect_equal(ea$p_stress[ea$unit == 10], 0.35)
+  expect_equal(ea$p_stress[ea$unit == 2], 0.15)
+})
+
+test_that("af_expected_annual: clear errors on NA, negative, duplicate and mixed-B inputs", {
+  expect_error(af_expected_annual(transform(base_bands, p_band = c(NA, p_band[-1])), "unit"), "NA in p_band")
+  expect_error(af_expected_annual(transform(base_bands, p_band = -p_band), "unit"), "Negative")
+  expect_error(af_expected_annual(rbind(base_bands, base_bands[1, ]), "unit"), "Duplicate")
+  # B and g vary but dn is constant: must still error
+  b <- transform(base_bands, B = rep(c(2, 1, 4), 2), g = rep(c(0.5, 1, 0.25), 2))
+  expect_error(af_expected_annual(b, "unit"), "B varies")
+})
+
+test_that("af_expected_annual: zero-hazard and p_stress = 1 edge cases", {
+  z <- transform(base_bands[1:3, ], p_band = 0)
+  ea <- af_expected_annual(z, "unit")
+  expect_equal(ea$F3_prod, 1); expect_equal(ea$F3_al, 0); expect_equal(ea$F3_ashare, 0)
+  one <- transform(base_bands[1:3, ], p_band = c(0.5, 0.3, 0.2))
+  ea1 <- af_expected_annual(one, "unit")
+  expect_equal(ea1$p_stress, 1)
+  expect_equal(ea1$F3_total, ea1$F1_total)
+})
+
+test_that("af_stress_year: L = 1 gives NA for F4 only; mismatched lengths error", {
+  sy <- af_stress_year(2, 0.5, 1, 0.5)
+  expect_true(is.na(sy$F4_al))
+  expect_true(all(is.finite(c(sy$F1_al, sy$F2_al, sy$F3_al, sy$F5_al))))
+  expect_error(af_stress_year(c(1, 2), 0.5, c(0.1, 0.2, 0.3), 0.5), "length 1 or")
+})
+
+test_that("af_bands_from_cumulative: NA and degenerate tiers", {
+  b <- af_bands_from_cumulative(c(NA, 0, 0.3), c(0.1, 0, 0.3), c(0.05, 0, 0.3))
+  expect_true(all(is.na(b[1, ])))
+  expect_equal(unlist(b[2, ]), c(moderate = 0, severe = 0, extreme = 0))
+  expect_equal(unlist(b[3, ]), c(moderate = 0, severe = 0, extreme = 0.3))
+})

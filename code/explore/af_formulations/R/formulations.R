@@ -28,8 +28,19 @@
 #       (step2 adds the normal-year gain every year; step3 avoided loss on
 #        the control's yield)
 #
+# Decomposition of the stress-year gap (science review, 29 Oct 2026):
+#   ds = dn - L dn + B L m + g B L m
+#      = normal gain - hazard bite on the gain + loss avoided on the baseline
+#        + loss avoided on the extra yield.
+#   F3 puts the bite in production and the last term in adaptation;
+#   F1 = F3 - L B g nets the two into adaptation; F5 = F3 - L B g m counts
+#   neither. F4 and F5 are the two "relative g converted with the normal-year
+#   base" readings: F4 uses in-year ratios (As/Bs - A/B) x B, F5 uses each
+#   arm's own stress loss (As/A - Bs/B) x B. Both readings x Bs or x A give F3.
+#
 # F1, F2 and F3 sum exactly to ds. F0, F4 and F5 do not; af_stress_year()
-# returns the totals so the over-count is visible.
+# returns the totals so the over-count is visible. The F2 floor is applied
+# per severity band before expectation, not to the expected total.
 # ------------------------------------------------------------------------------
 
 AF_FORMULATIONS <- c("F0", "F1", "F2", "F3", "F4", "F5")
@@ -40,7 +51,9 @@ af_m_star <- function(g) g / (1 + g)
 # Stress-year production and avoided loss for every formulation.
 # All arguments are recycled; returns a data.frame with one row per input row.
 af_stress_year <- function(B, g, L, m) {
-  n  <- max(length(B), length(g), length(L), length(m))
+  lens <- c(length(B), length(g), length(L), length(m))
+  n <- max(lens)
+  if (any(!lens %in% c(1L, n))) stop("Arguments must have length 1 or ", n)
   B  <- rep_len(B, n); g <- rep_len(g, n); L <- rep_len(L, n); m <- rep_len(m, n)
   if (any(L < 0 | L > 1, na.rm = TRUE)) stop("L must lie in [0, 1]")
 
@@ -82,7 +95,9 @@ af_bands_from_cumulative <- function(p_mod, p_sev, p_ext, tol = 0.01) {
   if (any(bad, na.rm = TRUE)) {
     stop("Cumulative tiers not monotone beyond tol in ", sum(bad, na.rm = TRUE), " rows")
   }
-  data.frame(moderate = pmax(0, b_mod), severe = pmax(0, b_sev), extreme = p_ext)
+  out <- data.frame(moderate = pmax(0, b_mod), severe = pmax(0, b_sev), extreme = p_ext)
+  out[is.na(p_mod) | is.na(p_sev) | is.na(p_ext), ] <- NA_real_  # one NA tier -> no bands
+  out
 }
 
 # Expected annual production and avoided loss per hazard (brief §2, work plan
@@ -95,20 +110,31 @@ af_expected_annual <- function(bands, id_cols) {
   need <- c(id_cols, "B", "g", "p_band", "L", "m")
   miss <- setdiff(need, names(bands))
   if (length(miss)) stop("Missing columns: ", paste(miss, collapse = ", "))
+  num <- c("B", "g", "p_band", "L", "m")
+  if (anyNA(bands[num])) stop("NA in ", paste(num[colSums(is.na(bands[num])) > 0], collapse = ", "))
+  if (any(bands$p_band < 0)) stop("Negative p_band")
+  if ("severity" %in% names(bands) && anyDuplicated(bands[c(id_cols, "severity")])) {
+    stop("Duplicate (id, severity) rows")
+  }
 
   sy  <- af_stress_year(bands$B, bands$g, bands$L, bands$m)
-  key <- interaction(bands[id_cols], drop = TRUE, lex.order = TRUE)
+  # Key on a separator that cannot occur in id values ("." can, and would
+  # merge ids such as ("x.y", "z") and ("x", "y.z")).
+  key_of <- function(d) do.call(paste, c(lapply(d, as.character), sep = "\x1f"))
+  key <- key_of(bands[id_cols])
 
   p_stress <- tapply(bands$p_band, key, sum)
   if (any(p_stress > 1 + 1e-9)) stop("Band probabilities sum above 1 for some ids")
-  dn <- tapply(sy$dn, key, function(x) {
-    if (diff(range(x)) > 1e-9) stop("B or g varies within an id")
-    x[1]
-  })
+  for (v in c("B", "g")) {
+    rng <- tapply(bands[[v]], key, function(x) diff(range(x)))
+    if (any(rng > 1e-9)) stop(v, " varies within an id")
+  }
+  dn <- tapply(sy$dn, key, `[`, 1)
 
   out <- unique(bands[id_cols])
-  out <- out[order(interaction(out[id_cols], drop = TRUE, lex.order = TRUE)), , drop = FALSE]
-  k   <- as.character(interaction(out[id_cols], drop = TRUE, lex.order = TRUE))
+  k   <- key_of(out[id_cols])
+  out <- out[order(k), , drop = FALSE]
+  k   <- sort(k)
   out$p_stress <- as.numeric(p_stress[k])
   out$dn       <- as.numeric(dn[k])
 
