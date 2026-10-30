@@ -91,176 +91,175 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <main>
 
 <h1>Same benefit, different label</h1>
-<p class="lede">How the choice of avoided-loss formulation moves a practice's yield benefit between the <em>production</em> and <em>adaptation</em> labels, and what that means for carbon-finance co-benefit claims. Maize in Kenya, Ethiopia and Nigeria, on Atlas hazard regimes.</p>
+<p class="lede">A farming practice such as cover crops can raise yields in a good year and protect yields in a bad one. Carbon-finance schemes pay an extra premium only for the second part, the <em>adaptation</em> benefit. This page shows that how much of a practice's benefit counts as "adaptation" depends on a choice of definition, how big that choice is on real African hazard data, and what we learned when we tested it against field trials.</p>
 
-<div class="banner"><strong>Exploratory. Every number is illustrative.</strong> Loss shares are bronze placeholders, buffering is a scenario grid, practice gains are ERA medians pooled across seasons. Nothing here is an estimate for reporting. See <a href="#limits">Limits</a>.</div>
+<div class="banner"><strong>Exploratory. Every number is illustrative.</strong> Some inputs are placeholders, some are scenarios, and the trial evidence is thin. Nothing here is an estimate for reporting. See <a href="#limits">What to trust</a>.</div>
 
 <div class="kpis" id="kpis"></div>
 
-<h2 id="takeaway">The one-line result</h2>
-<p>Defining "no adaptation" as <em>same tonnes lost</em> (levels difference-in-differences, which is how the CGIAR MELIAF indicator v3.0 defines its factor) rather than <em>same share lost</em> (proportional split) moves roughly a fifth to a third of a yield-raising practice's benefit from the adaptation label to the production label. The total does not change. The current CC4A pipeline sits between the two and over-counts the total.</p>
-<p>The size of that shift has a closed form: per stress year the gap between the two readings is <span class="math">−L·B·g</span>, so its expected annual value is <span class="math">−g · B · E[L]</span>. It does not depend on how much the practice buffers. Relative to the proportional split it is <span class="math">−g / ((1+g)·m)</span>, the same in every place for a given buffering. Location only scales the absolute size, through baseline yield and the hazard regime.</p>
-
-<h2 id="terms">In the indicator's terms</h2>
+<h2 id="terms">The words used on this page</h2>
 <div class="card terms">
-<p>MELIAF: <span class="math">AB = A × [P<sub>stress</sub> × (g<sub>stress</sub> − g<sub>norm</sub>) + g<sub>risk</sub>] × Pr × s</span>. This page constructs stress-year yields from a loss share and a buffering share, so every MELIAF term has an expression here:</p>
 <div class="tablewrap"><table>
-<tr><th>Here</th><th>Meaning</th><th>MELIAF</th></tr>
-<tr><td><b>B</b>, <b>A = B(1+g)</b></td><td>control and practice yield in a normal year</td><td>g<sub>norm</sub> = g (as a ratio)</td></tr>
-<tr><td><b>L</b></td><td>share of yield the control loses in a stress season</td><td>not in the indicator; needed to convert between readings</td></tr>
-<tr><td><b>m</b></td><td>share of that loss the practice avoids (signed)</td><td>g<sub>stress</sub> − g<sub>norm</sub> = (1+g)·L·m / (1−L) as in-season ratios</td></tr>
-<tr><td><b>P(h, s)</b></td><td>probability of hazard h at severity band s</td><td>P<sub>stress,h</sub> = Σ<sub>s</sub> P(h, s)</td></tr>
-<tr><td><b>B<sub>s</sub> = B(1−L)</b>, <b>A<sub>s</sub> = A(1 − L(1−m))</b></td><td>stress-year yields</td><td>the observed "stress season" outputs</td></tr>
+<tr><th>Term</th><th>Meaning here</th></tr>
+<tr><td><b>Practice</b></td><td>The farming change being credited: cover crops, or reduced tillage. Always compared with a <b>control</b>: the same farm without the practice.</td></tr>
+<tr><td><b>Normal year, stress year</b></td><td>A season without a damaging climate hazard, and one with (for example a dry spell).</td></tr>
+<tr><td><b>Yield gain (g)</b></td><td>How much more the practice yields than the control in a normal year, as a percentage. +16 % means the practice yields 16 % more.</td></tr>
+<tr><td><b>Loss share (L)</b></td><td>The share of its yield the control loses in a stress year. 50 % means a bad year halves the control's yield.</td></tr>
+<tr><td><b>Buffering (m)</b></td><td>The share of that loss the practice avoids. 0.5 means the practice halves the damage; 0 means it does nothing in a bad year; a negative value means it makes the bad year worse.</td></tr>
+<tr><td><b>Production benefit</b></td><td>The part of the practice's benefit that would exist even in a climate with no shocks.</td></tr>
+<tr><td><b>Adaptation benefit (avoided loss)</b></td><td>The extra benefit that appears only under stress. This is the part claimed as a climate co-benefit.</td></tr>
+<tr><td><b>Hazard frequency</b></td><td>How often stress seasons occur at a place, as a share of seasons. The <b>Atlas</b> (Africa Agriculture Adaptation Atlas) publishes this for three severity bands: moderate, severe, extreme.</td></tr>
+<tr><td><b>ERA</b></td><td>Evidence for Resilient Agriculture: a database of African field trials comparing practices with controls, site by site and season by season.</td></tr>
+<tr><td><b>MELIAF indicator</b></td><td>CGIAR's draft adaptation indicator. It measures a practice's effect in stress seasons minus its effect in normal seasons, times how often stress seasons occur. We aim to be compatible with it, not to adopt it unchanged.</td></tr>
+<tr><td><b>District</b></td><td>Second-level administrative unit (county sub-unit in Kenya, LGA in Nigeria, woreda in Ethiopia). The smallest area the Atlas publishes hazard frequency for.</td></tr>
 </table></div>
-<p>The stress-year gap between practice and control decomposes into four terms:</p>
-<p class="math">A<sub>s</sub> − B<sub>s</sub> &nbsp;=&nbsp; (A − B) &nbsp;−&nbsp; L·(A − B) &nbsp;+&nbsp; B·L·m &nbsp;+&nbsp; g·B·L·m</p>
-<p>normal gain · hazard bite on the gain · loss avoided on the baseline · loss avoided on the extra yield. The formulations differ only in where they file the second and fourth terms.</p>
 </div>
 
+<h2 id="takeaway">The result in one paragraph</h2>
+<p>There are two reasonable ways to define what "no adaptation" means. One says a practice adapts only if it loses <em>fewer tonnes</em> than the control in a bad year. The other says it adapts if it loses a <em>smaller share</em> of its own yield. For a practice that raises yields, the first definition moves roughly a fifth to a third of its benefit out of the adaptation column and into the production column. The total benefit does not change; only the label does. CGIAR's draft indicator uses the first definition. Our current analysis pipeline sits between the two and also over-counts the total.</p>
+<p>How big the shift is follows a simple rule. Per stress year it equals the loss share × the baseline yield × the yield gain. So it is largest where yields are high, gains are large and stress is frequent, and it does not depend on how well the practice buffers. As a share of the adaptation benefit it depends only on the yield gain and the buffering, the same in every place.</p>
+
 <h2 id="toy">Three ways to label one benefit</h2>
-<p>Six formulations split the same stress-year gap Δ<sub>s</sub> = A<sub>s</sub> − B<sub>s</sub> between the production and adaptation labels:</p>
+<p>Six labelling rules were compared. They all start from the same facts: the control's yield in a normal year (B), the practice's yield in a normal year (A, which is B plus the gain), the loss share (L) and the buffering (m). Three of them split the stress-year benefit without losing or inventing anything; three do not.</p>
 <div class="card terms"><div class="tablewrap"><table>
-<tr><th>ID</th><th>Name</th><th>Production (stress year)</th><th>Avoided loss (stress year)</th><th>Reading</th></tr>
-<tr><td><b>F0</b></td><td>v0.1, no split</td><td>A − B</td><td>A<sub>s</sub> − B<sub>s</sub></td><td>The old pipeline. The whole stress-year gap is called adaptation, but it already contains the normal gain: a double count.</td></tr>
-<tr><td><b>F1</b></td><td>Levels DiD</td><td>A − B</td><td>L(B − (1−m)A)</td><td>"No adaptation" = same <em>tonnes</em> lost. Control's tonnes lost minus the practice's. This is MELIAF v3.0 with g in kg/ha. Negative whenever m &lt; g/(1+g), so a high-yield practice can look maladaptive.</td></tr>
-<tr><td><b>F2</b></td><td>DiD floored at 0</td><td>Δ<sub>s</sub> − max(0, F1)</td><td>max(0, F1)</td><td>F1 with negatives set to zero and the rest called production.</td></tr>
-<tr><td><b>F3</b></td><td>Proportional split</td><td>(A − B)(1 − L)</td><td>A·L·m</td><td>"No adaptation" = same <em>share</em> lost. The normal gain shrinks with the hazard; avoided loss is what the practice saves on its own yield. Equals MELIAF's formula with relative g converted by the stress-year control yield. Negative only when m &lt; 0.</td></tr>
-<tr><td><b>F4</b></td><td>Relative g × normal-year B</td><td>as F3</td><td>A·L·m / (1 − L)</td><td>Relative g converted with the normal-year yield instead. Overshoots by 1/(1−L); not charted.</td></tr>
-<tr><td><b>F5</b></td><td>Current cc4adapt pipeline</td><td>A − B</td><td>B·L·m</td><td>What step 2 and step 3 do today: the full normal gain every year, plus loss avoided on the <em>control's</em> yield. Over-counts the total by L(A−B)(1−m).</td></tr>
-</table></div>
-<p>F1, F2 and F3 sum exactly to Δ<sub>s</sub>; F0, F4 and F5 do not. B is the baseline yield, A = B(1+g) the practice yield in a normal year, L the share the control loses in a stress year, m the share of that loss the practice avoids (signed).</p></div>
-<p>Move the sliders. The total bar length never changes between F1, F2 and F3; only the split does. F5 (the current pipeline) and F0 do not conserve the total.</p>
+<tr><th>Tag</th><th>Rule</th><th>What counts as adaptation</th><th>Comment</th></tr>
+<tr><td><b>Same tonnes lost</b> (F1)</td><td>The practice adapts only if it loses fewer tonnes than the control.</td><td>Control's tonnes lost minus the practice's tonnes lost.</td><td>This is the CGIAR indicator as drafted. For a high-yielding practice it can go <em>negative</em> even when the practice clearly protects its crop, because a bigger crop loses more tonnes at the same percentage.</td></tr>
+<tr><td><b>Same tonnes, floored</b> (F2)</td><td>As above, but negative values are set to zero.</td><td>Same as F1, never below zero.</td><td>Removes the false "maladaptation" but still gives zero adaptation to many practices that halve their percentage loss.</td></tr>
+<tr><td><b>Same share lost</b> (F3)</td><td>The practice adapts if it loses a smaller share of its own yield than the control.</td><td>The practice's own yield × loss share × buffering.</td><td>The normal-year gain shrinks in a bad year like any other yield; what the practice saves on top is adaptation. Negative only if the practice makes bad years worse. This is the rule we recommend.</td></tr>
+<tr><td><b>Normal-year conversion</b> (F4)</td><td>A variant of F3 that scales by the normal-year yield.</td><td>F3 divided by (1 − loss share).</td><td>Over-states adaptation; shown for completeness, not charted.</td></tr>
+<tr><td><b>Current pipeline</b> (F5)</td><td>What our analysis code does today.</td><td>The control's yield × loss share × buffering, with the full normal-year gain added every year.</td><td>Counts the normal gain in full even in bad years, so the total is too high.</td></tr>
+<tr><td><b>No split</b> (F0)</td><td>The earliest version.</td><td>The whole stress-year difference.</td><td>Double counts: the stress-year difference already contains the normal gain.</td></tr>
+</table></div></div>
+<p>Move the sliders. The bar length is the practice's total benefit in a stress year. For the first three rules it never changes; only the split between grey (production) and blue (adaptation) moves. The last two rules change the total itself.</p>
 <div class="card">
 <div class="controls" id="toy-controls">
-  <label>Baseline yield B (t/ha) <input type="range" id="tB" min="0.5" max="6" step="0.1" value="2"><output for="tB">2.0</output></label>
-  <label>Normal-year gain g <input type="range" id="tg" min="-0.3" max="1" step="0.01" value="0.16"><output for="tg">+16%</output></label>
-  <label>Control loss share L <input type="range" id="tL" min="0" max="0.9" step="0.01" value="0.5"><output for="tL">50%</output></label>
-  <label>Buffering m <input type="range" id="tm" min="-0.5" max="1" step="0.01" value="0.5"><output for="tm">0.50</output></label>
-  <button type="button" id="toy-preset-a">Pete's 10 → 20 case</button>
-  <button type="button" id="toy-preset-b">Yield-reducing, no buffering</button>
+  <label>Control yield in a normal year, t/ha <input type="range" id="tB" min="0.5" max="6" step="0.1" value="2"><output for="tB">2.0</output></label>
+  <label>Yield gain from the practice <input type="range" id="tg" min="-0.3" max="1" step="0.01" value="0.16"><output for="tg">+16%</output></label>
+  <label>Loss share in a stress year <input type="range" id="tL" min="0" max="0.9" step="0.01" value="0.5"><output for="tL">50%</output></label>
+  <label>Buffering by the practice <input type="range" id="tm" min="-0.5" max="1" step="0.01" value="0.5"><output for="tm">0.50</output></label>
+  <button type="button" id="toy-preset-a">Yield doubles, loss halved</button>
+  <button type="button" id="toy-preset-b">Yield falls, no buffering</button>
 </div>
 <div class="toy-grid">
   <div>
-    <div class="legend"><span style="--c: var(--gray)">Production (stress year)</span><span style="--c: var(--f3)">Avoided loss</span></div>
-    <svg id="toy-svg" viewBox="0 0 560 260" role="img" aria-labelledby="toy-title"><title id="toy-title">Stress-year production and avoided loss by formulation</title></svg>
+    <div class="legend"><span style="--c: var(--gray)">Production (stress year)</span><span style="--c: var(--f3)">Adaptation (avoided loss)</span></div>
+    <svg id="toy-svg" viewBox="0 0 560 260" role="img" aria-labelledby="toy-title"><title id="toy-title">Stress-year production and avoided loss by labelling rule</title></svg>
   </div>
   <div id="toy-read" class="terms"></div>
 </div>
 </div>
 
-<h2 id="heat">The relative gap depends only on g and m</h2>
-<p>How far levels DiD (F1) sits below the proportional split (F3), as a share of F3's avoided loss: <span class="math">−g / ((1+g)·m)</span>. The zero line is <span class="math">m* = g/(1+g)</span>; below it, F1 reports negative avoided loss for a practice that does buffer. No location enters this chart.</p>
+<h2 id="heat">The share of benefit that changes label depends only on the gain and the buffering</h2>
+<p>Each cell shows how much smaller the adaptation benefit is under "same tonnes lost" than under "same share lost", as a percentage of the latter. Red means the first rule reports less adaptation. The dashed line is where "same tonnes lost" reports exactly zero adaptation; below and left of it, that rule calls a protective practice maladaptive. Nothing about location enters this chart.</p>
 <div class="card">
-<div class="legend"><span style="--c: var(--div-neg)">F1 below F3</span><span style="--c: var(--div-mid)">equal</span><span style="--c: var(--div-pos)">F1 above F3 (g &lt; 0)</span><span class="hollow" style="--c: var(--ink)">m* contour, F1 = 0</span></div>
-<svg id="heat-svg" viewBox="0 0 640 360" role="img" aria-labelledby="heat-title"><title id="heat-title">Relative gap between F1 and F3 by normal-year gain and buffering</title></svg>
-<p class="note">Cells beyond ±100 % are clipped to the end colours. Where m &lt; 0 the practice is maladaptive and both readings are negative.</p>
+<div class="legend"><span style="--c: var(--div-neg)">"same tonnes" reports less adaptation</span><span style="--c: var(--div-mid)">equal</span><span style="--c: var(--div-pos)">"same tonnes" reports more (only when the practice lowers yield)</span><span class="hollow" style="--c: var(--ink)">zero line</span></div>
+<svg id="heat-svg" viewBox="0 0 640 360" role="img" aria-labelledby="heat-title"><title id="heat-title">Difference between the two labelling rules by yield gain and buffering</title></svg>
+<p class="note">Cells beyond ±100 % are clipped to the end colours. With negative buffering the practice makes bad years worse and both rules report negative adaptation.</p>
 </div>
 
-<h2 id="where">Where the absolute gap is large</h2>
-<p>Expected annual gap <span class="math">−g·B·E[L]</span> per admin-2 unit against the unit's expected control loss E[L] = Σ P(s)·L(s). Across these units, the hazard regime explains most of the spread; baseline yield explains little.</p>
+<h2 id="where">Where the difference is large in tonnes</h2>
+<p>The same difference in tonnes per hectare per year for every maize-growing district in Kenya, Ethiopia and Nigeria, plotted against the district's expected loss (how often stress occurs × how much is lost). The hazard regime explains most of the spread between districts; the yield level explains little.</p>
 <div class="card">
 <div class="controls">
   <label>Practice × hazard <select id="sel-ph"></select></label>
   <label>Highlight <select id="sel-hi"><option value="none">none</option><option value="iso3">country</option><option value="fs1">farming system</option></select></label>
   <label>Show <select id="sel-hi-val"></select></label>
 </div>
-<div class="legend" id="where-legend"><span style="--c: var(--f1)">unit (admin-2 hazard row)</span><span class="hollow" style="--c: var(--f1)">unit on admin-1 fallback</span><span style="--c: var(--gray)">P<sub>stress</sub> ≥ 0.99 (split unidentifiable)</span></div>
-<svg id="where-svg" viewBox="0 0 640 380" role="img" aria-labelledby="where-title"><title id="where-title">Absolute F1 minus F3 gap per unit against expected control loss</title></svg>
+<div class="legend" id="where-legend"><span style="--c: var(--f1)">district (own hazard data)</span><span class="hollow" style="--c: var(--f1)">district using its province's hazard data</span><span style="--c: var(--gray)">stress in almost every season (no normal year to compare against)</span></div>
+<svg id="where-svg" viewBox="0 0 640 380" role="img" aria-labelledby="where-title"><title id="where-title">Difference between the two rules per district against expected loss</title></svg>
 <details><summary>Table view</summary><div class="tablewrap" id="where-table"></div></details>
 </div>
 
 <h2 id="strata">By farming system and country</h2>
-<p>Median adaptation share of the total benefit (avoided loss ÷ (|production| + |avoided loss|)) under each reading, with the ERA gain. Hover for unit counts, fallback counts and medians in t/ha/yr.</p>
+<p>The share of a practice's total benefit that counts as adaptation, under each rule, as the median across districts. Hover a bar for the number of districts behind it and the tonnes.</p>
 <div class="card">
 <div class="controls">
   <label>Practice × hazard <select id="st-ph"></select></label>
-  <label>Buffering profile <select id="st-prof"><option value="decl_mid">declining 0.75 / 0.50 / 0.25</option><option value="const_0.50">constant 0.50</option></select></label>
-  <label>Gain g <select id="st-g"><option value="era">ERA all-SSA median</option><option value="era_aez">ERA median by AEZ stratum</option><option value="era_norm">ERA normal-season g (season split)</option></select></label>
-  <label>Group by <select id="st-level"><option value="fs1">farming system</option><option value="aez">AEZ class</option><option value="country">country</option></select></label>
+  <label>Buffering scenario <select id="st-prof"><option value="decl_mid">weakens with severity (0.75 / 0.50 / 0.25)</option><option value="const_0.50">constant 0.50</option></select></label>
+  <label>Yield gain <select id="st-g"><option value="era">ERA trials, all seasons pooled</option><option value="era_aez">ERA trials, by agro-ecological zone</option><option value="era_norm">ERA trials, normal seasons only</option></select></label>
+  <label>Group by <select id="st-level"><option value="fs1">farming system</option><option value="aez">agro-ecological zone</option><option value="country">country</option></select></label>
 </div>
-<div class="legend"><span style="--c: var(--f1)">F1 levels DiD</span><span style="--c: var(--f3)">F3 proportional</span><span style="--c: var(--f5)">F5 current pipeline</span></div>
-<svg id="st-svg" viewBox="0 0 640 420" role="img" aria-labelledby="st-title"><title id="st-title">Median adaptation share by stratum and formulation</title></svg>
+<div class="legend"><span style="--c: var(--f1)">same tonnes lost (F1)</span><span style="--c: var(--f3)">same share lost (F3)</span><span style="--c: var(--f5)">current pipeline (F5)</span></div>
+<svg id="st-svg" viewBox="0 0 640 420" role="img" aria-labelledby="st-title"><title id="st-title">Median adaptation share by group and labelling rule</title></svg>
 <details><summary>Table view</summary><div class="tablewrap" id="st-table"></div></details>
 </div>
 
-<h2 id="flips">Which units change label</h2>
-<p>A unit is "adaptation-dominant" when avoided loss exceeds production. Share of cover-crop × dry units that are adaptation-dominant under F3, and the share whose label differs under F1 or F5, across buffering profiles (ERA gain).</p>
+<h2 id="flips">How many districts change their main label</h2>
+<p>Call a district "adaptation-led" when its adaptation benefit is larger than its production benefit. For cover crops under dry stress, the blue bars show how many districts are adaptation-led under "same share lost"; the orange and green bars show how many of all districts get a different main label under "same tonnes lost" and under the current pipeline. More buffering, more districts affected.</p>
 <div class="card">
-<div class="legend"><span style="--c: var(--f3)">adaptation-dominant under F3</span><span style="--c: var(--f1)">label differs under F1</span><span style="--c: var(--f5)">label differs under F5</span></div>
-<svg id="fl-svg" viewBox="0 0 640 340" role="img" aria-labelledby="fl-title"><title id="fl-title">Label flips by buffering profile</title></svg>
+<div class="legend"><span style="--c: var(--f3)">adaptation-led under "same share lost"</span><span style="--c: var(--f1)">label differs under "same tonnes lost"</span><span style="--c: var(--f5)">label differs under the current pipeline</span></div>
+<svg id="fl-svg" viewBox="0 0 640 340" role="img" aria-labelledby="fl-title"><title id="fl-title">Districts whose main label changes, by buffering scenario</title></svg>
 <details><summary>Table view</summary><div class="tablewrap" id="fl-table"></div></details>
 </div>
 
-<h2 id="sev">Why severity classes stay</h2>
-<p>When buffering weakens with severity (0.75 moderate, 0.50 severe, 0.25 extreme), the effective buffering a unit experiences falls as extremes take a larger share of its expected loss. A single stress-or-normal factor would hide this; severity-resolved factors transfer across places.</p>
+<h2 id="sev">Why we keep three severity bands</h2>
+<p>If a practice buffers moderate dry spells well but severe ones poorly, the buffering a district actually gets depends on how much of its stress comes from severe seasons. The chart shows that: districts where severe and extreme seasons dominate (right) get far less effective buffering than districts with mostly moderate stress (left). A single stress-or-normal factor would hide this and would not transfer between places; factors kept by severity band do.</p>
 <div class="card">
-<div class="controls"><label>Hazard <select id="sev-h"><option value="dry">dry (NDWS)</option><option value="wet">wet (NDWL0)</option></select></label></div>
-<div class="legend"><span style="--c: var(--f3)">unit</span></div>
-<svg id="sev-svg" viewBox="0 0 640 360" role="img" aria-labelledby="sev-title"><title id="sev-title">Effective buffering against the extreme band's share of expected loss</title></svg>
+<div class="controls"><label>Hazard <select id="sev-h"><option value="dry">dry (water stress)</option><option value="wet">wet (waterlogging)</option></select></label></div>
+<div class="legend"><span style="--c: var(--f3)">district</span></div>
+<svg id="sev-svg" viewBox="0 0 640 360" role="img" aria-labelledby="sev-title"><title id="sev-title">Effective buffering against the share of expected loss from extreme seasons</title></svg>
 </div>
 
-
-<h2 id="era">What the ERA season split shows</h2>
-<p>MELIAF needs g<sub>norm</sub> and g<sub>stress</sub> estimated separately. ERA maize trials for the two practices were classified season by season from observed daily climate (CHIRPS v3 rainfall, AgERA5 temperature) on each site's own growing-season window, with the Atlas severity bands. Three things came out.</p>
+<h2 id="era">What the field trials say</h2>
+<p>Everything above uses placeholder loss shares and scenario buffering. To get real evidence we took the ERA maize trials for both practices, worked out from rainfall and temperature records whether each trial season was a stress season or a normal one, and compared the practice's effect in the two kinds of season. Five things came out.</p>
 <div class="card">
-<h3>1. The climate-specific increment is small and positive</h3>
+<h3>1. The practices do a little better in stress seasons than in normal ones</h3>
 <div class="tablewrap"><table id="era-g"></table></div>
-<p class="note">Study-averaged mean log response ratio, back-transformed. A site-season is "stress" when its NDWS band is at or above the threshold. Heat stress (NTx35) almost never occurs at ERA maize sites, so there is no heat estimate.</p>
-<h3>2. Stress-season effects scale with yield: proportional, not additive</h3>
+<p class="note">Average effect across studies in normal seasons and in stress seasons, as a percentage change in yield. "Moderate" and "severe" are the stress thresholds used. Heat stress almost never occurred at these maize sites, so there is no heat estimate.</p>
+<h3>2. In stress seasons the practice effect scales with yield: a share, not a fixed number of tonnes</h3>
 <div class="tablewrap"><table id="era-test"></table></div>
-<p class="note">On stress seasons only. <em>Proportional</em> regresses log(MeanT/MeanC) on log control yield; <em>additive</em> regresses MeanT − MeanC on control yield. t-statistics with study-clustered standard errors. A slope near zero is the model the data support: in three of four cases the ratio is flat and the difference is not, which is the proportional split (F3). The two tests are not symmetric and power is low.</p>
-<h3>3. Observed stress frequency at ERA sites is far below the Atlas P</h3>
+<p class="note">Two regressions on stress seasons only. If the practice protects a <em>share</em> of yield, its effect as a ratio should not depend on how high the control's yield is; if it protects a fixed number of <em>tonnes</em>, the difference in tonnes should not. The t-statistic says how far each slope is from zero (below 2 is not distinguishable from zero). In three of four cases the ratio is flat and the tonnes are not, which supports "same share lost". The test is weak; the two regressions are not symmetric and the samples are small.</p>
+<h3>3. Stress seasons are rarer in the trial records than the Atlas says</h3>
 <div class="tablewrap"><table id="era-obs"></table></div>
-<p class="note">Share of ERA site-seasons at or above the band (observed, 1981–2016) against the Atlas P(h, ≥ moderate) of the admin-2 unit containing each site (NEX-GDDP 1995–2014, maize jagermeyr window). "Site window" uses ERA dates or the local rainfall climatology; "Atlas window" rescores the same sites on the GGCMI jagermeyr window the Atlas uses. For Kenya the observed share stays near MELIAF's ~0.2 benchmarks even on the Atlas window, so its remaining gap is GCM-versus-observed climate or the water balance, not the season window. For Nigeria the Atlas window closes most of the gap.</p>
-<h3>4. The season window matters a lot where GGCMI seasons are long</h3>
+<p class="note">Share of trial seasons that were stress seasons according to the rainfall and temperature records, against the Atlas's hazard frequency for the district containing each site. "Site window" scores each site on its own growing season (trial dates where recorded, otherwise the local rainfall pattern); "Atlas window" rescores the same sites on the standard maize calendar the Atlas uses. In Kenya the trial record stays near one stress season in five on either window, while the Atlas says two in three.</p>
+<h3>4. The definition of the growing season matters a lot</h3>
 <div class="tablewrap"><table id="era-win"></table></div>
-<p class="note">Same ERA site-seasons scored both ways. Where the GGCMI rainfed-maize window runs 190–225 days (southern Africa) it takes in dry shoulder months and doubles the share of stress seasons; in northern Nigeria it does the same. Where it is the 85–95-day short rains (Kenya) it moves little. The g<sub>norm</sub> / g<sub>stress</sub> split is window-sensitive too: on the Atlas window cover crops' stress-season effect falls below the normal-season effect. Season definition is therefore part of the factor, not a detail.</p>
-<h3>5. Kenya's remaining gap: mostly the GCM climate, the rest the Atlas's water balance</h3>
-<div class="legend"><span style="--c: var(--f1)">observed, all seasons</span><span style="--c: var(--f5)">NEX-GDDP ACCESS-CM2</span><span class="hollow" style="--c: var(--f5)">NEX-GDDP GFDL-ESM4</span><span style="--c: var(--ink)">Atlas tier (admin-2)</span></div>
-<svg id="gcm-svg" viewBox="0 0 640 420" role="img" aria-labelledby="gcm-title"><title id="gcm-title">Share of dry-stress seasons per Kenyan ERA site by climate source, against the Atlas tier</title></svg>
-<p class="note">One row per site, sorted by the Atlas tier value of its admin-2 unit; hover a marker for the numbers. Sites in the same unit share the Atlas value.</p>
+<p class="note">Same trial seasons scored both ways. Where the standard maize calendar runs 190–225 days (southern Africa) it takes in dry months before and after the real season and doubles the count of stress seasons; northern Nigeria behaves the same. Where it is the 85–95-day short rains (Kenya) it changes little. The normal-versus-stress comparison in point 1 also changes with the window, so the season definition is part of any adaptation factor, not a detail.</p>
+<h3>5. In Kenya most of the remaining gap is the climate-model data, the rest is the Atlas's own method</h3>
+<div class="legend"><span style="--c: var(--f1)">rainfall and temperature records</span><span style="--c: var(--f5)">climate model ACCESS-CM2</span><span class="hollow" style="--c: var(--f5)">climate model GFDL-ESM4</span><span style="--c: var(--ink)">Atlas, district value</span></div>
+<svg id="gcm-svg" viewBox="0 0 640 420" role="img" aria-labelledby="gcm-title"><title id="gcm-title">Share of stress seasons per Kenyan trial site by climate source, against the Atlas</title></svg>
+<p class="note">One row per Kenyan trial site, sorted by the Atlas value of its district; hover a marker for the numbers. The Atlas builds its hazard frequencies from downscaled climate-model simulations, not from weather records. Scoring the same sites, calendar and years (1995–2013) through the same soil-water calculation shows that the climate models alone take the stress share from under one in five seasons to about one in two, and the Atlas's own calculation adds the rest. Gachoka, near Embu, agrees with the Atlas; the western Kenya sites do not.</p>
 <div class="tablewrap"><table id="era-gcm"></table></div>
-<p class="note">The 15 Kenyan ERA sites in maize units, scored on the same GGCMI window over the Atlas's own 19 seasons (1995–2013) through the same toolkit water balance, from observed climate (CHIRPS v3 + AgERA5) and from NEX-GDDP historical runs of two Atlas ensemble members. The GCMs raise the share of stress seasons to roughly half, so most of the gap to the Atlas tier is the GCM climate being drier than observed in the short rains; the remainder, and nearly all of the severe tier, is the Atlas's own water balance, thresholds or aggregation. The ERA trial years are not a wet-biased subset.</p>
 </div>
 
-<h2 id="limits">Limits and what to trust</h2>
+<h2 id="limits">What to trust</h2>
 <div class="card">
 <div class="tablewrap"><table>
 <tr><th>Input</th><th>Status</th></tr>
-<tr><td>Hazard frequencies P(h, s)</td><td><b>Real, with caveats.</b> Atlas NEX-GDDP 1995–2014 ensemble, production-weighted at admin-2, generic NDWS / NDWL0 thresholds, main maize season only. About a third of unit-hazard pairs use the admin-1 row. P<sub>stress</sub> ≥ 0.99 in about 6 % of pairs: no normal season exists, so the split is unidentifiable there. Units labelled large-scale irrigated get rainfed frequencies. Bimodal units (most of Kenya's maize) are under-exposed by the single season window.</td></tr>
-<tr><td>Baseline yield B</td><td><b>Real.</b> MapSPAM 2020 (Atlas SSA release). It is a mean-year yield; the page uses B<sub>norm</sub> = B / (1 − E[L]), which inherits the loss table's uncertainty.</td></tr>
-<tr><td>Loss shares L</td><td><b>Placeholder.</b> Bronze maize table (dry 0.10 / 0.25 / 0.45; wet 0.05 / 0.15 / 0.30), same in every AEZ.</td></tr>
-<tr><td>Buffering m</td><td><b>Scenario.</b> No evidence-based values exist yet.</td></tr>
-<tr><td>Gain g</td><td><b>Real, two versions.</b> "ERA" is the pooled-across-seasons median (cover crops +16 %, 31 studies; reduced tillage −3 %, 79 studies), which MELIAF v3.0 says cannot serve as g<sub>norm</sub>. "ERA normal-season" is g<sub>norm</sub> from the season split above (dry, ≥ moderate), available in the strata chart. The two are close for these practices.</td></tr>
-<tr><td>Price</td><td>Deferred. It scales totals, not the split.</td></tr>
+<tr><td>Hazard frequencies</td><td><b>Real, with caveats.</b> Atlas values for 1995–2014 from an ensemble of climate models, by district, for the standard maize season only. About a third of districts use their province's value because the Atlas grid cannot resolve them. In about one district in sixteen stress occurs in nearly every season, so there is no normal year to compare against. Irrigated districts are treated as rainfed.</td></tr>
+<tr><td>Baseline yields</td><td><b>Real.</b> MapSPAM 2020 district yields, adjusted upward to a normal-year yield using the expected loss.</td></tr>
+<tr><td>Loss shares</td><td><b>Placeholder.</b> Expert guesses for maize (10 / 25 / 45 % for moderate / severe / extreme dry stress; 5 / 15 / 30 % for waterlogging), the same everywhere.</td></tr>
+<tr><td>Buffering</td><td><b>Scenario.</b> No evidence-based values exist yet.</td></tr>
+<tr><td>Yield gains</td><td><b>Real, two versions.</b> From ERA trials: cover crops about +16 % (31 studies), reduced tillage about −3 % (79 studies). The pooled version mixes normal and stress seasons; the normal-season version from point 1 above is also available. The two are close.</td></tr>
+<tr><td>Prices</td><td>Not applied. Prices scale the totals but do not change the split.</td></tr>
 </table></div>
-<h3>Three things this comparison cannot settle</h3>
+<h3>Three things this comparison cannot settle on its own</h3>
 <ul>
-<li><b>It is a labelling sensitivity, not a test.</b> Stress-year yields are constructed as A<sub>s</sub> = A(1 − L(1−m)), which bakes in "same share lost". A fair test needs empirical stress-season yields: classify ERA site-seasons with the Atlas hazard stack and ask whether the stress-season effect scales with control yield (proportional) or not (additive).</li>
-<li><b>MELIAF v3.0 is levels DiD by definition.</b> It defines g in kg/ha. Reading the factor in relative terms is a change request, not a clarification.</li>
-<li><b>Benchmarks differ.</b> Atlas "≥ moderate" gives P<sub>stress</sub> of 0.5–0.85; MELIAF's candidate benchmarks sit near 0.2. The severity-resolved factor merges exactly to a single factor, but not across benchmarks.</li>
+<li><b>Most of the page is a sensitivity test, not a measurement.</b> The stress-year yields are constructed from the loss share and the buffering, which builds in "same share lost". The field-trial test in point 2 is the first real evidence, and it is weak.</li>
+<li><b>CGIAR's draft indicator is "same tonnes lost" by definition.</b> It measures effects in kilograms per hectare. Reading it as a share is a change request to that team, not a clarification.</li>
+<li><b>The Atlas and the indicator count stress seasons differently.</b> The Atlas's "moderate or worse" band fires in half to four-fifths of seasons; the indicator's benchmarks aim for about one in five. A factor built against one cannot be multiplied by the other.</li>
 </ul>
 <h3>Recommendation for the CCA analysis</h3>
 <ol>
-<li><b>Use the proportional split (F3).</b> Production in a stress year = (A − B)(1 − L); avoided loss = A·L·m. It is the decomposition that matches a multiplicative loss model, and the ERA stress seasons behave multiplicatively: on stress seasons the practice effect as a ratio does not vary with control yield, while the absolute difference does. Keep coefficients signed; no floors.</li>
-<li><b>Correct the pipeline.</b> Step 2 production scaled by (1 − Σ P·L) in stress years; step 3 avoided loss on the practice yield A, not the control B; remove the [0, 1] clamp on m; use g<sub>norm</sub>, not the pooled ERA effect, once season-classified estimates exist for each practice.</li>
-<li><b>Treat the season window as part of the factor.</b> The same site-seasons give different stress frequencies and a different g<sub>norm</sub> / g<sub>stress</sub> split on the Atlas's single maize window than on site windows. Record the window with every factor, and move the Atlas hazard tiers to crop- and region-specific windows before the "≥ moderate" tier is used as P<sub>stress</sub>.</li>
-<li><b>Do not use the Atlas P<sub>stress</sub> as MELIAF's P<sub>stress</sub> without reconciliation.</b> At Kenyan ERA sites the observed share of dry-stress seasons is near 0.2; the Atlas tier gives 0.7 for the same units on either window. Most of that gap is the NEX-GDDP climate being drier than observed in the short rains, the rest the Atlas's water balance and thresholds. A factor estimated against observed seasons cannot be multiplied by the Atlas P; use an observed-climate P (the hazards pipeline's planned observed baseline), or state the benchmark the factor was estimated against and apply that.</li>
-<li><b>Keep severity classes as the primitive</b> and serve MELIAF one factor per hazard by the exact merge. Report per hazard until co-occurrence is handled; P(no hazard) and P(dry ∩ wet) are already in the outputs.</li>
-<li><b>Scope for now:</b> maize, cover crops and reduced tillage, three countries. Sorghum, wheat, bean and the other practices follow the same route once loss shares have an evidence tier.</li>
+<li><b>Use "same share lost" (F3).</b> It matches how crop losses behave in the trial data and never calls a protective practice maladaptive. Keep buffering signed, so a practice that worsens bad years shows as negative; do not floor at zero.</li>
+<li><b>Fix the current pipeline.</b> Shrink the normal-year gain in stress years; compute avoided loss on the practice's yield rather than the control's; remove the clamp that forces buffering into 0–1; use normal-season yield gains once they exist per practice.</li>
+<li><b>Treat the growing-season definition as part of the factor.</b> Record the season window with every factor, and give the Atlas hazard tiers crop- and region-specific seasons before using them as stress frequencies.</li>
+<li><b>Do not multiply trial-based factors by the Atlas hazard frequency without reconciling the two.</b> In Kenya the Atlas counts three to four times as many stress seasons as the weather records. Use an observed-climate frequency (the hazards team's planned observed baseline), or state which benchmark a factor was estimated against and apply that one.</li>
+<li><b>Keep the three severity bands</b> and hand the indicator one factor per hazard by the exact merge. Report hazards separately until co-occurring hazards are handled.</li>
+<li><b>Scope:</b> maize, cover crops and reduced tillage, three countries. Other crops and practices follow once their loss shares have evidence behind them.</li>
 </ol>
-<h3>Questions for Adaptation Insights</h3>
+<h3>Questions for the Adaptation Insights team</h3>
 <ol>
-<li>When g<sub>stress</sub> and g<sub>norm</sub> are estimated, will they be ratios or kg/ha? If kg/ha, which yield converts them? (The v3.0 reference database is a design, not yet a dataset, so this is a choice still open.)</li>
-<li>Can the control's stress-season loss L<sub>c</sub> = 1 − B<sub>s</sub>/B be recorded alongside each factor? Without it neither reading converts to the other.</li>
-<li>Which hazard benchmark, and would a severity-resolved factor with the exact merge be accepted as the primitive?</li>
-<li>Shared task: classify ERA maize site-seasons as stress or normal, so g<sub>norm</sub> and g<sub>stress</sub> can be estimated separately for the practices in scope. The <a href="https://github.com/CGIAR-Climate-Data-Hub/climate-toolkit">CGIAR climate-toolkit</a> already does this at site level: NDWS, NDWL0 and NTx35 from observed daily CHIRPS v3 and AgERA5, Atlas-style severity bands, a sites table in and a season classification out. Its heat bands (10 / 20 / 25 days) would be set to the Atlas values (7 / 14 / 21) for the run.</li>
+<li>When you estimate a practice's effect in stress and normal seasons, will it be a ratio or kilograms per hectare? If kilograms, which yield converts it? (The indicator's reference database is a design, not yet a dataset, so this is still open.)</li>
+<li>Can the control's stress-season loss be recorded alongside each factor? Without it the two readings cannot be converted into each other.</li>
+<li>Which stress benchmark will you use, and would factors kept by severity band, merged exactly into one per hazard, be acceptable?</li>
+<li>Shared task: classify the ERA maize trial seasons as stress or normal, so normal- and stress-season effects can be estimated for the practices in scope. The <a href="https://github.com/CGIAR-Climate-Data-Hub/climate-toolkit">CGIAR climate-toolkit</a> already does this from rainfall and temperature records; this page used it.</li>
 </ol>
 </div>
 
 <footer>
 <p id="prov"></p>
-<p>Code, pins and tests: <code>CC4A-SSA/cc4adapt</code>, branch <code>explore/af-formulations</code>, <code>code/explore/af_formulations/</code>. Tracking issue CC4A-SSA/cc4adapt#1. Hazard data: Africa Agriculture Adaptation Atlas hazard × exposure tiers (CC-BY-4.0), pinned by version id. Exposure: MapSPAM 2020 Atlas SSA release. Gains: ERA. Farming systems: Dixon et al. (FAO). AEZ: HarvestChoice AEZ16.</p>
+<p>Code, data pins and tests: <code>CC4A-SSA/cc4adapt</code>, <code>code/explore/af_formulations/</code>; tracking issue CC4A-SSA/cc4adapt#1. Hazard frequencies: Africa Agriculture Adaptation Atlas hazard × exposure tables (CC-BY-4.0), pinned by version. Yields: MapSPAM 2020, Atlas release. Trials: ERA. Farming systems: Dixon et al. (FAO). Agro-ecological zones: HarvestChoice. Weather records: CHIRPS v3 rainfall, AgERA5 temperature. Climate models: NEX-GDDP-CMIP6. Results on this page: CC BY 4.0. Code: MIT. Layers that incorporate TNC/Naturebase inputs follow the consortium data-sharing agreement (to be confirmed with TNC on 5 Nov).</p>
 </footer>
 </main>
 <div class="tt" id="tt" role="status" aria-live="polite"></div>
@@ -306,13 +305,13 @@ function stress(B, g, L, m) {
 {
   const u = D.units.filter(x => x.hazard === "dry");
   const k = [
-    ["Admin-2 units with maize", D.n_units, "Kenya, Ethiopia, Nigeria"],
-    ["Parameter sets per unit", D.n_param_sets, "g × buffering profile × practice × hazard"],
-    ["Median P(dry ≥ moderate)", fmt(median(u.map(x => x.p_stress)), 2), "main maize season, 1995–2014"],
-    ["Units with P ≥ 0.99 (dry)", u.filter(x => x.p_stress_ge_099).length, "no normal season; split unidentifiable"],
+    ["Maize-growing districts", D.n_units, "Kenya, Ethiopia, Nigeria"],
+    ["Scenarios per district", D.n_param_sets, "yield gain × buffering × practice × hazard"],
+    ["Typical share of seasons with dry stress", fmt(median(u.map(x => x.p_stress)), 2), "Atlas, main maize season, 1995–2014"],
+    ["Districts stressed almost every season", u.filter(x => x.p_stress_ge_099).length, "no normal year to compare against"],
   ];
   $("#kpis").replaceChildren(...k.map(([l, v, s]) => { const d = document.createElement("div"); d.className = "kpi"; d.innerHTML = `<div class="label"></div><div class="value"></div><div class="sub"></div>`; d.children[0].textContent = l; d.children[1].textContent = v; d.children[2].textContent = s; return d; }));
-  $("#prov").textContent = `Generated ${D.generated} from af_results_maize_historic.parquet (${D.n_units} units × ${D.n_param_sets} parameter sets). Exploratory.`;
+  $("#prov").textContent = `Generated ${D.generated} from af_results_maize_historic.parquet (${D.n_units} districts × ${D.n_param_sets} parameter sets). Exploratory.`;
 }
 function median(a) { const s = a.filter(v => v != null && !isNaN(v)).sort((x, y) => x - y); const n = s.length; return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : NaN; }
 
@@ -322,7 +321,7 @@ const toyFmt = { tB: v => (+v).toFixed(1), tg: v => (v >= 0 ? "+" : "") + Math.r
 function drawToy() {
   const s = stress(toy.B, toy.g, toy.L, toy.m);
   const svg = $("#toy-svg"); svg.replaceChildren(el("title", {}, null) || undefined); svg.innerHTML = '<title id="toy-title">Stress-year production and avoided loss by formulation</title>';
-  const rows = [["F1", "Levels DiD (MELIAF v3.0)"], ["F2", "DiD floored at 0"], ["F3", "Proportional split"], ["F5", "Current pipeline"], ["F0", "v0.1, no split"]];
+  const rows = [["F1", "Same tonnes lost"], ["F2", "Same tonnes, floored"], ["F3", "Same share lost"], ["F5", "Current pipeline"], ["F0", "No split"]];
   const W = 560, left = 150, right = 20, top = 16, rh = 40, plotW = W - left - right;
   const vals = rows.flatMap(([f]) => [s[f].prod, s[f].al, s[f].prod + s[f].al]);
   const lo = Math.min(0, ...vals), hi = Math.max(0, ...vals, 1e-9);
@@ -334,7 +333,7 @@ function drawToy() {
   txt(g, left + plotW / 2, top + rows.length * rh + 34, "t/ha, stress year", { "text-anchor": "middle", class: "axis-title" });
   rows.forEach(([f, name], i) => {
     const y = top + i * rh + 6, h = rh - 14, p = s[f].prod, a = s[f].al;
-    txt(g, left - 10, y + h / 2 + 4, f + " · " + name, { "text-anchor": "end" });
+    txt(g, left - 10, y + h / 2 + 4, name + " (" + f + ")", { "text-anchor": "end" });
     const bar = (v0, v1, fill) => { const r = el("rect", { x: Math.min(x(v0), x(v1)), y, width: Math.max(0, Math.abs(x(v1) - x(v0)) - 2), height: h, rx: 3, fill }, g); return r; };
     const bp = bar(0, p, "var(--gray)"); const ba = bar(p, p + a, "var(--f3)");
     if (a < 0) ba.setAttribute("fill", "var(--div-neg)");
@@ -343,12 +342,12 @@ function drawToy() {
   });
   const mstar = toy.g / (1 + toy.g);
   $("#toy-read").innerHTML = `
-    <p><b>Normal year:</b> control ${fmt(toy.B)} → practice ${fmt(s.A)} t/ha (Δ<sub>n</sub> = ${fmt(s.dn)}).<br>
-    <b>Stress year:</b> control ${fmt(s.Bs)} → practice ${fmt(s.As)} (Δ<sub>s</sub> = ${fmt(s.ds)}). Control loses ${pct(toy.L)}; practice loses ${pct(toy.L * (1 - toy.m))}.</p>
-    <p class="math">Δ<sub>s</sub> = ${fmt(s.dn)} − ${fmt(toy.L * s.dn)} + ${fmt(toy.B * toy.L * toy.m)} + ${fmt(toy.g * toy.B * toy.L * toy.m)}</p>
-    <p><b>F1 − F3</b> avoided loss = −L·B·g = <b>${fmt(-toy.L * toy.B * toy.g)}</b> t/ha, whatever m.<br>
-    <b>m*</b> = g/(1+g) = <b>${fmt(mstar)}</b>: F1 is ${toy.m > mstar ? "positive" : toy.m < mstar ? "negative" : "zero"} here.<br>
-    <b>F5 over-count</b> of the total = L(A−B)(1−m) = <b>${fmt(toy.L * s.dn * (1 - toy.m))}</b> t/ha.</p>`;
+    <p><b>Normal year:</b> control ${fmt(toy.B)} t/ha, practice ${fmt(s.A)} t/ha; the practice adds ${fmt(s.dn)} t/ha.<br>
+    <b>Stress year:</b> control falls to ${fmt(s.Bs)}, practice to ${fmt(s.As)}; the practice is now ${fmt(s.ds)} t/ha ahead. The control loses ${pct(toy.L)} of its yield, the practice ${pct(toy.L * (1 - toy.m))}.</p>
+    <p>That stress-year lead of ${fmt(s.ds)} t/ha is made of four pieces: the normal gain (${fmt(s.dn)}), minus the part of that gain the hazard takes away (${fmt(toy.L * s.dn)}), plus the loss avoided on the control's yield (${fmt(toy.B * toy.L * toy.m)}), plus the loss avoided on the extra yield (${fmt(toy.g * toy.B * toy.L * toy.m)}). The rules differ only in which pieces they call adaptation.</p>
+    <p><b>"Same tonnes lost" reports ${fmt(toy.L * toy.B * toy.g)} t/ha less adaptation than "same share lost"</b> (loss share × control yield × gain), whatever the buffering.<br>
+    "Same tonnes lost" reports zero adaptation when buffering is exactly <b>${fmt(mstar)}</b>; here it reports ${toy.m > mstar ? "a positive" : toy.m < mstar ? "a negative" : "zero"} adaptation benefit.<br>
+    The current pipeline over-states the total by <b>${fmt(toy.L * s.dn * (1 - toy.m))}</b> t/ha.</p>`;
 }
 ["tB", "tg", "tL", "tm"].forEach(id => { const inp = $("#" + id); const out = document.querySelector(`output[for=${id}]`); inp.addEventListener("input", () => { toy[id[1]] = +inp.value; out.textContent = toyFmt[id](inp.value); drawToy(); }); });
 function setToy(v) { Object.assign(toy, v); ["B", "g", "L", "m"].forEach(k => { const inp = $("#t" + k); inp.value = toy[k]; document.querySelector(`output[for=t${k}]`).textContent = toyFmt["t" + k](toy[k]); }); drawToy(); }
@@ -373,18 +372,18 @@ drawToy();
     ms.forEach((mv, j) => {
       const rel = (mv === 0) ? null : -gv / ((1 + gv) * mv);
       const r = el("rect", { x: left + j * cw + 1, y: top + i * ch + 1, width: cw - 2, height: ch - 2, rx: 3, fill: col(rel) }, g);
-      hover(r, () => [[`g = ${Math.round(gv * 100)} %, m = ${mv}`, null], ["F1 − F3, share of F3", rel == null ? "undefined (m = 0)" : pct(rel, 0)], ["F1 sign", mv > gv / (1 + gv) ? "positive" : mv < gv / (1 + gv) ? "negative" : "zero"], ["m* = g/(1+g)", fmt(gv / (1 + gv), 3)]]);
+      hover(r, () => [[`gain ${Math.round(gv * 100)} %, buffering ${mv}`, null], ["\"same tonnes\" vs \"same share\"", rel == null ? "undefined (no buffering)" : pct(rel, 0)], ["\"same tonnes\" adaptation is", mv > gv / (1 + gv) ? "positive" : mv < gv / (1 + gv) ? "negative" : "zero"], ["zero at buffering", fmt(gv / (1 + gv), 3)]]);
       if (Math.abs(rel ?? 0) >= 0.15 || rel == null) txt(g, left + j * cw + cw / 2, top + i * ch + ch / 2 + 4, rel == null ? "–" : Math.round(rel * 100) + "%", { "text-anchor": "middle", fill: "var(--ink)", "font-size": "11px" });
     });
   });
   ms.forEach((mv, j) => txt(g, left + j * cw + cw / 2, top + gs.length * ch + 16, mv, { "text-anchor": "middle" }));
-  txt(g, left + ms.length * cw / 2, top + gs.length * ch + 34, "buffering m (share of control loss avoided)", { "text-anchor": "middle", class: "axis-title" });
-  txt(g, 14, top + gs.length * ch / 2, "normal-year gain g", { transform: `rotate(-90 14 ${top + gs.length * ch / 2})`, "text-anchor": "middle", class: "axis-title" });
+  txt(g, left + ms.length * cw / 2, top + gs.length * ch + 34, "buffering (share of the control's loss the practice avoids)", { "text-anchor": "middle", class: "axis-title" });
+  txt(g, 14, top + gs.length * ch / 2, "yield gain in a normal year", { transform: `rotate(-90 14 ${top + gs.length * ch / 2})`, "text-anchor": "middle", class: "axis-title" });
   // m* contour: for each g row, x position of m* within the m axis (piecewise linear between column centres)
   const mx = mv => { let j = ms.findIndex(v => v >= mv); if (j <= 0) return left + cw / 2 + (mv - ms[0]) / (ms[1] - ms[0]) * cw; const a = ms[j - 1], b = ms[j]; return left + (j - 1) * cw + cw / 2 + (mv - a) / (b - a) * cw; };
   const pts = gs.map((gv, i) => `${mx(gv / (1 + gv))},${top + i * ch + ch / 2}`);
   el("polyline", { points: pts.join(" "), fill: "none", stroke: "var(--ink)", "stroke-width": 2, "stroke-dasharray": "4 3" }, g);
-  txt(g, mx(gs[0] / (1 + gs[0])) - 6, top - 6, "m* = g/(1+g): F1 = 0 on this line", { fill: "var(--ink)", "text-anchor": "start" });
+  txt(g, mx(gs[0] / (1 + gs[0])) - 6, top - 6, "\"same tonnes lost\" reports zero adaptation on this line", { fill: "var(--ink)", "text-anchor": "start" });
 }
 
 // ---- Where: scatter of gap vs E[L] --------------------------------------
@@ -405,8 +404,8 @@ function drawWhere() {
   niceTicks(0, xmax, 6).forEach(t => { el("line", { x1: x(t), x2: x(t), y1: top, y2: top + ph, stroke: "var(--grid)" }, g); txt(g, x(t), top + ph + 16, fmt(t, 2), { "text-anchor": "middle" }); });
   niceTicks(ymin, ymax, 5).forEach(t => { el("line", { x1: left, x2: left + pw, y1: y(t), y2: y(t), stroke: "var(--grid)" }, g); txt(g, left - 8, y(t) + 4, fmt(t, 2), { "text-anchor": "end" }); });
   el("line", { x1: left, x2: left + pw, y1: y(0), y2: y(0), class: "baseline" }, g);
-  txt(g, left + pw / 2, H - 8, "expected control loss share E[L] = Σ P(s)·L(s)", { "text-anchor": "middle", class: "axis-title" });
-  txt(g, 14, top + ph / 2, "F1 − F3 avoided loss, t/ha/yr", { transform: `rotate(-90 14 ${top + ph / 2})`, "text-anchor": "middle", class: "axis-title" });
+  txt(g, left + pw / 2, H - 8, "expected loss: how often stress occurs × share lost", { "text-anchor": "middle", class: "axis-title" });
+  txt(g, 14, top + ph / 2, "adaptation under \"same tonnes\" minus \"same share\", t/ha/yr", { transform: `rotate(-90 14 ${top + ph / 2})`, "text-anchor": "middle", class: "axis-title" });
   const gval = rows[0]?.g;
   rows.sort((a, b) => (a.u.p_stress_ge_099 ? 1 : 0) - (b.u.p_stress_ge_099 ? 1 : 0)).forEach(r => {
     const dim = hiKey !== "none" && String(r.u[hiKey]) !== hiVal;
@@ -414,13 +413,13 @@ function drawWhere() {
     const hollow = r.u.p_source === "adm1";
     const circ = el("circle", { cx: x(r.u.EL), cy: y(r.gap), r: 4.5, fill: hollow ? "var(--surface)" : c, stroke: c, "stroke-width": hollow ? 2 : 1, opacity: dim ? 0.15 : 0.85 }, g);
     const hit = el("circle", { cx: x(r.u.EL), cy: y(r.gap), r: 12, fill: "transparent" }, g);
-    hover(hit, () => [[`${r.u.admin2_name}, ${r.u.admin1_name} (${r.u.iso3})`, null], ["F1 − F3", fmt(r.gap, 3) + " t/ha/yr", cssv("--f1")], ["E[L]", fmt(r.u.EL, 3)], ["B_norm", fmt(r.u.B_norm, 2) + " t/ha"], ["P(≥ moderate)", fmt(r.u.p_stress, 2)], ["hazard row", r.u.p_source], ["farming system", r.u.fs1], ["AEZ", r.u.aez], ["F3 avoided loss", fmt(r.F3_al, 3) + " t/ha/yr", cssv("--f3")]]);
+    hover(hit, () => [[`${r.u.admin2_name}, ${r.u.admin1_name} (${r.u.iso3})`, null], ["difference between the rules", fmt(r.gap, 3) + " t/ha/yr", cssv("--f1")], ["expected loss", fmt(r.u.EL, 3)], ["normal-year yield", fmt(r.u.B_norm, 2) + " t/ha"], ["share of seasons with stress", fmt(r.u.p_stress, 2)], ["hazard data from", r.u.p_source === "adm2" ? "the district" : "the province"], ["farming system", r.u.fs1], ["agro-ecological zone", r.u.aez], ["adaptation under \"same share lost\"", fmt(r.F3_al, 3) + " t/ha/yr", cssv("--f3")]]);
   });
-  txt(g, left + pw - 4, top + 14, `g = ${gval != null ? (gval >= 0 ? "+" : "") + Math.round(gval * 100) + "%" : "?"} (ERA), ${rows.length} units`, { "text-anchor": "end", fill: "var(--ink)" });
+  txt(g, left + pw - 4, top + 14, `yield gain ${gval != null ? (gval >= 0 ? "+" : "") + Math.round(gval * 100) + "%" : "?"} (ERA trials), ${rows.length} districts`, { "text-anchor": "end", fill: "var(--ink)" });
   // table
-  const t = document.createElement("table"); t.innerHTML = "<tr><th>Unit</th><th>Country</th><th>Farming system</th><th class=num>E[L]</th><th class=num>B_norm</th><th class=num>F1 − F3</th><th class=num>F3 avoided loss</th><th>row</th></tr>";
+  const t = document.createElement("table"); t.innerHTML = "<tr><th>District</th><th>Country</th><th>Farming system</th><th class=num>expected loss</th><th class=num>yield t/ha</th><th class=num>difference t/ha/yr</th><th class=num>adaptation (same share) t/ha/yr</th><th>hazard data</th></tr>";
   rows.slice().sort((a, b) => a.gap - b.gap).slice(0, 40).forEach(r => { const tr = document.createElement("tr"); [r.u.admin2_name + ", " + r.u.admin1_name, r.u.iso3, r.u.fs1, fmt(r.u.EL, 3), fmt(r.u.B_norm, 2), fmt(r.gap, 3), fmt(r.F3_al, 3), r.u.p_source].forEach((v, i) => { const td = document.createElement("td"); if (i >= 3 && i <= 6) td.className = "num"; td.textContent = v; tr.appendChild(td); }); t.appendChild(tr); });
-  const cap = document.createElement("p"); cap.className = "note"; cap.textContent = "Largest 40 gaps shown; full data in af_results_maize_historic.parquet.";
+  const cap = document.createElement("p"); cap.className = "note"; cap.textContent = "The 40 largest differences; full data in af_results_maize_historic.parquet.";
   $("#where-table").replaceChildren(t, cap);
 }
 function fillHiVals() { const k = $("#sel-hi").value; const sel = $("#sel-hi-val"); if (k === "none") { sel.replaceChildren(); sel.disabled = true; return; } sel.disabled = false; const vals = [...new Set(D.units.map(u => u[k]).filter(Boolean))].sort(); sel.replaceChildren(...vals.map(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; return o; })); }
@@ -442,7 +441,7 @@ function drawStrata() {
   const g = el("g", {}, svg);
   niceTicks(lo, hi, 5).forEach(t => { el("line", { x1: x(t), x2: x(t), y1: top, y2: top + rows.length * rh, stroke: "var(--grid)" }, g); txt(g, x(t), top + rows.length * rh + 16, pct(t), { "text-anchor": "middle" }); });
   el("line", { x1: x(0), x2: x(0), y1: top, y2: top + rows.length * rh, class: "baseline" }, g);
-  txt(g, left + pw / 2, top + rows.length * rh + 34, "median adaptation share of total benefit", { "text-anchor": "middle", class: "axis-title" });
+  txt(g, left + pw / 2, top + rows.length * rh + 34, "median share of the total benefit counted as adaptation", { "text-anchor": "middle", class: "axis-title" });
   const bh = (rh - 10) / 3;
   rows.forEach((r, i) => {
     const y0 = top + i * rh + 4;
@@ -450,11 +449,12 @@ function drawStrata() {
     series.forEach(([f, col, c], j) => {
       const v = r[col]; const yy = y0 + j * bh;
       const rect = el("rect", { x: Math.min(x(0), x(v)), y: yy, width: Math.max(0, Math.abs(x(v) - x(0)) - 2), height: bh - 2, rx: 2, fill: `var(${c})` }, g);
-      hover(rect, () => [[r[key], null], [f + " share", pct(v, 1), cssv(c)], ["units", r.units + " (" + r.units_adm1_fallback + " on admin-1; " + r.units_p_stress_ge_099 + " with P ≥ 0.99)"], ["maize", r.maize_kt + " kt"], ["B_norm median", fmt(r.B_norm_med, 2) + " t/ha"], ["E[L] median", fmt(r.EL_med, 3)], ["F1 avoided loss", fmt(r.F1_al_med, 3) + " t/ha/yr", cssv("--f1")], ["F3 avoided loss", fmt(r.F3_al_med, 3) + " t/ha/yr", cssv("--f3")], ["F5 avoided loss", fmt(r.F5_al_med, 3) + " t/ha/yr", cssv("--f5")], ["F1 − F3 median", fmt(r.gap_med, 3) + " t/ha/yr"]]);
+      const ruleName = { F1: "same tonnes lost", F3: "same share lost", F5: "current pipeline" }[f];
+      hover(rect, () => [[r[key], null], [ruleName + ": adaptation share", pct(v, 1), cssv(c)], ["districts", r.units + " (" + r.units_adm1_fallback + " use province data; " + r.units_p_stress_ge_099 + " stressed almost every season)"], ["maize production", r.maize_kt + " kt"], ["median yield", fmt(r.B_norm_med, 2) + " t/ha"], ["median expected loss", fmt(r.EL_med, 3)], ["adaptation, same tonnes lost", fmt(r.F1_al_med, 3) + " t/ha/yr", cssv("--f1")], ["adaptation, same share lost", fmt(r.F3_al_med, 3) + " t/ha/yr", cssv("--f3")], ["adaptation, current pipeline", fmt(r.F5_al_med, 3) + " t/ha/yr", cssv("--f5")]]);
       if (j === 1) txt(g, x(Math.max(v, 0)) + 4, yy + bh / 2 + 3, pct(v), { fill: "var(--ink)", "font-size": "11px" });
     });
   });
-  const t = document.createElement("table"); t.innerHTML = `<tr><th>${level}</th><th class=num>units</th><th class=num>admin-1</th><th class=num>P≥0.99</th><th class=num>maize kt</th><th class=num>B_norm</th><th class=num>E[L]</th><th class=num>F1 share</th><th class=num>F3 share</th><th class=num>F5 share</th><th class=num>F1−F3 t/ha</th></tr>`;
+  const t = document.createElement("table"); t.innerHTML = `<tr><th>${level}</th><th class=num>districts</th><th class=num>using province data</th><th class=num>stressed every season</th><th class=num>maize kt</th><th class=num>yield t/ha</th><th class=num>expected loss</th><th class=num>same tonnes</th><th class=num>same share</th><th class=num>current pipeline</th><th class=num>difference t/ha</th></tr>`;
   rows.forEach(r => { const tr = document.createElement("tr"); [r[key], r.units, r.units_adm1_fallback, r.units_p_stress_ge_099, r.maize_kt, fmt(r.B_norm_med, 2), fmt(r.EL_med, 3), pct(r.F1_share_med, 1), pct(r.F3_share_med, 1), pct(r.F5_share_med, 1), fmt(r.gap_med, 3)].forEach((v, i) => { const td = document.createElement("td"); if (i) td.className = "num"; td.textContent = v; tr.appendChild(td); }); t.appendChild(tr); });
   $("#st-table").replaceChildren(t);
 }
@@ -469,16 +469,16 @@ function drawStrata() {
   const g = el("g", {}, svg); const bw = pw / rows.length; const y = v => top + (1 - v) * ph;
   [0, 0.25, 0.5, 0.75, 1].forEach(t => { el("line", { x1: left, x2: left + pw, y1: y(t), y2: y(t), stroke: "var(--grid)" }, g); txt(g, left - 8, y(t) + 4, pct(t), { "text-anchor": "end" }); });
   el("line", { x1: left, x2: left + pw, y1: y(0), y2: y(0), class: "baseline" }, g);
-  const series = [["F3_adaptation", "--f3", "adaptation-dominant (F3)"], ["flip_F1_vs_F3", "--f1", "label differs under F1"], ["flip_F5_vs_F3", "--f5", "label differs under F5"]];
+  const series = [["F3_adaptation", "--f3", "adaptation-led under \"same share lost\""], ["flip_F1_vs_F3", "--f1", "label differs under \"same tonnes lost\""], ["flip_F5_vs_F3", "--f5", "label differs under the current pipeline"]];
   rows.forEach((r, i) => {
     const x0 = left + i * bw + 6, sw = (bw - 12) / 3;
-    series.forEach(([k, c, n], j) => { const v = r[k]; const rect = el("rect", { x: x0 + j * sw, y: y(v), width: sw - 2, height: Math.max(0, y(0) - y(v)), rx: 2, fill: `var(${c})` }, g); hover(rect, () => [[`buffering ${label[r.m_profile]}`, null], [n, pct(v, 1), cssv(c)], ["units", r.units], ["g", (r.g >= 0 ? "+" : "") + Math.round(r.g * 100) + " % (ERA)"]]); });
+    series.forEach(([k, c, n], j) => { const v = r[k]; const rect = el("rect", { x: x0 + j * sw, y: y(v), width: sw - 2, height: Math.max(0, y(0) - y(v)), rx: 2, fill: `var(${c})` }, g); hover(rect, () => [[`buffering ${label[r.m_profile]}`, null], [n, pct(v, 1), cssv(c)], ["districts", r.units], ["yield gain", (r.g >= 0 ? "+" : "") + Math.round(r.g * 100) + " % (ERA trials)"]]); });
     const parts = label[r.m_profile].split("/");
     txt(g, left + i * bw + bw / 2, y(0) + 16, parts[0], { "text-anchor": "middle", "font-size": "11px" });
     if (parts.length > 1) txt(g, left + i * bw + bw / 2, y(0) + 30, parts.slice(1).join(" / "), { "text-anchor": "middle", "font-size": "11px" });
   });
-  txt(g, left + pw / 2, H - 10, "buffering m (constant, or moderate / severe / extreme)", { "text-anchor": "middle", class: "axis-title" });
-  const t = document.createElement("table"); t.innerHTML = "<tr><th>buffering</th><th class=num>units</th><th class=num>adaptation-dominant (F3)</th><th class=num>differs under F1</th><th class=num>differs under F2</th><th class=num>differs under F5</th></tr>";
+  txt(g, left + pw / 2, H - 10, "buffering scenario (one value, or moderate / severe / extreme)", { "text-anchor": "middle", class: "axis-title" });
+  const t = document.createElement("table"); t.innerHTML = "<tr><th>buffering</th><th class=num>districts</th><th class=num>adaptation-led (same share)</th><th class=num>differs: same tonnes</th><th class=num>differs: same tonnes, floored</th><th class=num>differs: current pipeline</th></tr>";
   rows.forEach(r => { const tr = document.createElement("tr"); [label[r.m_profile], r.units, pct(r.F3_adaptation, 1), pct(r.flip_F1_vs_F3, 1), pct(r.flip_F2_vs_F3, 1), pct(r.flip_F5_vs_F3, 1)].forEach((v, i) => { const td = document.createElement("td"); if (i) td.className = "num"; td.textContent = v; tr.appendChild(td); }); t.appendChild(tr); });
   $("#fl-table").replaceChildren(t);
 }
@@ -489,16 +489,16 @@ function drawStrata() {
   const tbl = (id, head, rows) => { const t = $(id); if (!t) return; t.replaceChildren(); const tr = document.createElement("tr"); head.forEach(h => { const th = document.createElement("th"); if (h.num) th.className = "num"; th.textContent = h.t; tr.appendChild(th); }); t.appendChild(tr); rows.forEach(r => { const tr2 = document.createElement("tr"); r.forEach((v, i) => { const td = document.createElement("td"); if (head[i].num) td.className = "num"; td.textContent = v; tr2.appendChild(td); }); t.appendChild(tr2); }); };
   const pname = { cover_crops: "Cover crops", reduced_tillage: "Reduced tillage" };
   const pc = v => (v == null || isNaN(v)) ? "–" : (v >= 0 ? "+" : "") + (100 * v).toFixed(0) + " %";
-  tbl("#era-g", [{t:"Practice"},{t:"Hazard"},{t:"Threshold"},{t:"g_norm",num:1},{t:"g_stress",num:1},{t:"studies norm / stress",num:1},{t:"site-seasons norm / stress",num:1}],
+  tbl("#era-g", [{t:"Practice"},{t:"Hazard"},{t:"Stress threshold"},{t:"effect in normal seasons",num:1},{t:"effect in stress seasons",num:1},{t:"studies, normal / stress",num:1},{t:"trial seasons, normal / stress",num:1}],
       (E.g || []).filter(r => r.hazard !== "heat").map(r => [pname[r.practice] || r.practice, r.hazard, r.threshold, pc(r.g_norm), pc(r.g_stress), `${r.studies_norm} / ${r.studies_stress ?? "–"}`, `${r.site_seasons_norm} / ${r.site_seasons_stress ?? "–"}`]));
-  tbl("#era-test", [{t:"Practice"},{t:"Hazard"},{t:"stress obs / studies",num:1},{t:"proportional slope t",num:1},{t:"additive slope t",num:1},{t:"Supports"}],
-      (E.test || []).map(r => [pname[r.practice] || r.practice, r.hazard, `${r.n_obs} / ${r.n_studies}`, fmt(r.prop_t, 2), fmt(r.add_t, 2), (Math.abs(r.prop_t) < 2 && Math.abs(r.add_t) < 2) ? "ambiguous" : Math.abs(r.prop_t) < Math.abs(r.add_t) ? "proportional" : "additive"]));
-  tbl("#era-obs", [{t:"Country"},{t:"ERA sites",num:1},{t:"site-seasons",num:1},{t:"observed, site window",num:1},{t:"observed, Atlas window",num:1},{t:"Atlas P(dry ≥ mod)",num:1},{t:"observed P(dry ≥ sev)",num:1},{t:"Atlas P(dry ≥ sev)",num:1},{t:"observed P(wet ≥ mod)",num:1},{t:"Atlas P(wet ≥ mod)",num:1}],
+  tbl("#era-test", [{t:"Practice"},{t:"Hazard"},{t:"stress-season comparisons / studies",num:1},{t:"\"share\" model: slope t",num:1},{t:"\"tonnes\" model: slope t",num:1},{t:"Supports"}],
+      (E.test || []).map(r => [pname[r.practice] || r.practice, r.hazard, `${r.n_obs} / ${r.n_studies}`, fmt(r.prop_t, 2), fmt(r.add_t, 2), (Math.abs(r.prop_t) < 2 && Math.abs(r.add_t) < 2) ? "ambiguous" : Math.abs(r.prop_t) < Math.abs(r.add_t) ? "same share lost" : "same tonnes lost"]));
+  tbl("#era-obs", [{t:"Country"},{t:"trial sites",num:1},{t:"trial seasons",num:1},{t:"dry stress: records, site window",num:1},{t:"dry stress: records, Atlas window",num:1},{t:"dry stress: Atlas",num:1},{t:"severe dry: records",num:1},{t:"severe dry: Atlas",num:1},{t:"waterlogging: records",num:1},{t:"waterlogging: Atlas",num:1}],
       (E.obs || []).map(r => [r.iso3, r.sites, r.seasons, fmt(r.obs_dry, 2), fmt(r.obs_dry_ggcmi, 2), fmt(r.atlas_dry, 2), fmt(r.obs_dry_sev, 2), fmt(r.atlas_dry_sev, 2), fmt(r.obs_wet, 2), fmt(r.atlas_wet, 2)]));
-  const srcName = { obs_all: "observed, all seasons", obs_era: "observed, ERA trial seasons", gcm_accesscm2: "NEX-GDDP ACCESS-CM2", gcm_gfdlesm4: "NEX-GDDP GFDL-ESM4", atlas: "Atlas tier (admin-2)" };
-  tbl("#era-gcm", [{t:"Source"},{t:"sites",num:1},{t:"seasons",num:1},{t:"P(dry ≥ mod)",num:1},{t:"P(dry ≥ sev)",num:1},{t:"NDWS days / month",num:1},{t:"r with Atlas P",num:1}],
+  const srcName = { obs_all: "weather records, all seasons", obs_era: "weather records, trial seasons only", gcm_accesscm2: "climate model ACCESS-CM2", gcm_gfdlesm4: "climate model GFDL-ESM4", atlas: "Atlas, district value" };
+  tbl("#era-gcm", [{t:"Source"},{t:"sites",num:1},{t:"seasons",num:1},{t:"share of seasons with dry stress",num:1},{t:"share with severe dry stress",num:1},{t:"water-stress days per month",num:1},{t:"correlation with Atlas across sites",num:1}],
       (E.gcm || []).map(r => [srcName[r.src] || r.src, r.sites, r.seasons ?? "–", fmt(r.p_dry, 2), fmt(r.p_sev, 2), r.ndws == null ? "–" : fmt(r.ndws, 1), r.r_atlas == null ? "–" : fmt(r.r_atlas, 2)]));
-  tbl("#era-win", [{t:"Country"},{t:"sites",num:1},{t:"site-seasons",num:1},{t:"window days, site",num:1},{t:"window days, GGCMI",num:1},{t:"P(dry ≥ mod), site window",num:1},{t:"P(dry ≥ mod), GGCMI window",num:1}],
+  tbl("#era-win", [{t:"Country"},{t:"trial sites",num:1},{t:"trial seasons",num:1},{t:"season length, site window",num:1},{t:"season length, Atlas window",num:1},{t:"share of stress seasons, site window",num:1},{t:"share of stress seasons, Atlas window",num:1}],
       (E.window || []).map(r => [r.iso, r.sites, r.seasons, r.days_site, r.days_ggcmi, fmt(r.p_dry_site, 2), fmt(r.p_dry_ggcmi, 2)]));
 }
 
@@ -511,20 +511,20 @@ function drawStrata() {
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
     const g = el("g", {}, svg); const x = v => left + v * pw;
     [0, 0.25, 0.5, 0.75, 1].forEach(t => { el("line", { x1: x(t), x2: x(t), y1: top, y2: top + rows.length * rh, stroke: "var(--grid)" }, g); txt(g, x(t), top + rows.length * rh + 16, pct(t), { "text-anchor": "middle" }); });
-    txt(g, left + pw / 2, top + rows.length * rh + 34, "share of seasons with NDWS ≥ moderate, 1995–2013, GGCMI window", { "text-anchor": "middle", class: "axis-title" });
+    txt(g, left + pw / 2, top + rows.length * rh + 34, "share of seasons with dry stress, 1995–2013, standard maize calendar", { "text-anchor": "middle", class: "axis-title" });
     rows.forEach((r, i) => {
       const y = top + i * rh + rh / 2;
       txt(g, left - 10, y + 4, `${r.admin2} · ${r.site.split(" ")[0]},${r.site.split(" ")[1]}`, { "text-anchor": "end", "font-size": "11px" });
       const lo = Math.min(r.obs_all, r.access, r.gfdl, r.atlas), hi = Math.max(r.obs_all, r.access, r.gfdl, r.atlas);
       el("line", { x1: x(lo), x2: x(hi), y1: y, y2: y, stroke: "var(--axis)", "stroke-width": 2 }, g);
-      const marks = [["obs_all", "var(--f1)", false, "observed, all seasons"], ["access", "var(--f5)", false, "ACCESS-CM2"], ["gfdl", "var(--f5)", true, "GFDL-ESM4"], ["atlas", "var(--ink)", false, "Atlas tier"]];
+      const marks = [["obs_all", "var(--f1)", false, "weather records, all seasons"], ["access", "var(--f5)", false, "climate model ACCESS-CM2"], ["gfdl", "var(--f5)", true, "climate model GFDL-ESM4"], ["atlas", "var(--ink)", false, "Atlas, district value"]];
       marks.forEach(([k, c, hollow, name]) => {
         if (r[k] == null) return;
         const isAtlas = k === "atlas";
         const m = isAtlas ? el("rect", { x: x(r[k]) - 5, y: y - 5, width: 10, height: 10, rx: 2, fill: c }, g)
                           : el("circle", { cx: x(r[k]), cy: y, r: 5, fill: hollow ? "var(--surface)" : c, stroke: c, "stroke-width": 2 }, g);
         const hit = el("circle", { cx: x(r[k]), cy: y, r: 12, fill: "transparent" }, g);
-        hover(hit, () => [[`${r.admin2} (${r.site})`, null], [name, fmt(r[k], 2), c.startsWith("var") ? cssv(c.slice(4, -1)) : c], ["observed, ERA trial seasons", `${fmt(r.obs_era, 2)} (n = ${r.n_era})`], ["Atlas P(≥ severe)", fmt(r.atlas_sev, 2)], ["Atlas row", r.p_source]]);
+        hover(hit, () => [[`${r.admin2} (${r.site})`, null], [name, fmt(r[k], 2), c.startsWith("var") ? cssv(c.slice(4, -1)) : c], ["weather records, trial seasons only", `${fmt(r.obs_era, 2)} (${r.n_era} seasons)`], ["Atlas, severe dry stress", fmt(r.atlas_sev, 2)], ["Atlas value from", r.p_source === "adm2" ? "the district" : "the province"]]);
       });
     });
   }
@@ -540,10 +540,10 @@ function drawSev() {
   const g = el("g", {}, svg);
   [0, 0.25, 0.5, 0.75, 1].forEach(t => { el("line", { x1: x(t), x2: x(t), y1: top, y2: top + ph, stroke: "var(--grid)" }, g); txt(g, x(t), top + ph + 16, pct(t), { "text-anchor": "middle" }); });
   [0.25, 0.5, 0.75].forEach(t => { el("line", { x1: left, x2: left + pw, y1: y(t), y2: y(t), stroke: "var(--grid)" }, g); txt(g, left - 8, y(t) + 4, fmt(t, 2), { "text-anchor": "end" }); });
-  txt(g, left + pw / 2, H - 8, "extreme band's share of expected loss E[L]", { "text-anchor": "middle", class: "axis-title" });
-  txt(g, 14, top + ph / 2, "effective buffering m_eff", { transform: `rotate(-90 14 ${top + ph / 2})`, "text-anchor": "middle", class: "axis-title" });
-  rows.forEach(r => { el("circle", { cx: x(r.ext_share), cy: y(Math.min(0.8, Math.max(0.2, r.m_eff))), r: 4, fill: "var(--f3)", opacity: 0.55 }, g); const hit = el("circle", { cx: x(r.ext_share), cy: y(r.m_eff), r: 12, fill: "transparent" }, g); hover(hit, () => [[`${r.u.admin2_name}, ${r.u.admin1_name} (${r.u.iso3})`, null], ["m_eff", fmt(r.m_eff, 2), cssv("--f3")], ["extreme share of E[L]", pct(r.ext_share)], ["P bands mod / sev / ext", `${fmt(r.u.p_mod, 2)} / ${fmt(r.u.p_sev, 2)} / ${fmt(r.u.p_ext, 2)}`], ["farming system", r.u.fs1]]); });
-  txt(g, left + pw - 4, top + 14, `${rows.length} units, profile 0.75 / 0.50 / 0.25`, { "text-anchor": "end", fill: "var(--ink)" });
+  txt(g, left + pw / 2, H - 8, "share of the district's expected loss that comes from extreme seasons", { "text-anchor": "middle", class: "axis-title" });
+  txt(g, 14, top + ph / 2, "buffering the district actually gets", { transform: `rotate(-90 14 ${top + ph / 2})`, "text-anchor": "middle", class: "axis-title" });
+  rows.forEach(r => { el("circle", { cx: x(r.ext_share), cy: y(Math.min(0.8, Math.max(0.2, r.m_eff))), r: 4, fill: "var(--f3)", opacity: 0.55 }, g); const hit = el("circle", { cx: x(r.ext_share), cy: y(r.m_eff), r: 12, fill: "transparent" }, g); hover(hit, () => [[`${r.u.admin2_name}, ${r.u.admin1_name} (${r.u.iso3})`, null], ["effective buffering", fmt(r.m_eff, 2), cssv("--f3")], ["share of expected loss from extreme seasons", pct(r.ext_share)], ["share of seasons moderate / severe / extreme", `${fmt(r.u.p_mod, 2)} / ${fmt(r.u.p_sev, 2)} / ${fmt(r.u.p_ext, 2)}`], ["farming system", r.u.fs1]]); });
+  txt(g, left + pw - 4, top + 14, `${rows.length} districts; buffering 0.75 / 0.50 / 0.25 by severity`, { "text-anchor": "end", fill: "var(--ink)" });
 }
 $("#sev-h").addEventListener("change", drawSev); drawSev();
 })();
