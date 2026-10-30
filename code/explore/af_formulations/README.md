@@ -30,6 +30,9 @@ Rscript code/explore/af_formulations/run_all.R 3 6    # steps 3-6 only
 
 `07 --window ggcmi` reruns the classification on the GGCMI (Atlas jagermeyr) window to separate the window effect from the GCM effect; output `era_site_season_hazards_ggcmi.csv`.
 
+| 10 | `10_gcm_vs_obs.py` | Same sites, window and period (1995–2014) scored on observed climate (`--models ""`) and on NEX-GDDP historical runs (`--models ACCESS-CM2 --tag _access-cm2`, one model per run) | `gcm_vs_obs_sites*.csv` |
+| 11 | `11_gcm_summary.R` | Per-site P(dry ≥ moderate) by source (observed all years, observed ERA years, each GCM) beside the Atlas P of the unit | `era_split/gcm_vs_obs_summary.csv` |
+
 Library: `R/formulations.R` (formulations, band conversion, expected annual), `R/paths.R`. Tests: `tests/testthat/` (`Rscript -e 'testthat::test_dir("code/explore/af_formulations/tests/testthat")'`). Runtime identity checks that must pass on every run: F1 = F2 = F3 expected totals; expected F1 − F3 gap = −g·B·E[L]; E[L] in 06 equals E[L] in 05.
 
 Steps 03b–08 are the ERA season-classification pilot (science review findings 2 and 4). `run_all.R` does not run 07; run it by hand:

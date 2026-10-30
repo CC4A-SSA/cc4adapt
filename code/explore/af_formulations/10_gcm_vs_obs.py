@@ -16,8 +16,11 @@ Run from the cc4adapt repo root:
 Output: data/staging/af_formulations/gcm_vs_obs_sites.csv
         one row per site x source x year (NDWS, NDWL0, NTx35 counts and bands)
 
-The toolkit's calculate_hazards() does not take model/scenario, but its fetch
-helper does; the wrapper below injects them when source == "nex_gddp".
+The toolkit's calculate_hazards() does not take model/scenario; the NEX source
+reads DEFAULT_MODEL / DEFAULT_SCENARIO from its module at call time, so those
+are set per job (jobs for one model run sequentially when --workers 1; with
+more workers, all NEX jobs in a run use the same model, so pass one model per
+run with --tag).
 """
 
 from __future__ import annotations
@@ -33,7 +36,8 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[3]
-SITES = ROOT / "data/outputs/af_formulations/era_split/obs_vs_atlas_sites.csv"
+SITES = ROOT / "data/outputs/af_formulations/era_split/obs_vs_atlas_sites.csv"   # which sites (in maize units)
+SITE_YEARS = ROOT / "data/staging/af_formulations/era_site_years.csv"             # their coordinates
 OUT = ROOT / "data/staging/af_formulations/gcm_vs_obs_sites.csv"
 LOG = ROOT / "data/staging/af_formulations/gcm_vs_obs.log.jsonl"
 Y0, Y1 = 1995, 2014
@@ -49,18 +53,11 @@ def band(v, cuts):
     return "extreme" if v > e else "severe" if v > s else "moderate" if v > m else "none"
 
 
-def install_nex_wrapper():
-    from climate_toolkit.calculate_hazards import hazards as H
+def set_nex_defaults(model):
+    from climate_toolkit.fetch_data.source_data.sources import nex_gddp_xee as NX
 
-    orig = H.get_climate_data_for_season
-
-    def wrapped(*a, **k):
-        if k.get("source") == "nex_gddp":
-            k.setdefault("model", _MODEL["model"])
-            k.setdefault("scenario", "historical")
-        return orig(*a, **k)
-
-    H.get_climate_data_for_season = wrapped
+    NX.DEFAULT_SCENARIO = "historical"
+    NX.DEFAULT_MODEL = model
 
 
 def ggcmi_token(lat, lon):
@@ -79,7 +76,8 @@ def score(site, lat, lon, source, model, project):
     kw = dict(source=source, fixed_season=token, calendar_source=None if token else "ggcmi", ee_project_id=project)
     if source == "paired":
         kw.update(precip_source="chirps_v3_daily_rnl", temp_source="agera_5")
-    _MODEL["model"] = model
+    if source == "nex_gddp":
+        set_nex_defaults(model)
     try:
         r = ct.evaluate_hazards("maize", (lat, lon), f"{Y0}-01-01", f"{Y1}-12-31", **kw)
     except Exception as e:  # noqa: BLE001
@@ -111,19 +109,25 @@ def main():
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--workers", type=int, default=2)
     ap.add_argument("--project", default=os.environ.get("GCP_PROJECT_ID", ""))
+    ap.add_argument("--tag", default="", help="suffix for the output file, e.g. _access-cm2")
     a = ap.parse_args()
     if not a.project:
         sys.exit("Set GCP_PROJECT_ID or --project")
-    install_nex_wrapper()
+    global OUT
+    if a.tag:
+        OUT = OUT.with_name(OUT.stem + a.tag + OUT.suffix)
 
     sites = pd.read_csv(SITES)
-    sites = sites[sites["iso3"] == a.iso][["Site.Key", "lat", "lon"]].drop_duplicates()
+    sites = sites[sites["iso3"] == a.iso][["Site.Key"]].drop_duplicates()
+    coords = pd.read_csv(SITE_YEARS)[["Site.Key", "lat", "lon"]].drop_duplicates("Site.Key")
+    sites = sites.merge(coords, on="Site.Key")
     if a.limit:
         sites = sites.head(a.limit)
     jobs = [(s, "paired", None) for s in sites.itertuples(index=False)]
-    jobs += [(s, "nex_gddp", m) for m in a.models.split(",") for s in sites.itertuples(index=False)]
+    models = [m for m in a.models.split(",") if m.strip()]
+    jobs += [(s, "nex_gddp", m) for m in models for s in sites.itertuples(index=False)]
 
-    out = OUT.with_suffix(".dryrun.csv") if a.limit else OUT
+    out = OUT.with_name(OUT.stem + ".dryrun.csv") if a.limit else OUT
     done = set()
     if out.exists() and not a.limit:
         prev = pd.read_csv(out)
