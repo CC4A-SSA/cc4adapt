@@ -205,6 +205,9 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <div class="tablewrap"><table id="era-win"></table></div>
 <p class="note">Same ERA site-seasons scored both ways. Where the GGCMI rainfed-maize window runs 190–225 days (southern Africa) it takes in dry shoulder months and doubles the share of stress seasons; in northern Nigeria it does the same. Where it is the 85–95-day short rains (Kenya) it moves little. The g<sub>norm</sub> / g<sub>stress</sub> split is window-sensitive too: on the Atlas window cover crops' stress-season effect falls below the normal-season effect. Season definition is therefore part of the factor, not a detail.</p>
 <h3>5. Kenya's remaining gap: mostly the GCM climate, the rest the Atlas's water balance</h3>
+<div class="legend"><span style="--c: var(--f1)">observed, all seasons</span><span style="--c: var(--f5)">NEX-GDDP ACCESS-CM2</span><span class="hollow" style="--c: var(--f5)">NEX-GDDP GFDL-ESM4</span><span style="--c: var(--ink)">Atlas tier (admin-2)</span></div>
+<svg id="gcm-svg" viewBox="0 0 640 420" role="img" aria-labelledby="gcm-title"><title id="gcm-title">Share of dry-stress seasons per Kenyan ERA site by climate source, against the Atlas tier</title></svg>
+<p class="note">One row per site, sorted by the Atlas tier value of its admin-2 unit; hover a marker for the numbers. Sites in the same unit share the Atlas value.</p>
 <div class="tablewrap"><table id="era-gcm"></table></div>
 <p class="note">The 15 Kenyan ERA sites in maize units, scored on the same GGCMI window over the Atlas's own 19 seasons (1995–2013) through the same toolkit water balance, from observed climate (CHIRPS v3 + AgERA5) and from NEX-GDDP historical runs of two Atlas ensemble members. The GCMs raise the share of stress seasons to roughly half, so most of the gap to the Atlas tier is the GCM climate being drier than observed in the short rains; the remainder, and nearly all of the severe tier, is the Atlas's own water balance, thresholds or aggregation. The ERA trial years are not a wet-biased subset.</p>
 </div>
@@ -486,6 +489,34 @@ function drawStrata() {
       (E.gcm || []).map(r => [srcName[r.src] || r.src, r.sites, r.seasons ?? "–", fmt(r.p_dry, 2), fmt(r.p_sev, 2), r.ndws == null ? "–" : fmt(r.ndws, 1), r.r_atlas == null ? "–" : fmt(r.r_atlas, 2)]));
   tbl("#era-win", [{t:"Country"},{t:"sites",num:1},{t:"site-seasons",num:1},{t:"window days, site",num:1},{t:"window days, GGCMI",num:1},{t:"P(dry ≥ mod), site window",num:1},{t:"P(dry ≥ mod), GGCMI window",num:1}],
       (E.window || []).map(r => [r.iso, r.sites, r.seasons, r.days_site, r.days_ggcmi, fmt(r.p_dry_site, 2), fmt(r.p_dry_ggcmi, 2)]));
+}
+
+// ---- GCM vs observed per site --------------------------------------------------
+{
+  const rows = ((D.era_split || {}).gcm_sites || []);
+  const svg = $("#gcm-svg");
+  if (svg && rows.length) {
+    const W = 640, left = 150, right = 20, top = 14, rh = 24, pw = W - left - right, H = top + rows.length * rh + 44;
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    const g = el("g", {}, svg); const x = v => left + v * pw;
+    [0, 0.25, 0.5, 0.75, 1].forEach(t => { el("line", { x1: x(t), x2: x(t), y1: top, y2: top + rows.length * rh, stroke: "var(--grid)" }, g); txt(g, x(t), top + rows.length * rh + 16, pct(t), { "text-anchor": "middle" }); });
+    txt(g, left + pw / 2, top + rows.length * rh + 34, "share of seasons with NDWS ≥ moderate, 1995–2013, GGCMI window", { "text-anchor": "middle", class: "axis-title" });
+    rows.forEach((r, i) => {
+      const y = top + i * rh + rh / 2;
+      txt(g, left - 10, y + 4, `${r.admin2} · ${r.site.split(" ")[0]},${r.site.split(" ")[1]}`, { "text-anchor": "end", "font-size": "11px" });
+      const lo = Math.min(r.obs_all, r.access, r.gfdl, r.atlas), hi = Math.max(r.obs_all, r.access, r.gfdl, r.atlas);
+      el("line", { x1: x(lo), x2: x(hi), y1: y, y2: y, stroke: "var(--axis)", "stroke-width": 2 }, g);
+      const marks = [["obs_all", "var(--f1)", false, "observed, all seasons"], ["access", "var(--f5)", false, "ACCESS-CM2"], ["gfdl", "var(--f5)", true, "GFDL-ESM4"], ["atlas", "var(--ink)", false, "Atlas tier"]];
+      marks.forEach(([k, c, hollow, name]) => {
+        if (r[k] == null) return;
+        const isAtlas = k === "atlas";
+        const m = isAtlas ? el("rect", { x: x(r[k]) - 5, y: y - 5, width: 10, height: 10, rx: 2, fill: c }, g)
+                          : el("circle", { cx: x(r[k]), cy: y, r: 5, fill: hollow ? "var(--surface)" : c, stroke: c, "stroke-width": 2 }, g);
+        const hit = el("circle", { cx: x(r[k]), cy: y, r: 12, fill: "transparent" }, g);
+        hover(hit, () => [[`${r.admin2} (${r.site})`, null], [name, fmt(r[k], 2), c.startsWith("var") ? cssv(c.slice(4, -1)) : c], ["observed, ERA trial seasons", `${fmt(r.obs_era, 2)} (n = ${r.n_era})`], ["Atlas P(≥ severe)", fmt(r.atlas_sev, 2)], ["Atlas row", r.p_source]]);
+      });
+    });
+  }
 }
 
 // ---- Severity mix ------------------------------------------------------------
