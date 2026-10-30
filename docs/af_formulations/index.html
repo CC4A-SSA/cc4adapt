@@ -223,13 +223,15 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <li><b>MELIAF v3.0 is levels DiD by definition.</b> It defines g in kg/ha. Reading the factor in relative terms is a change request, not a clarification.</li>
 <li><b>Benchmarks differ.</b> Atlas "≥ moderate" gives P<sub>stress</sub> of 0.5–0.85; MELIAF's candidate benchmarks sit near 0.2. The severity-resolved factor merges exactly to a single factor, but not across benchmarks.</li>
 </ul>
-<h3>What the CCA analysis does</h3>
-<ul>
-<li>Use the proportional split (F3): production in a stress year = (A − B)(1 − L); avoided loss = A·L·m. Keep coefficients signed; no floors.</li>
-<li>Correct the pipeline: step 2 production scaled by (1 − Σ P·L) in stress years; step 3 avoided loss on the practice yield A, not the control B; remove the [0, 1] clamp on m.</li>
-<li>Keep severity classes as the primitive and serve MELIAF one factor per hazard by the exact merge.</li>
-<li>Report per hazard until co-occurrence is handled; P(no hazard) and P(dry ∩ wet) are already in the outputs.</li>
-</ul>
+<h3>Recommendation for the CCA analysis</h3>
+<ol>
+<li><b>Use the proportional split (F3).</b> Production in a stress year = (A − B)(1 − L); avoided loss = A·L·m. It is the decomposition that matches a multiplicative loss model, and the ERA stress seasons behave multiplicatively: on stress seasons the practice effect as a ratio does not vary with control yield, while the absolute difference does. Keep coefficients signed; no floors.</li>
+<li><b>Correct the pipeline.</b> Step 2 production scaled by (1 − Σ P·L) in stress years; step 3 avoided loss on the practice yield A, not the control B; remove the [0, 1] clamp on m; use g<sub>norm</sub>, not the pooled ERA effect, once season-classified estimates exist for each practice.</li>
+<li><b>Treat the season window as part of the factor.</b> The same site-seasons give different stress frequencies and a different g<sub>norm</sub> / g<sub>stress</sub> split on the Atlas's single maize window than on site windows. Record the window with every factor, and move the Atlas hazard tiers to crop- and region-specific windows before the "≥ moderate" tier is used as P<sub>stress</sub>.</li>
+<li><b>Do not use the Atlas P<sub>stress</sub> as MELIAF's P<sub>stress</sub> without reconciliation.</b> At ERA sites the observed share of dry-stress seasons is near 0.2; the Atlas tier gives 0.6–0.7 for the same units in Kenya on either window. Until the source of that gap is pinned (GCM climate versus observed, or the water balance), report P from both and say which one a factor was estimated against.</li>
+<li><b>Keep severity classes as the primitive</b> and serve MELIAF one factor per hazard by the exact merge. Report per hazard until co-occurrence is handled; P(no hazard) and P(dry ∩ wet) are already in the outputs.</li>
+<li><b>Scope for now:</b> maize, cover crops and reduced tillage, three countries. Sorghum, wheat, bean and the other practices follow the same route once loss shares have an evidence tier.</li>
+</ol>
 <h3>Questions for Adaptation Insights</h3>
 <ol>
 <li>When g<sub>stress</sub> and g<sub>norm</sub> are estimated, will they be ratios or kg/ha? If kg/ha, which yield converts them? (The v3.0 reference database is a design, not yet a dataset, so this is a choice still open.)</li>
