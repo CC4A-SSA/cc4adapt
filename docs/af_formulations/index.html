@@ -118,6 +118,17 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 </div>
 
 <h2 id="toy">Three ways to label one benefit</h2>
+<p>Six formulations split the same stress-year gap Δ<sub>s</sub> = A<sub>s</sub> − B<sub>s</sub> between the production and adaptation labels:</p>
+<div class="card terms"><div class="tablewrap"><table>
+<tr><th>ID</th><th>Name</th><th>Production (stress year)</th><th>Avoided loss (stress year)</th><th>Reading</th></tr>
+<tr><td><b>F0</b></td><td>v0.1, no split</td><td>A − B</td><td>A<sub>s</sub> − B<sub>s</sub></td><td>The old pipeline. The whole stress-year gap is called adaptation, but it already contains the normal gain: a double count.</td></tr>
+<tr><td><b>F1</b></td><td>Levels DiD</td><td>A − B</td><td>L(B − (1−m)A)</td><td>"No adaptation" = same <em>tonnes</em> lost. Control's tonnes lost minus the practice's. This is MELIAF v3.0 with g in kg/ha. Negative whenever m &lt; g/(1+g), so a high-yield practice can look maladaptive.</td></tr>
+<tr><td><b>F2</b></td><td>DiD floored at 0</td><td>Δ<sub>s</sub> − max(0, F1)</td><td>max(0, F1)</td><td>F1 with negatives set to zero and the rest called production.</td></tr>
+<tr><td><b>F3</b></td><td>Proportional split</td><td>(A − B)(1 − L)</td><td>A·L·m</td><td>"No adaptation" = same <em>share</em> lost. The normal gain shrinks with the hazard; avoided loss is what the practice saves on its own yield. Equals MELIAF's formula with relative g converted by the stress-year control yield. Negative only when m &lt; 0.</td></tr>
+<tr><td><b>F4</b></td><td>Relative g × normal-year B</td><td>as F3</td><td>A·L·m / (1 − L)</td><td>Relative g converted with the normal-year yield instead. Overshoots by 1/(1−L); not charted.</td></tr>
+<tr><td><b>F5</b></td><td>Current cc4adapt pipeline</td><td>A − B</td><td>B·L·m</td><td>What step 2 and step 3 do today: the full normal gain every year, plus loss avoided on the <em>control's</em> yield. Over-counts the total by L(A−B)(1−m).</td></tr>
+</table></div>
+<p>F1, F2 and F3 sum exactly to Δ<sub>s</sub>; F0, F4 and F5 do not. B is the baseline yield, A = B(1+g) the practice yield in a normal year, L the share the control loses in a stress year, m the share of that loss the practice avoids (signed).</p></div>
 <p>Move the sliders. The total bar length never changes between F1, F2 and F3; only the split does. F5 (the current pipeline) and F0 do not conserve the total.</p>
 <div class="card">
 <div class="controls" id="toy-controls">
