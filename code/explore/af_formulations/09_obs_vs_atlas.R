@@ -12,7 +12,11 @@
 suppressMessages({library(data.table); library(sf)})
 if (!dir.exists("code/explore/af_formulations")) stop("Run from the cc4adapt repo root")
 source("code/explore/af_formulations/R/paths.R")
-h <- fread("data/staging/af_formulations/era_site_season_hazards.csv")
+# AF_HAZ_FILE selects the classification (default: site windows; the
+# --window ggcmi output gives the Atlas-window variant). AF_HAZ_TAG names the output.
+HAZ <- Sys.getenv("AF_HAZ_FILE", "data/staging/af_formulations/era_site_season_hazards.csv")
+TAG <- Sys.getenv("AF_HAZ_TAG", "")
+h <- fread(HAZ)
 obs <- h[, .(n_seasons = .N, p_dry_obs = mean(NDWS_band != "none"), p_dry_sev_obs = mean(NDWS_band %in% c("severe","extreme")),
              p_wet_obs = mean(NDWL0_band != "none"), lat = lat[1], lon = lon[1]), by = Site.Key]
 g <- st_as_sf(arrow::read_parquet("data/staging/af_formulations/gaul24_adm2_ken_eth_nga.parquet")); if (is.na(st_crs(g))) st_crs(g) <- 4326
@@ -26,4 +30,4 @@ print(jd[, .(sites = .N, seasons = sum(n_seasons), obs_dry = round(weighted.mean
              obs_dry_sev = round(weighted.mean(p_dry_sev_obs, n_seasons),2), atlas_dry_sev = round(mean(p_sev_dry),2),
              obs_wet = round(weighted.mean(p_wet_obs, n_seasons),2), atlas_wet = round(mean(p_stress_wet),2)), by = iso3])
 cat("site-level correlation obs vs Atlas P(dry>=mod):", round(cor(jd$p_dry_obs, jd$p_stress_dry), 2), "\n")
-fwrite(jd, file.path(af_out_dir(), "era_split", "obs_vs_atlas_sites.csv"))
+fwrite(jd, file.path(af_out_dir(), "era_split", paste0("obs_vs_atlas_sites", TAG, ".csv")))

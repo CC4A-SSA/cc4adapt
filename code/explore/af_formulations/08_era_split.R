@@ -33,13 +33,14 @@ if (!dir.exists("code/explore/af_formulations")) stop("Run from the cc4adapt rep
 source("code/explore/af_formulations/R/paths.R")
 
 IN  <- "data/staging/af_formulations"
-OUT <- file.path(af_out_dir(), "era_split"); dir.create(OUT, showWarnings = FALSE, recursive = TRUE)
+OUT <- file.path(af_out_dir(), paste0("era_split", Sys.getenv("AF_HAZ_TAG", ""))); dir.create(OUT, showWarnings = FALSE, recursive = TRUE)
 THRESH <- c("moderate", "severe")
 HAZ <- c(dry = "NDWS", wet = "NDWL0", heat = "NTx35")
 ORD <- c(none = 0, moderate = 1, severe = 2, extreme = 3)
 
 cmp <- fread(file.path(IN, "era_comparisons.csv"))
-haz <- fread(file.path(IN, "era_site_season_hazards.csv"))
+HAZ_FILE <- Sys.getenv("AF_HAZ_FILE", file.path(IN, "era_site_season_hazards.csv"))
+haz <- fread(HAZ_FILE)
 cmp[, slot := fifelse(is.na(season_idx), 1L, as.integer(season_idx))]
 haz[, slot := as.integer(season_slot)]
 
