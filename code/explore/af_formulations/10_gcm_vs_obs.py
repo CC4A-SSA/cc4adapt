@@ -8,6 +8,8 @@ Atlas baseline) on (a) observed climate (CHIRPS v3 + AgERA5) and (b) NEX-GDDP
 historical runs of Atlas ensemble members, through the same toolkit water
 balance. If (b) is near the Atlas value and (a) is not, the gap is the GCM
 climate; if both are low, it is the Atlas water balance or thresholds.
+Seasons 1995-2013 (the Atlas's 19); observed rows for 2014 from earlier runs
+are dropped in 11_gcm_summary.R.
 
 Run from the cc4adapt repo root:
     GCP_PROJECT_ID=ee-peetmate PYTHONPATH=../climate-toolkit \
@@ -40,7 +42,7 @@ SITES = ROOT / "data/outputs/af_formulations/era_split/obs_vs_atlas_sites.csv"  
 SITE_YEARS = ROOT / "data/staging/af_formulations/era_site_years.csv"             # their coordinates
 OUT = ROOT / "data/staging/af_formulations/gcm_vs_obs_sites.csv"
 LOG = ROOT / "data/staging/af_formulations/gcm_vs_obs.log.jsonl"
-Y0, Y1 = 1995, 2014
+Y0, Y1 = 1995, 2013   # 19 seasons, as the Atlas counts; a 2014 window crossing into 2015 is outside NEX historical
 DAYS_PER_MONTH = 365.25 / 12
 BANDS = {"NDWS": (15, 20, 25), "NDWL0": (2, 5, 8), "NTx35": (7, 14, 21)}
 _MODEL = {"model": None}
@@ -110,6 +112,7 @@ def main():
     ap.add_argument("--workers", type=int, default=2)
     ap.add_argument("--project", default=os.environ.get("GCP_PROJECT_ID", ""))
     ap.add_argument("--tag", default="", help="suffix for the output file, e.g. _access-cm2")
+    ap.add_argument("--obs", action="store_true", help="include the observed (paired) jobs; default only when no --models")
     a = ap.parse_args()
     if not a.project:
         sys.exit("Set GCP_PROJECT_ID or --project")
@@ -123,8 +126,8 @@ def main():
     sites = sites.merge(coords, on="Site.Key")
     if a.limit:
         sites = sites.head(a.limit)
-    jobs = [(s, "paired", None) for s in sites.itertuples(index=False)]
     models = [m for m in a.models.split(",") if m.strip()]
+    jobs = [(s, "paired", None) for s in sites.itertuples(index=False)] if (a.obs or not models) else []
     jobs += [(s, "nex_gddp", m) for m in models for s in sites.itertuples(index=False)]
 
     out = OUT.with_name(OUT.stem + ".dryrun.csv") if a.limit else OUT

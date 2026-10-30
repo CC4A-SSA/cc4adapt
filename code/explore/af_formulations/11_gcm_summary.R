@@ -22,7 +22,7 @@ IN <- "data/staging/af_formulations"
 
 files <- list.files(IN, pattern = "^gcm_vs_obs_sites.*\\.csv$", full.names = TRUE)
 files <- files[!grepl("dryrun", files)]
-g <- rbindlist(lapply(files, fread), fill = TRUE)
+g <- rbindlist(lapply(files, fread), fill = TRUE)[year <= 2013]   # NEX historical ends 2014; last complete window is 2013
 g[, src := fifelse(source == "paired", "obs_all", paste0("gcm_", tolower(gsub("-", "", model))))]
 g[, dry := NDWS_band != "none"]
 g[, sev := NDWS_band %in% c("severe", "extreme")]
