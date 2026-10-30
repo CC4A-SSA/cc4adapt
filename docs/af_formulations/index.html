@@ -200,7 +200,10 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <p class="note">On stress seasons only. <em>Proportional</em> regresses log(MeanT/MeanC) on log control yield; <em>additive</em> regresses MeanT − MeanC on control yield. t-statistics with study-clustered standard errors. A slope near zero is the model the data support: in three of four cases the ratio is flat and the difference is not, which is the proportional split (F3). The two tests are not symmetric and power is low.</p>
 <h3>3. Observed stress frequency at ERA sites is far below the Atlas P</h3>
 <div class="tablewrap"><table id="era-obs"></table></div>
-<p class="note">Share of ERA site-seasons at or above the band (observed, 1981–2016, site windows) against the Atlas P(h, ≥ moderate) of the admin-2 unit containing each site (NEX-GDDP 1995–2014, maize jagermeyr window). The observed share sits near MELIAF's ~0.2 benchmarks; the Atlas value is three to four times higher. Candidates: the Atlas's single maize window (for Kenyan pixels the short rains), GCM-based frequencies, water-balance parameters, and ERA sites being better-watered than their units. A rerun on the Atlas window at the same sites is the first test.</p>
+<p class="note">Share of ERA site-seasons at or above the band (observed, 1981–2016) against the Atlas P(h, ≥ moderate) of the admin-2 unit containing each site (NEX-GDDP 1995–2014, maize jagermeyr window). "Site window" uses ERA dates or the local rainfall climatology; "Atlas window" rescores the same sites on the GGCMI jagermeyr window the Atlas uses. The observed share sits near MELIAF's ~0.2 benchmarks even on the Atlas window, so for Kenya and Nigeria the remaining gap is GCM-versus-observed climate or the water balance, not the season window.</p>
+<h3>4. The season window matters a lot where GGCMI seasons are long</h3>
+<div class="tablewrap"><table id="era-win"></table></div>
+<p class="note">Same ERA site-seasons scored both ways. Where the GGCMI rainfed-maize window runs 190–225 days (southern Africa) it takes in dry shoulder months and doubles the share of stress seasons; where it is the 85–95-day short rains (Kenya, Nigeria) it moves little. The g<sub>norm</sub> / g<sub>stress</sub> split is window-sensitive too: on the Atlas window cover crops' stress-season effect falls below the normal-season effect. Season definition is therefore part of the factor, not a detail.</p>
 </div>
 
 <h2 id="limits">Limits and what to trust</h2>
@@ -471,8 +474,10 @@ function drawStrata() {
       (E.g || []).filter(r => r.hazard !== "heat").map(r => [pname[r.practice] || r.practice, r.hazard, r.threshold, pc(r.g_norm), pc(r.g_stress), `${r.studies_norm} / ${r.studies_stress ?? "–"}`, `${r.site_seasons_norm} / ${r.site_seasons_stress ?? "–"}`]));
   tbl("#era-test", [{t:"Practice"},{t:"Hazard"},{t:"stress obs / studies",num:1},{t:"proportional slope t",num:1},{t:"additive slope t",num:1},{t:"Supports"}],
       (E.test || []).map(r => [pname[r.practice] || r.practice, r.hazard, `${r.n_obs} / ${r.n_studies}`, fmt(r.prop_t, 2), fmt(r.add_t, 2), (Math.abs(r.prop_t) < 2 && Math.abs(r.add_t) < 2) ? "ambiguous" : Math.abs(r.prop_t) < Math.abs(r.add_t) ? "proportional" : "additive"]));
-  tbl("#era-obs", [{t:"Country"},{t:"ERA sites",num:1},{t:"site-seasons",num:1},{t:"observed P(dry ≥ mod)",num:1},{t:"Atlas P(dry ≥ mod)",num:1},{t:"observed P(dry ≥ sev)",num:1},{t:"Atlas P(dry ≥ sev)",num:1},{t:"observed P(wet ≥ mod)",num:1},{t:"Atlas P(wet ≥ mod)",num:1}],
-      (E.obs || []).map(r => [r.iso3, r.sites, r.seasons, fmt(r.obs_dry, 2), fmt(r.atlas_dry, 2), fmt(r.obs_dry_sev, 2), fmt(r.atlas_dry_sev, 2), fmt(r.obs_wet, 2), fmt(r.atlas_wet, 2)]));
+  tbl("#era-obs", [{t:"Country"},{t:"ERA sites",num:1},{t:"site-seasons",num:1},{t:"observed, site window",num:1},{t:"observed, Atlas window",num:1},{t:"Atlas P(dry ≥ mod)",num:1},{t:"observed P(dry ≥ sev)",num:1},{t:"Atlas P(dry ≥ sev)",num:1},{t:"observed P(wet ≥ mod)",num:1},{t:"Atlas P(wet ≥ mod)",num:1}],
+      (E.obs || []).map(r => [r.iso3, r.sites, r.seasons, fmt(r.obs_dry, 2), fmt(r.obs_dry_ggcmi, 2), fmt(r.atlas_dry, 2), fmt(r.obs_dry_sev, 2), fmt(r.atlas_dry_sev, 2), fmt(r.obs_wet, 2), fmt(r.atlas_wet, 2)]));
+  tbl("#era-win", [{t:"Country"},{t:"sites",num:1},{t:"site-seasons",num:1},{t:"window days, site",num:1},{t:"window days, GGCMI",num:1},{t:"P(dry ≥ mod), site window",num:1},{t:"P(dry ≥ mod), GGCMI window",num:1}],
+      (E.window || []).map(r => [r.iso, r.sites, r.seasons, r.days_site, r.days_ggcmi, fmt(r.p_dry_site, 2), fmt(r.p_dry_ggcmi, 2)]));
 }
 
 // ---- Severity mix ------------------------------------------------------------
