@@ -10,7 +10,7 @@
   color-scheme: light;
   --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
   --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
-  --f3: #2a78d6; --f1: #eb6834; --f5: #1baf7a; --gray: #b8b6ae;
+  --f3: #2a78d6; --f1: #eb6834; --f1b: #f2a98c; --f5: #1baf7a; --gray: #b8b6ae;
   --div-neg: #e34948; --div-pos: #2a78d6; --div-mid: #f0efec;
   --warn-bg: #fff4d6; --warn-ink: #5a3d00; --warn-border: #eda100;
   --seq-1: #cde2fb; --seq-2: #86b6ef; --seq-3: #3987e5; --seq-4: #1c5cab;
@@ -20,7 +20,7 @@
     color-scheme: dark;
     --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
     --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
-    --f3: #3987e5; --f1: #d95926; --f5: #199e70; --gray: #5a5955;
+    --f3: #3987e5; --f1: #d95926; --f1b: #a3431c; --f5: #199e70; --gray: #5a5955;
     --div-neg: #e66767; --div-pos: #3987e5; --div-mid: #383835;
     --warn-bg: #3a2c00; --warn-ink: #ffe6a3; --warn-border: #c98500;
     --seq-1: #184f95; --seq-2: #256abf; --seq-3: #5598e7; --seq-4: #9ec5f4;
@@ -30,7 +30,7 @@
   color-scheme: dark;
   --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
   --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
-  --f3: #3987e5; --f1: #d95926; --f5: #199e70; --gray: #5a5955;
+  --f3: #3987e5; --f1: #d95926; --f1b: #a3431c; --f5: #199e70; --gray: #5a5955;
   --div-neg: #e66767; --div-pos: #3987e5; --div-mid: #383835;
   --warn-bg: #3a2c00; --warn-ink: #ffe6a3; --warn-border: #c98500;
   --seq-1: #184f95; --seq-2: #256abf; --seq-3: #5598e7; --seq-4: #9ec5f4;
@@ -54,6 +54,7 @@ p, li { max-width: 72ch; }
 .controls output { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.85rem; color: var(--ink-2); margin: 6px 0 2px; }
 .legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+.legend label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
 .legend .hollow::before { background: transparent; border: 2px solid var(--c); width: 8px; height: 8px; border-radius: 50%; }
 svg { display: block; width: 100%; height: auto; overflow: visible; }
 svg text { font: 12px system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--ink-2); }
@@ -188,10 +189,12 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 </div>
 
 <h2 id="where" data-nav="Where it bites">Where the difference is large in tonnes</h2>
-<p>The same difference in tonnes per hectare per year for every maize-growing district in Kenya, Ethiopia and Nigeria, plotted against the district's expected loss (how often stress occurs × how much is lost). The hazard regime explains most of the spread between districts; the yield level explains little.</p>
+<p>The difference in adaptation benefit between two rules, in tonnes per hectare per year, for every maize-growing district in Kenya, Ethiopia and Nigeria, plotted against the district's expected loss (how often stress occurs × how much is lost). Default: "same tonnes lost" minus "same share lost". The hazard regime explains most of the spread between districts; the yield level explains little.</p>
 <div class="card">
 <div class="controls">
   <label>Practice × hazard <select id="sel-ph"></select></label>
+  <label>Compare rule <select id="sel-ra"><option value="F1">same tonnes lost (F1)</option><option value="F2">same tonnes, floored (F2)</option><option value="F3">same share lost (F3)</option><option value="F5">current pipeline (F5)</option><option value="F0">no split (F0)</option><option value="F4">normal-year conversion (F4)</option></select></label>
+  <label>against <select id="sel-rb"><option value="F1">same tonnes lost (F1)</option><option value="F2">same tonnes, floored (F2)</option><option value="F3" selected>same share lost (F3)</option><option value="F5">current pipeline (F5)</option><option value="F0">no split (F0)</option><option value="F4">normal-year conversion (F4)</option></select></label>
   <label>Highlight <select id="sel-hi"><option value="none">none</option><option value="iso3">country</option><option value="fs1">farming system</option></select></label>
   <label>Show <select id="sel-hi-val"></select></label>
 </div>
@@ -209,7 +212,13 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
   <label>Yield gain <select id="st-g"><option value="era">ERA trials, all seasons pooled</option><option value="era_aez">ERA trials, by agro-ecological zone</option><option value="era_norm">ERA trials, normal seasons only</option></select></label>
   <label>Group by <select id="st-level"><option value="fs1">farming system</option><option value="aez">agro-ecological zone</option><option value="country">country</option></select></label>
 </div>
-<div class="legend"><span style="--c: var(--f1)">same tonnes lost (F1)</span><span style="--c: var(--f3)">same share lost (F3)</span><span style="--c: var(--f5)">current pipeline (F5)</span></div>
+<div class="legend" id="st-rules">
+  <label><input type="checkbox" value="F1" checked> <span style="--c: var(--f1)">same tonnes lost (F1)</span></label>
+  <label><input type="checkbox" value="F2"> <span style="--c: var(--f1b)">same tonnes, floored (F2)</span></label>
+  <label><input type="checkbox" value="F3" checked> <span style="--c: var(--f3)">same share lost (F3)</span></label>
+  <label><input type="checkbox" value="F5" checked> <span style="--c: var(--f5)">current pipeline (F5)</span></label>
+  <label><input type="checkbox" value="F0"> <span style="--c: var(--gray)">no split (F0)</span></label>
+</div>
 <svg id="st-svg" viewBox="0 0 640 420" role="img" aria-labelledby="st-title"><title id="st-title">Median adaptation share by group and labelling rule</title></svg>
 <details><summary>Table view</summary><div class="tablewrap" id="st-table"></div></details>
 </div>
@@ -250,6 +259,67 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <svg id="gcm-svg" viewBox="0 0 640 420" role="img" aria-labelledby="gcm-title"><title id="gcm-title">Share of stress seasons per Kenyan trial site by climate source, against the Atlas</title></svg>
 <p class="note">One row per Kenyan trial site, sorted by the Atlas value of its district; hover a marker for the numbers. The Atlas builds its hazard frequencies from downscaled climate-model simulations, not from weather records. Scoring the same sites, calendar and years (1995–2013) through the same soil-water calculation shows that the climate models alone take the stress share from under one in five seasons to about one in two, and the Atlas's own calculation adds the rest. Gachoka, near Embu, agrees with the Atlas; the western Kenya sites do not.</p>
 <div class="tablewrap"><table id="era-gcm"></table></div>
+</div>
+
+<h2 id="methods" data-nav="How it was done">How the field-trial test was done</h2>
+<div class="card terms">
+<h3 id="m-trials" data-nav="Trial data">Trial data</h3>
+<p>From the ERA database we took every maize yield comparison for the two practices: ERA's "Green Manure" entries for cover crops and its "Reduced Tillage" entries (no-till and minimum tillage) for reduced tillage. Only comparisons where the practice is the single difference from the control were kept; bundles such as mulch plus reduced tillage were excluded, so that the effect is the practice's own. Comparisons ERA flags as invalid, or with a missing or zero yield on either side, were dropped. That leaves 1,245 comparisons from 110 studies at 111 sites, 1971–2016; 294 of the 334 site-years fall in the period with daily rainfall records (1981 onwards).</p>
+<p>Each comparison carries the trial's coordinates with a precision radius (typically about 1 km, nearly all within 5 km), the measurement year, and for bimodal sites which rainy season it was (ERA marks these as season 1 or 2). About a quarter of site-years also record planting and harvest dates.</p>
+
+<h3 id="m-season" data-nav="Season windows">Defining each trial's growing season</h3>
+<p>Stress is only meaningful inside the growing season, so every site needed a season window. Three sources, in order of preference:</p>
+<ol>
+<li><b>ERA planting and harvest dates</b> where the trial recorded them (33 of 128 site-seasons). For a site with several dated years the most common planting and harvest day-of-year was used.</li>
+<li><b>The local rainfall pattern</b> otherwise (95 site-seasons). From the WorldClim monthly rainfall climatology at the site, a month is "wet" if it averages 60 mm or more; a run of two or more wet months is a rainy season; the window runs from the first wet month to one month after the run ends, capped at five months, so a three-month rainy season gives a four-month maize season. Where the climatology shows two rainy seasons, ERA's season 1 is matched to the earlier run and season 2 to the later one. Thirteen site-seasons are marked season 2 at sites whose climatology shows only one rainy season; they were scored on that single season and flagged.</li>
+<li><b>The standard maize calendar</b> (GGCMI, the one the Atlas uses) as a last resort, and as the deliberate alternative in the "Atlas window" runs.</li>
+</ol>
+
+<h3 id="m-climate" data-nav="Climate and water balance">Climate records and the water balance</h3>
+<p>Daily rainfall came from CHIRPS v3 (satellite plus gauges, about 5 km grid) and daily temperature and related weather from AgERA5 (about 10 km grid), both read through Google Earth Engine for the pixel containing each site. The CGIAR climate-toolkit then ran a daily soil-water balance for each season: reference evapotranspiration by the Hargreaves method; crop coefficients 0.3, 1.2 and 0.6 for early, mid and late season (FAO-56 starter values); a 1 m root zone; soil water capacity from SoilGrids at the site (about 87 mm in the test run) and a 300 mm saturation level; a 60-day spin-up before the window. From that balance it counted, within the window, the days when crop water use fell below half of demand (water-stress days, the Atlas's "NDWS"), the days with water above saturation (waterlogging days, "NDWL0"), and the days with maximum temperature at or above 35 °C (heat days, "NTx35").</p>
+
+<h3 id="m-classes" data-nav="Stress classes">From day counts to stress classes</h3>
+<p>The Atlas classes a season by the <em>average monthly</em> count of such days over the season months, against fixed thresholds: water stress 15 / 20 / 25 days a month for moderate / severe / extreme, waterlogging 2 / 5 / 8, heat 7 / 14 / 21. To use the same classes, each season's day count was divided by the window length in months (count × 30.44 ÷ days in the window) and compared with the same thresholds. A trial season is then a "stress season" for a hazard if its class is at or above the chosen threshold (moderate by default, severe as a sensitivity). A season can be a stress season for more than one hazard.</p>
+
+<h3 id="m-split" data-nav="Splitting the effect">Splitting the practice effect by season type</h3>
+<p>Each comparison's effect is the log of practice yield over control yield. Within each study the effects were averaged separately over its stress seasons and its normal seasons, then averaged across studies with equal weight, and converted back to a percentage. The <em>stress minus normal</em> difference is the climate-specific effect the CGIAR indicator asks for. The scaling test used stress-season comparisons only: a regression of the log ratio on the log of control yield (if the practice protects a share of yield, this slope should be near zero), and a regression of the yield difference in tonnes on control yield (if it protects a fixed number of tonnes, this one should). Standard errors allow for comparisons from the same study being correlated.</p>
+
+<h3 id="m-gcm" data-nav="Climate-model comparison">Comparing with the Atlas and with climate models</h3>
+<p>For the Kenyan sites that fall inside maize-growing districts, the same window and the same water balance were run three more ways: on the weather records for every season from 1995 to 2013 (not only trial years), and on daily output from two of the Atlas's eighteen climate models (ACCESS-CM2 and GFDL-ESM4, NEX-GDDP historical runs) for the same seasons. The Atlas value for comparison is the district's published hazard frequency, recovered as the share of maize production in the "dry" classes over all production.</p>
+
+<h3 id="m-assume" data-nav="Assumptions">Assumptions</h3>
+<ul>
+<li>A trial's climate is the climate of the 5–10 km pixel containing its coordinates; on-farm and on-station plots at one site share a season.</li>
+<li>The growing season is the same every year at a site (from dates, climatology or calendar); no year-specific onset.</li>
+<li>The soil-water balance with FAO-56 starter crop parameters and SoilGrids soil capacity represents the trial plots' water status.</li>
+<li>Scaling a season total of stress days to a monthly mean reproduces the Atlas's seasonal classification.</li>
+<li>The effect of the practice in a season is independent of other seasons (no carry-over), and comparisons within a study can be averaged.</li>
+<li>ERA's practice labels map cleanly: "Green Manure" is the cover-crop practice; "Reduced Tillage" is the reduced-tillage practice without residue or mulch bundles.</li>
+<li>The Atlas district frequency is comparable with a point frequency because it is production-weighted within the district.</li>
+</ul>
+
+<h3 id="m-errors" data-nav="Sources of error">Sources of error</h3>
+<ul>
+<li><b>Season window.</b> The largest known one: scoring the same seasons on the standard maize calendar instead of the site window changes the share of stress seasons by up to a factor of two and changes the stress-versus-normal split. Three-quarters of site-years have no recorded planting date.</li>
+<li><b>Bimodal sites.</b> Which rainy season a trial used is known only from ERA's season flag; thirteen "season 2" site-seasons have no second rainy season in the climatology.</li>
+<li><b>Location precision.</b> Coordinates are rounded and carry a 0.2–2 km radius; a 5 km rainfall pixel and a 10 km temperature pixel can straddle a slope or a valley.</li>
+<li><b>Rainfall and temperature records.</b> CHIRPS and AgERA5 are gridded estimates; gauge density in the East African highlands is low and convective rain is patchy, so a site's actual rainfall can differ from its pixel.</li>
+<li><b>Water-balance parameters.</b> Crop coefficients, rooting depth and soil capacity are generic; a different choice shifts every season's day count and so the class boundaries. This is also the leading candidate for the Atlas-side part of the Kenya gap.</li>
+<li><b>Partial months.</b> Dividing by window length in months is not identical to the Atlas's mean of calendar-month counts when a window starts or ends mid-month.</li>
+<li><b>Small samples.</b> Cover crops under dry stress rest on ten studies at the moderate threshold and two at the severe one; heat stress almost never occurred.</li>
+<li><b>Trial management.</b> Controls range from unfertilised to fertilised and improved varieties; on-station trials may be irrigated or protected in ways the climate record cannot see; trial years may avoid failed seasons (the Kenya check found no such bias, but it was one country).</li>
+<li><b>Study weighting.</b> Studies count equally regardless of size or precision; no publication-bias correction.</li>
+<li><b>Climate models.</b> Two of eighteen Atlas members; the ensemble mean could sit higher or lower.</li>
+<li><b>Data access.</b> Earth Engine fetches occasionally failed and were re-run; the toolkit's cached chunks were reused across runs.</li>
+</ul>
+
+<h3 id="m-notdone" data-nav="Not done">What was not done</h3>
+<ul>
+<li>No year-specific onset detection; no use of the toolkit's automatic season detection, which fails on humid sites.</li>
+<li>No calibration of the water balance against observed soil moisture or crop stress at any site.</li>
+<li>No heat-stress estimate (too few heat seasons), no sorghum, wheat or bean, and no countries beyond the three for the Atlas comparison.</li>
+<li>The control's own stress-season loss was not estimated: ERA has no same-site normal-year control to compare with, so the "loss share" remains a placeholder throughout.</li>
+</ul>
 </div>
 
 <h2 id="limits" data-nav="What to trust">What to trust</h2>
@@ -527,8 +597,10 @@ function fillPH(sel) { sel.replaceChildren(...PH.map(([p, h, l]) => { const o = 
 fillPH($("#sel-ph")); fillPH($("#st-ph"));
 function drawWhere() {
   const [p, h] = $("#sel-ph").value.split("|"); const hiKey = $("#sel-hi").value; const hiVal = $("#sel-hi-val").value;
-  const rows = D.ref.filter(r => r.practice === p && r.hazard === h && r.m_profile === "const_0.50").map(r => ({ ...r, u: unitsIdx[r.gaul2_code + "|" + h] })).filter(r => r.u);
-  rows.forEach(r => r.gap = r.F1_al - r.F3_al);
+  const RA = $("#sel-ra").value, RB = $("#sel-rb").value;
+  const RN = { F0: "no split", F1: "same tonnes lost", F2: "same tonnes, floored", F3: "same share lost", F4: "normal-year conversion", F5: "current pipeline" };
+  const rows = D.ref.filter(r => r.practice === p && r.hazard === h && r.m_profile === "const_0.50").map(r => ({ ...r, u: unitsIdx[r.gaul2_code + "|" + h] })).filter(r => r.u && r[RA + "_al"] != null && r[RB + "_al"] != null);
+  rows.forEach(r => r.gap = r[RA + "_al"] - r[RB + "_al"]);
   const svg = $("#where-svg"); svg.innerHTML = '<title id="where-title">Absolute F1 minus F3 gap per unit against expected control loss</title>';
   const W = 640, H = 380, left = 64, right = 16, top = 16, bottom = 50, pw = W - left - right, ph = H - top - bottom;
   const xs = rows.map(r => r.u.EL), ys = rows.map(r => r.gap);
@@ -539,7 +611,7 @@ function drawWhere() {
   niceTicks(ymin, ymax, 5).forEach(t => { el("line", { x1: left, x2: left + pw, y1: y(t), y2: y(t), stroke: "var(--grid)" }, g); txt(g, left - 8, y(t) + 4, fmt(t, 2), { "text-anchor": "end" }); });
   el("line", { x1: left, x2: left + pw, y1: y(0), y2: y(0), class: "baseline" }, g);
   txt(g, left + pw / 2, H - 8, "expected loss: how often stress occurs × share lost", { "text-anchor": "middle", class: "axis-title" });
-  txt(g, 14, top + ph / 2, "adaptation under \"same tonnes\" minus \"same share\", t/ha/yr", { transform: `rotate(-90 14 ${top + ph / 2})`, "text-anchor": "middle", class: "axis-title" });
+  txt(g, 14, top + ph / 2, `adaptation under "${RN[RA]}" minus "${RN[RB]}", t/ha/yr`, { transform: `rotate(-90 14 ${top + ph / 2})`, "text-anchor": "middle", class: "axis-title" });
   const gval = rows[0]?.g;
   rows.sort((a, b) => (a.u.p_stress_ge_099 ? 1 : 0) - (b.u.p_stress_ge_099 ? 1 : 0)).forEach(r => {
     const dim = hiKey !== "none" && String(r.u[hiKey]) !== hiVal;
@@ -547,17 +619,17 @@ function drawWhere() {
     const hollow = r.u.p_source === "adm1";
     const circ = el("circle", { cx: x(r.u.EL), cy: y(r.gap), r: 4.5, fill: hollow ? "var(--surface)" : c, stroke: c, "stroke-width": hollow ? 2 : 1, opacity: dim ? 0.15 : 0.85 }, g);
     const hit = el("circle", { cx: x(r.u.EL), cy: y(r.gap), r: 12, fill: "transparent" }, g);
-    hover(hit, () => [[`${r.u.admin2_name}, ${r.u.admin1_name} (${r.u.iso3})`, null], ["difference between the rules", fmt(r.gap, 3) + " t/ha/yr", cssv("--f1")], ["expected loss", fmt(r.u.EL, 3)], ["normal-year yield", fmt(r.u.B_norm, 2) + " t/ha"], ["share of seasons with stress", fmt(r.u.p_stress, 2)], ["hazard data from", r.u.p_source === "adm2" ? "the district" : "the province"], ["farming system", r.u.fs1], ["agro-ecological zone", r.u.aez], ["adaptation under \"same share lost\"", fmt(r.F3_al, 3) + " t/ha/yr", cssv("--f3")]]);
+    hover(hit, () => [[`${r.u.admin2_name}, ${r.u.admin1_name} (${r.u.iso3})`, null], [`"${RN[RA]}" minus "${RN[RB]}"`, fmt(r.gap, 3) + " t/ha/yr", cssv("--f1")], [`adaptation under "${RN[RA]}"`, fmt(r[RA + "_al"], 3) + " t/ha/yr"], [`adaptation under "${RN[RB]}"`, fmt(r[RB + "_al"], 3) + " t/ha/yr", cssv("--f3")], ["expected loss", fmt(r.u.EL, 3)], ["normal-year yield", fmt(r.u.B_norm, 2) + " t/ha"], ["share of seasons with stress", fmt(r.u.p_stress, 2)], ["hazard data from", r.u.p_source === "adm2" ? "the district" : "the province"], ["farming system", r.u.fs1], ["agro-ecological zone", r.u.aez]]);
   });
   txt(g, left + pw - 4, top + 14, `yield gain ${gval != null ? (gval >= 0 ? "+" : "") + Math.round(gval * 100) + "%" : "?"} (ERA trials), ${rows.length} districts`, { "text-anchor": "end", fill: "var(--ink)" });
   // table
-  const t = document.createElement("table"); t.innerHTML = "<tr><th>District</th><th>Country</th><th>Farming system</th><th class=num>expected loss</th><th class=num>yield t/ha</th><th class=num>difference t/ha/yr</th><th class=num>adaptation (same share) t/ha/yr</th><th>hazard data</th></tr>";
-  rows.slice().sort((a, b) => a.gap - b.gap).slice(0, 40).forEach(r => { const tr = document.createElement("tr"); [r.u.admin2_name + ", " + r.u.admin1_name, r.u.iso3, r.u.fs1, fmt(r.u.EL, 3), fmt(r.u.B_norm, 2), fmt(r.gap, 3), fmt(r.F3_al, 3), r.u.p_source].forEach((v, i) => { const td = document.createElement("td"); if (i >= 3 && i <= 6) td.className = "num"; td.textContent = v; tr.appendChild(td); }); t.appendChild(tr); });
+  const t = document.createElement("table"); t.innerHTML = `<tr><th>District</th><th>Country</th><th>Farming system</th><th class=num>expected loss</th><th class=num>yield t/ha</th><th class=num>difference t/ha/yr</th><th class=num>adaptation, ${RN[RA]}</th><th class=num>adaptation, ${RN[RB]}</th><th>hazard data</th></tr>`;
+  rows.slice().sort((a, b) => Math.abs(b.gap) - Math.abs(a.gap)).slice(0, 40).forEach(r => { const tr = document.createElement("tr"); [r.u.admin2_name + ", " + r.u.admin1_name, r.u.iso3, r.u.fs1, fmt(r.u.EL, 3), fmt(r.u.B_norm, 2), fmt(r.gap, 3), fmt(r[RA + "_al"], 3), fmt(r[RB + "_al"], 3), r.u.p_source].forEach((v, i) => { const td = document.createElement("td"); if (i >= 3 && i <= 7) td.className = "num"; td.textContent = v; tr.appendChild(td); }); t.appendChild(tr); });
   const cap = document.createElement("p"); cap.className = "note"; cap.textContent = "The 40 largest differences; full data in af_results_maize_historic.parquet.";
   $("#where-table").replaceChildren(t, cap);
 }
 function fillHiVals() { const k = $("#sel-hi").value; const sel = $("#sel-hi-val"); if (k === "none") { sel.replaceChildren(); sel.disabled = true; return; } sel.disabled = false; const vals = [...new Set(D.units.map(u => u[k]).filter(Boolean))].sort(); sel.replaceChildren(...vals.map(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; return o; })); }
-$("#sel-hi").addEventListener("change", () => { fillHiVals(); drawWhere(); }); $("#sel-hi-val").addEventListener("change", drawWhere); $("#sel-ph").addEventListener("change", drawWhere);
+$("#sel-hi").addEventListener("change", () => { fillHiVals(); drawWhere(); }); ["#sel-hi-val", "#sel-ph", "#sel-ra", "#sel-rb"].forEach(id => $(id).addEventListener("change", drawWhere));
 fillHiVals(); drawWhere();
 
 // ---- Strata grouped bars ---------------------------------------------------
@@ -568,31 +640,35 @@ function drawStrata() {
   const svg = $("#st-svg"); svg.innerHTML = '<title id="st-title">Median adaptation share by stratum and formulation</title>';
   const W = 640, left = 200, right = 40, top = 10, rh = 34, pw = W - left - right, H = top + rows.length * rh + 44;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  const series = [["F1", "F1_share_med", "--f1"], ["F3", "F3_share_med", "--f3"], ["F5", "F5_share_med", "--f5"]];
-  const vals = rows.flatMap(r => series.map(s => r[s[1]]));
+  const ALLS = [["F1", "F1_share_med", "--f1"], ["F2", "F2_share_med", "--f1b"], ["F3", "F3_share_med", "--f3"], ["F5", "F5_share_med", "--f5"], ["F0", "F0_share_med", "--gray"]];
+  const on = new Set([...document.querySelectorAll("#st-rules input:checked")].map(i => i.value));
+  const series = ALLS.filter(sr => on.has(sr[0]));
+  if (!series.length) { svg.innerHTML = ""; return; }
+  const vals = rows.flatMap(r => series.map(s => r[s[1]])).filter(Number.isFinite);
   const lo = Math.min(0, ...vals), hi = Math.max(0.1, ...vals);
   const x = v => left + (v - lo) / (hi - lo) * pw;
   const g = el("g", {}, svg);
   niceTicks(lo, hi, 5).forEach(t => { el("line", { x1: x(t), x2: x(t), y1: top, y2: top + rows.length * rh, stroke: "var(--grid)" }, g); txt(g, x(t), top + rows.length * rh + 16, pct(t), { "text-anchor": "middle" }); });
   el("line", { x1: x(0), x2: x(0), y1: top, y2: top + rows.length * rh, class: "baseline" }, g);
   txt(g, left + pw / 2, top + rows.length * rh + 34, "median share of the total benefit counted as adaptation", { "text-anchor": "middle", class: "axis-title" });
-  const bh = (rh - 10) / 3;
+  const bh = (rh - 10) / series.length;
   rows.forEach((r, i) => {
     const y0 = top + i * rh + 4;
     txt(g, left - 10, y0 + rh / 2, r[key], { "text-anchor": "end" });
     series.forEach(([f, col, c], j) => {
       const v = r[col]; const yy = y0 + j * bh;
+      if (!Number.isFinite(v)) return;
       const rect = el("rect", { x: Math.min(x(0), x(v)), y: yy, width: Math.max(0, Math.abs(x(v) - x(0)) - 2), height: bh - 2, rx: 2, fill: `var(${c})` }, g);
-      const ruleName = { F1: "same tonnes lost", F3: "same share lost", F5: "current pipeline" }[f];
+      const ruleName = { F0: "no split", F1: "same tonnes lost", F2: "same tonnes, floored", F3: "same share lost", F5: "current pipeline" }[f];
       hover(rect, () => [[r[key], null], [ruleName + ": adaptation share", pct(v, 1), cssv(c)], ["districts", r.units + " (" + r.units_adm1_fallback + " use province data; " + r.units_p_stress_ge_099 + " stressed almost every season)"], ["maize production", r.maize_kt + " kt"], ["median yield", fmt(r.B_norm_med, 2) + " t/ha"], ["median expected loss", fmt(r.EL_med, 3)], ["adaptation, same tonnes lost", fmt(r.F1_al_med, 3) + " t/ha/yr", cssv("--f1")], ["adaptation, same share lost", fmt(r.F3_al_med, 3) + " t/ha/yr", cssv("--f3")], ["adaptation, current pipeline", fmt(r.F5_al_med, 3) + " t/ha/yr", cssv("--f5")]]);
-      if (j === 1) txt(g, x(Math.max(v, 0)) + 4, yy + bh / 2 + 3, pct(v), { fill: "var(--ink)", "font-size": "11px" });
+      if (f === "F3" || series.length === 1) txt(g, x(Math.max(v, 0)) + 4, yy + bh / 2 + 3, pct(v), { fill: "var(--ink)", "font-size": "11px" });
     });
   });
-  const t = document.createElement("table"); t.innerHTML = `<tr><th>${level}</th><th class=num>districts</th><th class=num>using province data</th><th class=num>stressed every season</th><th class=num>maize kt</th><th class=num>yield t/ha</th><th class=num>expected loss</th><th class=num>same tonnes</th><th class=num>same share</th><th class=num>current pipeline</th><th class=num>difference t/ha</th></tr>`;
-  rows.forEach(r => { const tr = document.createElement("tr"); [r[key], r.units, r.units_adm1_fallback, r.units_p_stress_ge_099, r.maize_kt, fmt(r.B_norm_med, 2), fmt(r.EL_med, 3), pct(r.F1_share_med, 1), pct(r.F3_share_med, 1), pct(r.F5_share_med, 1), fmt(r.gap_med, 3)].forEach((v, i) => { const td = document.createElement("td"); if (i) td.className = "num"; td.textContent = v; tr.appendChild(td); }); t.appendChild(tr); });
+  const t = document.createElement("table"); t.innerHTML = `<tr><th>${level}</th><th class=num>districts</th><th class=num>using province data</th><th class=num>stressed every season</th><th class=num>maize kt</th><th class=num>yield t/ha</th><th class=num>expected loss</th><th class=num>no split</th><th class=num>same tonnes</th><th class=num>same tonnes, floored</th><th class=num>same share</th><th class=num>current pipeline</th></tr>`;
+  rows.forEach(r => { const tr = document.createElement("tr"); [r[key], r.units, r.units_adm1_fallback, r.units_p_stress_ge_099, r.maize_kt, fmt(r.B_norm_med, 2), fmt(r.EL_med, 3), pct(r.F0_share_med, 1), pct(r.F1_share_med, 1), pct(r.F2_share_med, 1), pct(r.F3_share_med, 1), pct(r.F5_share_med, 1)].forEach((v, i) => { const td = document.createElement("td"); if (i) td.className = "num"; td.textContent = v; tr.appendChild(td); }); t.appendChild(tr); });
   $("#st-table").replaceChildren(t);
 }
-["#st-ph", "#st-prof", "#st-g", "#st-level"].forEach(s => $(s).addEventListener("change", drawStrata)); drawStrata();
+["#st-ph", "#st-prof", "#st-g", "#st-level"].forEach(s => $(s).addEventListener("change", drawStrata)); document.querySelectorAll("#st-rules input").forEach(i => i.addEventListener("change", drawStrata)); drawStrata();
 
 // ---- Flips -----------------------------------------------------------------
 {

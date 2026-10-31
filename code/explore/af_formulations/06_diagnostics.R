@@ -50,6 +50,7 @@ write_diag <- function(d, name) {
 }
 REF_PROFILES <- c("const_0.50", "decl_mid")
 FS <- c("F1", "F2", "F3", "F5")
+ALLF <- c("F0", "F1", "F2", "F3", "F4", "F5")
 
 cfg <- yaml::read_yaml("code/explore/af_formulations/config/params.yaml")
 r <- as.data.table(arrow::read_parquet(file.path(af_out_dir(), "af_results_maize_historic.parquet")))
@@ -128,16 +129,20 @@ setorder(d3, practice, hazard, g, m_profile)
 write_diag(d3, "d3_label_flips.csv")
 
 # ---- D4 strata -----------------------------------------------------------
-strata_sum <- function(d) d[, .(
-  units = .N, units_adm1_fallback = sum(p_source == "adm1"),
-  units_p_stress_ge_099 = sum(p_stress_ge_099), maize_kt = sum(maize_prod_t) / 1e3,
-  B_obs_med = median(B_obs), B_norm_med = median(B_norm),
-  p_stress_med = median(p_stress), EL_med = median(EL),
-  F3_al_med = median(F3_al), F1_al_med = median(F1_al), F5_al_med = median(F5_al),
-  gap_med = median(gap), gap_wmean = weighted.mean(gap, maize_prod_t),
-  F1_share_med = median(F1_share, na.rm = TRUE), F3_share_med = median(F3_share, na.rm = TRUE),
-  F5_share_med = median(F5_share, na.rm = TRUE)
-)]
+strata_sum <- function(d) {
+  base <- d[, .(
+    units = .N, units_adm1_fallback = sum(p_source == "adm1"),
+    units_p_stress_ge_099 = sum(p_stress_ge_099), maize_kt = sum(maize_prod_t) / 1e3,
+    B_obs_med = median(B_obs), B_norm_med = median(B_norm),
+    p_stress_med = median(p_stress), EL_med = median(EL),
+    gap_med = median(gap), gap_wmean = weighted.mean(gap, maize_prod_t))]
+  for (f in ALLF) {
+    base[[paste0(f, "_al_med")]]    <- median(d[[paste0(f, "_al")]], na.rm = TRUE)
+    base[[paste0(f, "_prod_med")]]  <- median(d[[paste0(f, "_prod")]], na.rm = TRUE)
+    base[[paste0(f, "_share_med")]] <- median(d[[paste0(f, "_share")]], na.rm = TRUE)
+  }
+  base
+}
 era <- r[g_source %in% c("era", "era_aez", "era_norm") & m_profile %in% REF_PROFILES]
 by_vars <- c("practice", "hazard", "g_source", "m_profile")
 d4 <- rbind(
