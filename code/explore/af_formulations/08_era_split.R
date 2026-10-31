@@ -23,7 +23,7 @@
 # stress-season loss L_c is not observable from ERA (no same-site normal-year
 # control), so the proportional-vs-additive test uses cross-site variation:
 #   proportional: log(MeanT/MeanC) in stress seasons independent of MeanC
-#   additive:     (MeanT - MeanC) in stress seasons independent of MeanC
+#   additive:     (MeanT - MeanC), Mg/ha, in stress seasons independent of MeanC
 # Both regressions are reported with study-clustered standard errors; which
 # slope is closer to zero is the evidence. Low power is expected.
 # ------------------------------------------------------------------------------
@@ -39,6 +39,9 @@ HAZ <- c(dry = "NDWS", wet = "NDWL0", heat = "NTx35")
 ORD <- c(none = 0, moderate = 1, severe = 2, extreme = 3)
 
 cmp <- fread(file.path(IN, "era_comparisons.csv"))
+stopifnot(all(cmp$Units == "Mg/ha"))          # 03b harmonises units; the additive test needs one unit
+n_irr <- sum(cmp$irrigated %in% TRUE)
+cmp <- cmp[!(irrigated %in% TRUE)]           # water stress is not observable for irrigated trials
 HAZ_FILE <- Sys.getenv("AF_HAZ_FILE", file.path(IN, "era_site_season_hazards.csv"))
 haz <- fread(HAZ_FILE)
 cmp[, slot := fifelse(is.na(season_idx), 1L, as.integer(season_idx))]
@@ -49,7 +52,7 @@ d <- merge(cmp, haz[, c("Site.Key", "slot", "year", "calendar_status", "counted_
            by.x = c("Site.Key", "slot", "yr"), by.y = c("Site.Key", "slot", "year"))
 d[, lrr := log(MeanT / MeanC)]
 d[, diff := MeanT - MeanC]
-message(sprintf("matched %d of %d comparisons (%d site-seasons)", nrow(d), nrow(cmp), uniqueN(d[, .(Site.Key, slot, yr)])))
+message(sprintf("matched %d of %d rainfed comparisons (%d irrigated excluded; %d site-seasons)", nrow(d), nrow(cmp), n_irr, uniqueN(d[, .(Site.Key, slot, yr)])))
 
 # ---- g_norm and g_stress ---------------------------------------------------
 gsplit <- rbindlist(lapply(names(HAZ), function(h) rbindlist(lapply(THRESH, function(th) {

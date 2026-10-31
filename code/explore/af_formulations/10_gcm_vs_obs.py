@@ -87,13 +87,17 @@ def score(site, lat, lon, source, model, project):
     if "error" in r:
         return [], {"site": site, "source": source, "model": model, "status": "error", "error": str(r["error"])[:300]}
     counted = {ps.get("season_number"): ps.get("mean_length_days") for ps in (r.get("baseline_ltm") or {}).get("per_season", [])}
+    wbm = (r.get("baseline_ltm") or {}).get("water_balance_methodology", {})
+    soil = wbm.get("soil_parameters", {}); cropp = wbm.get("crop_parameters", {})
+    wb = {"soilcp_mm": soil.get("soilcp_mm"), "soilsat_mm": soil.get("soilsat_mm"), "root_depth_m": soil.get("root_depth_m"),
+          "kc_init": cropp.get("kc_init"), "kc_mid": cropp.get("kc_mid"), "kc_end": cropp.get("kc_end"), "depletion_p": cropp.get("depletion_fraction_p")}
     rows = []
     for c in r.get("baseline_ltm_comparisons", []):
         met = c.get("metrics", {})
         n_days = counted.get(c.get("season_number"))
         row = {"Site.Key": site, "lat": lat, "lon": lon, "source": source, "model": model or "", "year": c.get("year"),
                "fixed_season": token, "counted_days": n_days, "total_mm": met.get("total_mm", {}).get("actual"),
-               "wrsi": met.get("wrsi", {}).get("actual")}
+               "wrsi": met.get("wrsi", {}).get("actual"), **wb}
         for h in BANDS:
             n = met.get(h, {}).get("actual")
             mm = (n * DAYS_PER_MONTH / n_days) if (n is not None and n_days) else None

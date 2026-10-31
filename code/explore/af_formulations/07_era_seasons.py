@@ -29,7 +29,8 @@ Method
   * Toolkit thresholds for NTx35 (10/20/25) are not used.
 
 Everything here is a first pass; the water balance uses the toolkit's FAO-56
-starter crop parameters and a 1 m root zone.
+starter crop parameters with SoilGrids/HWSD soil capacity and root depth
+(capped at 1.5 m), recorded per row.
 """
 
 from __future__ import annotations
@@ -105,7 +106,12 @@ def run_group(key, g, project):
         return [], {"site": site, "slot": slot, "status": "exception", "error": str(e)[:300]}
     if "error" in r:
         return [], {"site": site, "slot": slot, "status": "error", "error": str(r["error"])[:300], "secs": round(time.time() - t0)}
-    win = (r.get("baseline_ltm") or {}).get("water_balance_methodology", {}).get("analysis_window", {})
+    wbm = (r.get("baseline_ltm") or {}).get("water_balance_methodology", {})
+    win = wbm.get("analysis_window", {})
+    soil = wbm.get("soil_parameters", {}); cropp = wbm.get("crop_parameters", {})
+    wb = {"soilcp_mm": soil.get("soilcp_mm"), "soilsat_mm": soil.get("soilsat_mm"), "root_depth_m": soil.get("root_depth_m"),
+          "kc_init": cropp.get("kc_init"), "kc_mid": cropp.get("kc_mid"), "kc_end": cropp.get("kc_end"),
+          "depletion_p": cropp.get("depletion_fraction_p"), "et0_method": wbm.get("et0_method"), "spinup_days": wbm.get("spinup_days")}
     rows = []
     for c in r.get("baseline_ltm_comparisons", []):
         if c.get("year") not in years:
@@ -120,7 +126,7 @@ def run_group(key, g, project):
             "season_number": c.get("season_number"), "calendar_status": cal_status, "fixed_season": token,
             "onset": win.get("onset_date"), "cessation": win.get("cessation_date"), "counted_days": counted,
             "total_mm": met.get("total_mm", {}).get("actual"), "mean_tavg": met.get("mean_tavg", {}).get("actual"),
-            "wrsi": met.get("wrsi", {}).get("actual"),
+            "wrsi": met.get("wrsi", {}).get("actual"), **wb,
         }
         for h in BANDS:
             n = met.get(h, {}).get("actual")
