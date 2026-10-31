@@ -73,6 +73,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .tablewrap { overflow-x: auto; }
 details summary { cursor: pointer; color: var(--ink-2); font-size: 0.9rem; margin: 6px 0; }
 .note { font-size: 0.85rem; color: var(--muted); max-width: 80ch; }
+.caption { font-size: 0.85rem; color: var(--ink-2); max-width: 80ch; margin: 8px 0 4px; }
+.caption b { color: var(--ink); }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 12px 0; }
 .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
 .kpi .label { font-size: 0.8rem; color: var(--ink-2); }
@@ -150,7 +152,16 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <p>There are two reasonable ways to define what "no adaptation" means. One says a practice adapts only if it loses <em>fewer tonnes</em> than the control in a bad year. The other says it adapts if it loses a <em>smaller share</em> of its own yield. For a practice that raises yields, the first definition moves roughly a fifth to a third of its benefit out of the adaptation column and into the production column. The total benefit does not change; only the label does. CGIAR's draft indicator uses the first definition. Our current analysis pipeline sits between the two and also over-counts the total.</p>
 <p>How big the shift is follows a simple rule. Per stress year it equals the loss share × the baseline yield × the yield gain. So it is largest where yields are high, gains are large and stress is frequent, and it does not depend on how well the practice buffers. As a share of the adaptation benefit it depends only on the yield gain and the buffering, the same in every place.</p>
 
-<h2 id="toy" data-nav="Six rules">Three ways to label one benefit</h2>
+<h2 id="map" data-nav="Page map">What this page contains</h2>
+<div class="card terms">
+<p><b>Part 1 generalises the question across the map.</b> It takes every maize-growing district in Kenya, Ethiopia and Nigeria, with the Atlas's hazard frequencies and MapSPAM yields, and asks how much the labelling rule matters there. Its loss shares are placeholders and its buffering is a scenario grid, so it answers "how big could the choice be, and where", not "what is the adaptation benefit".</p>
+<p><b>Part 2 goes back to field trials.</b> It takes the ERA trials behind the two practices, works out season by season whether each trial sat in a stress season, and measures the practices' effects in stress and normal seasons directly. That gives the first real evidence on which rule fits the data, and a check on the Atlas frequencies Part 1 relies on. Section 3 documents how Part 2 was done; Section 4 says what to trust; Sections 5 and 6 give the recommendation and the open questions.</p>
+</div>
+
+<h2 id="part1" data-nav="Part 1 · Districts">Part 1 · The labelling choice, generalised across districts</h2>
+<p>Inputs: Atlas hazard frequencies by district (1995–2014, three severity bands), MapSPAM 2020 maize yields, ERA yield gains, a placeholder loss-share table and ten buffering scenarios. Every district is run through all six rules. Nothing in Part 1 is an estimate; it is a sensitivity test of the labelling rule.</p>
+
+<h3 id="toy" data-nav="1.1 Six rules">1.1 Six rules for one benefit</h3>
 <p>Six labelling rules were compared. They all start from the same facts: the control's yield in a normal year (<span class="term" data-term="B">B</span>), the practice's yield in a normal year (<span class="term" data-term="A">A</span>, which is <span class="term" data-term="B">B</span> plus the gain), the loss share (<span class="term" data-term="L">L</span>) and the buffering (<span class="term" data-term="m">m</span>). Three of them split the stress-year benefit without losing or inventing anything; three do not.</p>
 <div class="card terms"><div class="tablewrap"><table>
 <tr><th>Tag</th><th>Rule</th><th>What counts as adaptation</th><th>Comment</th></tr>
@@ -175,20 +186,21 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
   <div>
     <div class="legend"><span style="--c: var(--gray)">Production (stress year)</span><span style="--c: var(--f3)">Adaptation (avoided loss)</span></div>
     <svg id="toy-svg" viewBox="0 0 560 260" role="img" aria-labelledby="toy-title"><title id="toy-title">Stress-year production and avoided loss by labelling rule</title></svg>
+<p class="caption"><b>Figure 1.</b> One practice's stress-year benefit under each rule. Grey is production, blue is adaptation; the sliders set the yield, gain, loss share and buffering.</p>
   </div>
   <div id="toy-read" class="terms"></div>
 </div>
 </div>
 
-<h2 id="heat" data-nav="Gain × buffering">The share of benefit that changes label depends only on the gain and the buffering</h2>
+<h3 id="heat" data-nav="1.2 Gain × buffering">1.2 The share of benefit that changes label depends only on the gain and the buffering</h3>
 <p>Each cell shows how much smaller the adaptation benefit is under "same tonnes lost" than under "same share lost", as a percentage of the latter. Red means the first rule reports less adaptation. The dashed line is where "same tonnes lost" reports exactly zero adaptation; below and left of it, that rule calls a protective practice maladaptive. Nothing about location enters this chart.</p>
 <div class="card">
 <div class="legend"><span style="--c: var(--div-neg)">"same tonnes" reports less adaptation</span><span style="--c: var(--div-mid)">equal</span><span style="--c: var(--div-pos)">"same tonnes" reports more (only when the practice lowers yield)</span><span class="hollow" style="--c: var(--ink)">zero line</span></div>
 <svg id="heat-svg" viewBox="0 0 640 360" role="img" aria-labelledby="heat-title"><title id="heat-title">Difference between the two labelling rules by yield gain and buffering</title></svg>
-<p class="note">Cells beyond ±100 % are clipped to the end colours. With negative buffering the practice makes bad years worse and both rules report negative adaptation.</p>
+<p class="caption"><b>Figure 2.</b> Adaptation under "same tonnes lost" relative to "same share lost", by yield gain (rows) and buffering (columns). Cells beyond ±100 % are clipped to the end colours. With negative buffering the practice makes bad years worse and both rules report negative adaptation.</p>
 </div>
 
-<h2 id="where" data-nav="Where it bites">Where the difference is large in tonnes</h2>
+<h3 id="where" data-nav="1.3 Where it bites">1.3 Where the difference is large in tonnes</h3>
 <p>The difference in adaptation benefit between two rules, in tonnes per hectare per year, for every maize-growing district in Kenya, Ethiopia and Nigeria, plotted against the district's expected loss (how often stress occurs × how much is lost). Default: "same tonnes lost" minus "same share lost". The hazard regime explains most of the spread between districts; the yield level explains little.</p>
 <div class="card">
 <div class="controls">
@@ -200,10 +212,11 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 </div>
 <div class="legend" id="where-legend"><span style="--c: var(--f1)">district (own hazard data)</span><span class="hollow" style="--c: var(--f1)">district using its province's hazard data</span><span style="--c: var(--gray)">stress in almost every season (no normal year to compare against)</span></div>
 <svg id="where-svg" viewBox="0 0 640 380" role="img" aria-labelledby="where-title"><title id="where-title">Difference between the two rules per district against expected loss</title></svg>
+<p class="caption"><b>Figure 3.</b> Difference in adaptation benefit between two rules for each maize district, against the district's expected loss. ERA yield gain; buffering 0.5 (the difference does not depend on buffering).</p>
 <details><summary>Table view</summary><div class="tablewrap" id="where-table"></div></details>
 </div>
 
-<h2 id="strata" data-nav="By system">By farming system and country</h2>
+<h3 id="strata" data-nav="1.4 By system">1.4 By farming system and country</h3>
 <p>The share of a practice's total benefit that counts as adaptation, under each rule, as the median across districts. Hover a bar for the number of districts behind it and the tonnes.</p>
 <div class="card">
 <div class="controls">
@@ -220,58 +233,66 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
   <label><input type="checkbox" value="F0"> <span style="--c: var(--gray)">no split (F0)</span></label>
 </div>
 <svg id="st-svg" viewBox="0 0 640 420" role="img" aria-labelledby="st-title"><title id="st-title">Median adaptation share by group and labelling rule</title></svg>
+<p class="caption"><b>Figure 4.</b> Median share of the total benefit counted as adaptation, by group and rule, for the selected practice, hazard, buffering scenario and yield-gain source.</p>
 <details><summary>Table view</summary><div class="tablewrap" id="st-table"></div></details>
 </div>
 
-<h2 id="flips" data-nav="Label flips">How many districts change their main label</h2>
+<h3 id="flips" data-nav="1.5 Label flips">1.5 How many districts change their main label</h3>
 <p>Call a district "adaptation-led" when its adaptation benefit is larger than its production benefit. For cover crops under dry stress, the blue bars show how many districts are adaptation-led under "same share lost"; the orange and green bars show how many of all districts get a different main label under "same tonnes lost" and under the current pipeline. More buffering, more districts affected.</p>
 <div class="card">
 <div class="legend"><span style="--c: var(--f3)">adaptation-led under "same share lost"</span><span style="--c: var(--f1)">label differs under "same tonnes lost"</span><span style="--c: var(--f5)">label differs under the current pipeline</span></div>
 <svg id="fl-svg" viewBox="0 0 640 340" role="img" aria-labelledby="fl-title"><title id="fl-title">Districts whose main label changes, by buffering scenario</title></svg>
+<p class="caption"><b>Figure 5.</b> Cover crops under dry stress, ERA yield gain: share of districts that are adaptation-led under "same share lost", and share whose main label differs under the other rules, for each buffering scenario.</p>
 <details><summary>Table view</summary><div class="tablewrap" id="fl-table"></div></details>
 </div>
 
-<h2 id="sev" data-nav="Severity bands">Why we keep three severity bands</h2>
+<h3 id="sev" data-nav="1.6 Severity bands">1.6 Why we keep three severity bands</h3>
 <p>If a practice buffers moderate dry spells well but severe ones poorly, the buffering a district actually gets depends on how much of its stress comes from severe seasons. The chart shows that: districts where severe and extreme seasons dominate (right) get far less effective buffering than districts with mostly moderate stress (left). A single stress-or-normal factor would hide this and would not transfer between places; factors kept by severity band do.</p>
 <div class="card">
 <div class="controls"><label>Hazard <select id="sev-h"><option value="dry">dry (water stress)</option><option value="wet">wet (waterlogging)</option></select></label></div>
 <div class="legend"><span style="--c: var(--f3)">district</span></div>
 <svg id="sev-svg" viewBox="0 0 640 360" role="img" aria-labelledby="sev-title"><title id="sev-title">Effective buffering against the share of expected loss from extreme seasons</title></svg>
+<p class="caption"><b>Figure 6.</b> Buffering a district actually receives (scenario 0.75 / 0.50 / 0.25 by severity) against the share of its expected loss that comes from extreme seasons.</p>
 </div>
 
-<h2 id="era" data-nav="Field trials">What the field trials say</h2>
-<p>Everything above uses placeholder loss shares and scenario buffering. To get real evidence we took the ERA maize trials for both practices, worked out from rainfall and temperature records whether each trial season was a stress season or a normal one, and compared the practice's effect in the two kinds of season. Five things came out.</p>
+<h2 id="part2" data-nav="Part 2 · Field trials">Part 2 · What the field trials show</h2>
+<p>Part 1 uses placeholder loss shares, scenario buffering and a yield gain pooled over all seasons. Part 2 goes to the evidence: the ERA maize trials for both practices (1,245 comparisons, 106 studies, 111 sites). For every trial season we worked out from rainfall and temperature records whether it was a stress season or a normal one, then measured the practice's effect in each kind of season. This is site-level evidence, not a map; it feeds Part 1's yield gain and tests Part 1's assumptions. Five things came out.</p>
 <div class="card">
-<h3 id="era-1" data-nav="1 · Stress vs normal">1. The practices do a little better in stress seasons than in normal ones</h3>
+<h3 id="era-1" data-nav="2.1 Stress vs normal">2.1 The practices do a little better in stress seasons than in normal ones</h3>
+<p class="caption"><b>Table 1.</b> Practice effect on maize yield in normal and stress seasons, by hazard and stress threshold.</p>
 <div class="tablewrap"><table id="era-g"></table></div>
 <p class="note">Average effect across studies in normal seasons and in stress seasons, as a percentage change in yield. "Moderate" and "severe" are the stress thresholds used. Heat stress almost never occurred at these maize sites, so there is no heat estimate.</p>
-<h3 id="era-2" data-nav="2 · Share, not tonnes">2. In stress seasons the practice effect scales with yield: a share, not a fixed number of tonnes</h3>
+<h3 id="era-2" data-nav="2.2 Share, not tonnes">2.2 In stress seasons the practice effect scales with yield: a share, not a fixed number of tonnes</h3>
+<p class="caption"><b>Table 2.</b> Scaling test on stress seasons: does the effect depend on the control's yield level?</p>
 <div class="tablewrap"><table id="era-test"></table></div>
 <p class="note">Two regressions on stress seasons only. If the practice protects a <em>share</em> of yield, its effect as a ratio should not depend on how high the control's yield is; if it protects a fixed number of <em>tonnes</em>, the difference in tonnes should not. The t-statistic says how far each slope is from zero (below 2 is not distinguishable from zero). In three of four cases the ratio is flat and the tonnes are not, which supports "same share lost". The test is weak; the two regressions are not symmetric and the samples are small.</p>
-<h3 id="era-3" data-nav="3 · Rarer than the Atlas says">3. Stress seasons are rarer in the trial records than the Atlas says</h3>
+<h3 id="era-3" data-nav="2.3 Rarer than the Atlas says">2.3 Stress seasons are rarer in the trial records than the Atlas says</h3>
+<p class="caption"><b>Table 3.</b> Share of trial seasons classed as stress seasons, from weather records on two season definitions, against the Atlas frequency for the containing district.</p>
 <div class="tablewrap"><table id="era-obs"></table></div>
 <p class="note">Share of trial seasons that were stress seasons according to the rainfall and temperature records, against the Atlas's hazard frequency for the district containing each site. "Site window" scores each site on its own growing season (trial dates where recorded, otherwise the local rainfall pattern); "Atlas-style window" rescores the same sites on the standard maize calendar the Atlas uses, still from weather records. In Kenya the trial record stays near one stress season in five on either window, while the Atlas's district frequency says two in three.</p>
-<h3 id="era-4" data-nav="4 · Season window">4. The definition of the growing season matters a lot</h3>
+<h3 id="era-4" data-nav="2.4 Season window">2.4 The definition of the growing season matters a lot</h3>
+<p class="caption"><b>Table 4.</b> The same trial seasons scored on the site window and on the standard maize calendar, by country.</p>
 <div class="tablewrap"><table id="era-win"></table></div>
 <p class="note">Same trial seasons scored both ways. Where the standard maize calendar runs 190–225 days (southern Africa) it takes in dry months before and after the real season and doubles the count of stress seasons; northern Nigeria behaves the same. Where it is the 85–95-day short rains (Kenya) it changes little. The normal-versus-stress comparison in point 1 also changes with the window, so the season definition is part of any adaptation factor, not a detail.</p>
-<h3 id="era-5" data-nav="5 · Kenya gap">5. In Kenya most of the remaining gap is the climate-model data, the rest is the Atlas's own method</h3>
+<h3 id="era-5" data-nav="2.5 Kenya gap">2.5 In Kenya most of the remaining gap is the climate-model data, the rest is the Atlas's own method</h3>
 <div class="legend"><span style="--c: var(--f1)">rainfall and temperature records</span><span style="--c: var(--f5)">climate model ACCESS-CM2</span><span class="hollow" style="--c: var(--f5)">climate model GFDL-ESM4</span><span style="--c: var(--ink)">Atlas, district value</span></div>
 <svg id="gcm-svg" viewBox="0 0 640 420" role="img" aria-labelledby="gcm-title"><title id="gcm-title">Share of stress seasons per Kenyan trial site by climate source, against the Atlas</title></svg>
-<p class="note">One row per Kenyan trial site, sorted by the Atlas value of its district; hover a marker for the numbers. The Atlas builds its hazard frequencies from downscaled climate-model simulations, not from weather records. Scoring the same sites, calendar and years (1995–2013) through the same soil-water calculation shows that the climate models alone take the stress share from under one in five seasons to about one in two, and the Atlas's own calculation adds the rest. Gachoka, near Embu, agrees with the Atlas; the western Kenya sites do not.</p>
+<p class="caption"><b>Figure 7.</b> Share of stress seasons at each Kenyan trial site, 1995–2013, standard maize calendar, from weather records and from two climate models, against the Atlas value for the district. One row per site, sorted by the Atlas value; hover a marker for the numbers. The Atlas builds its hazard frequencies from downscaled climate-model simulations, not from weather records. Scoring the same sites, calendar and years (1995–2013) through the same soil-water calculation shows that the climate models alone take the stress share from under one in five seasons to about one in two, and the Atlas's own calculation adds the rest. Gachoka, near Embu, agrees with the Atlas; the western Kenya sites do not.</p>
+<p class="caption"><b>Table 5.</b> The same comparison summarised across the 15 sites, with the correlation of each source with the Atlas across sites.</p>
 <div class="tablewrap"><table id="era-gcm"></table></div>
 </div>
 
-<h2 id="methods" data-nav="How it was done">How the field-trial test was done</h2>
+<h2 id="methods" data-nav="3 · Methods">3 · How Part 2 was done</h2>
 <div class="card terms">
-<h3 id="m-tools" data-nav="Tools used">Tools used</h3>
+<h3 id="m-tools" data-nav="3.1 Tools used">3.1 Tools used</h3>
 <p>The season-by-season stress classification was done with the <a href="https://github.com/CGIAR-Climate-Data-Hub/climate-toolkit">CGIAR climate-toolkit</a> (commit 453c12a, July 2026), a Python package from the CGIAR Climate Data Hub. For each trial site and season it fetched the daily climate records through Google Earth Engine, ran its soil-water balance, and returned the counts of water-stress, waterlogging and heat days for the season window it was given. Its built-in GGCMI crop-calendar lookup supplied the "standard maize calendar" windows. Its chunk cache made re-runs cheap.</p>
 <p>Done outside the toolkit, in this repository: choosing each site's season window (trial dates, else the local rainfall pattern); converting the toolkit's season totals into the Atlas's monthly-mean classes and thresholds (the toolkit's own heat thresholds differ from the Atlas's); matching trial seasons to ERA comparisons; the effect split and regressions; and the join to the Atlas district values. Two workarounds were needed and are flagged to the toolkit maintainers: the hazard function does not accept a climate model and scenario, so the NEX-GDDP runs set the source module's defaults; and a season window that crosses 31 December needs climate data fetched into the following year.</p>
 <p><b>The Atlas's own season classification was not used and is not public.</b> The Atlas publishes 20-year frequencies by district, not which seasons were dry. Every "stress season" on this page was computed here, Atlas-style (same indices, same thresholds), from weather records or climate-model output. The Atlas enters only as the district frequency it is compared against.</p>
-<h3 id="m-trials" data-nav="Trial data">Trial data</h3>
+<h3 id="m-trials" data-nav="3.2 Trial data">3.2 Trial data</h3>
 <p>From the ERA database we took every maize yield comparison for the two practices: ERA's "Green Manure" entries for cover crops and its "Reduced Tillage" entries (no-till and minimum tillage) for reduced tillage. Only comparisons where the practice is the single difference from the control were kept; bundles such as mulch plus reduced tillage were excluded, so that the effect is the practice's own. Comparisons ERA flags as invalid, or with a missing or zero yield on either side, were dropped. That leaves 1,245 comparisons from 110 studies at 111 sites, 1971–2016; 294 of the 334 site-years fall in the period with daily rainfall records (1981 onwards).</p>
 <p>Each comparison carries the trial's coordinates with a precision radius (typically about 1 km, nearly all within 5 km), the measurement year, and for bimodal sites which rainy season it was (ERA marks these as season 1 or 2). About a quarter of site-years also record planting and harvest dates.</p>
 
-<h3 id="m-season" data-nav="Season windows">Defining each trial's growing season</h3>
+<h3 id="m-season" data-nav="3.3 Season windows">3.3 Defining each trial's growing season</h3>
 <p>Stress is only meaningful inside the growing season, so every site needed a season window. Three sources, in order of preference:</p>
 <ol>
 <li><b>ERA planting and harvest dates</b> where the trial recorded them (33 of 128 site-seasons). For a site with several dated years the most common planting and harvest day-of-year was used.</li>
@@ -279,19 +300,19 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <li><b>The standard maize calendar</b> (GGCMI, the one the Atlas uses) as a last resort, and as the deliberate alternative in the "Atlas-style window" runs.</li>
 </ol>
 
-<h3 id="m-climate" data-nav="Climate and water balance">Climate records and the water balance</h3>
+<h3 id="m-climate" data-nav="3.4 Climate and water balance">3.4 Climate records and the water balance</h3>
 <p>Daily rainfall came from CHIRPS v3 (satellite plus gauges, about 5 km grid) and daily temperature and related weather from AgERA5 (about 10 km grid), both read through Google Earth Engine for the pixel containing each site. The CGIAR climate-toolkit then ran a daily soil-water balance for each season: reference evapotranspiration by the Hargreaves method; crop coefficients 0.3, 1.2 and 0.6 for early, mid and late season (FAO-56 starter values); a 1 m root zone; soil water capacity from SoilGrids at the site (about 87 mm in the test run) and a 300 mm saturation level; a 60-day spin-up before the window. From that balance it counted, within the window, the days when crop water use fell below half of demand (water-stress days, the Atlas's "NDWS"), the days with water above saturation (waterlogging days, "NDWL0"), and the days with maximum temperature at or above 35 °C (heat days, "NTx35").</p>
 
-<h3 id="m-classes" data-nav="Stress classes">From day counts to stress classes</h3>
+<h3 id="m-classes" data-nav="3.5 Stress classes">3.5 From day counts to stress classes</h3>
 <p>The Atlas classes a season by the <em>average monthly</em> count of such days over the season months, against fixed thresholds: water stress 15 / 20 / 25 days a month for moderate / severe / extreme, waterlogging 2 / 5 / 8, heat 7 / 14 / 21. To use the same classes, each season's day count was divided by the window length in months (count × 30.44 ÷ days in the window) and compared with the same thresholds. A trial season is then a "stress season" for a hazard if its class is at or above the chosen threshold (moderate by default, severe as a sensitivity). A season can be a stress season for more than one hazard.</p>
 
-<h3 id="m-split" data-nav="Splitting the effect">Splitting the practice effect by season type</h3>
+<h3 id="m-split" data-nav="3.6 Splitting the effect">3.6 Splitting the practice effect by season type</h3>
 <p>Each comparison's effect is the log of practice yield over control yield. Within each study the effects were averaged separately over its stress seasons and its normal seasons, then averaged across studies with equal weight, and converted back to a percentage. The <em>stress minus normal</em> difference is the climate-specific effect the CGIAR indicator asks for. The scaling test used stress-season comparisons only: a regression of the log ratio on the log of control yield (if the practice protects a share of yield, this slope should be near zero), and a regression of the yield difference in tonnes on control yield (if it protects a fixed number of tonnes, this one should). Standard errors allow for comparisons from the same study being correlated.</p>
 
-<h3 id="m-gcm" data-nav="Climate-model comparison">Comparing with the Atlas and with climate models</h3>
+<h3 id="m-gcm" data-nav="3.7 Climate-model comparison">3.7 Comparing with the Atlas and with climate models</h3>
 <p>For the Kenyan sites that fall inside maize-growing districts, the same window and the same toolkit water balance were run three more ways: on the weather records for every season from 1995 to 2013 (not only trial years), and on daily output from two of the Atlas's eighteen climate models (ACCESS-CM2 and GFDL-ESM4, NEX-GDDP historical runs) for the same seasons. The Atlas value for comparison is the district's published hazard frequency, recovered as the share of maize production in the "dry" classes over all production.</p>
 
-<h3 id="m-assume" data-nav="Assumptions">Assumptions</h3>
+<h3 id="m-assume" data-nav="3.8 Assumptions">3.8 Assumptions</h3>
 <ul>
 <li>A trial's climate is the climate of the 5–10 km pixel containing its coordinates; on-farm and on-station plots at one site share a season.</li>
 <li>The growing season is the same every year at a site (from dates, climatology or calendar); no year-specific onset.</li>
@@ -302,7 +323,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <li>The Atlas district frequency is comparable with a point frequency because it is production-weighted within the district.</li>
 </ul>
 
-<h3 id="m-errors" data-nav="Sources of error">Sources of error</h3>
+<h3 id="m-errors" data-nav="3.9 Sources of error">3.9 Sources of error</h3>
 <ul>
 <li><b>Season window.</b> The largest known one: scoring the same seasons on the standard maize calendar instead of the site window changes the share of stress seasons by up to a factor of two and changes the stress-versus-normal split. Three-quarters of site-years have no recorded planting date.</li>
 <li><b>Bimodal sites.</b> Which rainy season a trial used is known only from ERA's season flag; thirteen "season 2" site-seasons have no second rainy season in the climatology.</li>
@@ -317,7 +338,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <li><b>Data access.</b> Earth Engine fetches occasionally failed and were re-run; the toolkit's cached chunks were reused across runs.</li>
 </ul>
 
-<h3 id="m-notdone" data-nav="Not done">What was not done</h3>
+<h3 id="m-notdone" data-nav="3.10 Not done">3.10 What was not done</h3>
 <ul>
 <li>No year-specific onset detection; no use of the toolkit's automatic season detection, which fails on humid sites.</li>
 <li>No calibration of the water balance against observed soil moisture or crop stress at any site.</li>
@@ -326,7 +347,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 </ul>
 </div>
 
-<h2 id="limits" data-nav="What to trust">What to trust</h2>
+<h2 id="limits" data-nav="4 · What to trust">4 · What to trust</h2>
 <div class="card">
 <div class="tablewrap"><table>
 <tr><th>Input</th><th>Status</th></tr>
@@ -337,13 +358,15 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <tr><td>Yield gains</td><td><b>Real, two versions.</b> From ERA trials: cover crops about +16 % (31 studies), reduced tillage about −3 % (79 studies). The pooled version mixes normal and stress seasons; the normal-season version from point 1 above is also available. The two are close.</td></tr>
 <tr><td>Prices</td><td>Not applied. Prices scale the totals but do not change the split.</td></tr>
 </table></div>
-<h3>Three things this comparison cannot settle on its own</h3>
+<h3 id="limits-3" data-nav="4.1 Cannot settle">4.1 Three things this comparison cannot settle on its own</h3>
 <ul>
 <li><b>Most of the page is a sensitivity test, not a measurement.</b> The stress-year yields are constructed from the loss share and the buffering, which builds in "same share lost". The field-trial test in point 2 is the first real evidence, and it is weak.</li>
 <li><b>CGIAR's draft indicator is "same tonnes lost" by definition.</b> It measures effects in kilograms per hectare. Reading it as a share is a change request to that team, not a clarification.</li>
 <li><b>The Atlas and the indicator count stress seasons differently.</b> The Atlas's "moderate or worse" band fires in half to four-fifths of seasons; the indicator's benchmarks aim for about one in five. A factor built against one cannot be multiplied by the other.</li>
 </ul>
-<h3 id="rec" data-nav="Recommendation">Recommendation for the CCA analysis</h3>
+</div>
+<h2 id="rec" data-nav="5 · Recommendation">5 · Recommendation for the CCA analysis</h2>
+<div class="card">
 <ol>
 <li><b>Use "same share lost" (F3).</b> It matches how crop losses behave in the trial data and never calls a protective practice maladaptive. Keep buffering signed, so a practice that worsens bad years shows as negative; do not floor at zero.</li>
 <li><b>Fix the current pipeline.</b> Shrink the normal-year gain in stress years; compute avoided loss on the practice's yield rather than the control's; remove the clamp that forces buffering into 0–1; use normal-season yield gains once they exist per practice.</li>
@@ -352,7 +375,9 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <li><b>Keep the three severity bands</b> and hand the indicator one factor per hazard by the exact merge. Report hazards separately until co-occurring hazards are handled.</li>
 <li><b>Scope:</b> maize, cover crops and reduced tillage, three countries. Other crops and practices follow once their loss shares have evidence behind them.</li>
 </ol>
-<h3 id="questions" data-nav="Questions">Questions for the Adaptation Insights team</h3>
+</div>
+<h2 id="questions" data-nav="6 · Questions">6 · Questions for the Adaptation Insights team</h2>
+<div class="card">
 <ol>
 <li>When you estimate a practice's effect in stress and normal seasons, will it be a ratio or kilograms per hectare? If kilograms, which yield converts it? (The indicator's reference database is a design, not yet a dataset, so this is still open.)</li>
 <li>Can the control's stress-season loss be recorded alongside each factor? Without it the two readings cannot be converted into each other.</li>
