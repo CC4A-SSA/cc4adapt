@@ -37,7 +37,11 @@ Rscript code/explore/af_formulations/run_all.R 3 6    # steps 3-6 only
 
 Library: `R/formulations.R` (formulations, band conversion, expected annual), `R/paths.R`. Tests: `tests/testthat/` (`Rscript -e 'testthat::test_dir("code/explore/af_formulations/tests/testthat")'`). Runtime identity checks that must pass on every run: F1 = F2 = F3 expected totals; expected F1 − F3 gap = −g·B·E[L]; E[L] in 06 equals E[L] in 05.
 
-Steps 03b–08 are the ERA season-classification pilot (science review findings 2 and 4). `run_all.R` does not run 07; run it by hand:
+Steps 03b–13 are the ERA season-classification pilot (science review findings 2 and 4).
+
+**Tools.** Season-by-season stress at ERA sites is computed with the [CGIAR climate-toolkit](https://github.com/CGIAR-Climate-Data-Hub/climate-toolkit) (`evaluate_hazards()`; commit `453c12a`): it fetches daily CHIRPS v3 + AgERA5 (or NEX-GDDP) through Earth Engine, runs its soil-water balance, and returns season counts of NDWS / NDWL0 / NTx35 for the window passed in. This repo supplies the windows (03c), converts counts to Atlas monthly-mean bands with Atlas thresholds (07), matches seasons to ERA comparisons and does the statistics (08), and joins to Atlas district frequencies (09, 11). Two toolkit workarounds live in 10: NEX model/scenario via the source module's `DEFAULT_MODEL` / `DEFAULT_SCENARIO`, and fetching to 30 June of the following year for windows crossing 31 December. **The Atlas's own per-season classes are not used (server-only); all stress seasons here are Atlas-style, computed from weather records or climate-model output.**
+
+`run_all.R` does not run 07; run it by hand:
 
 ```bash
 GCP_PROJECT_ID=ee-peetmate PYTHONPATH=../climate-toolkit python3 code/explore/af_formulations/07_era_seasons.py --workers 2
