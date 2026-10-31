@@ -23,7 +23,7 @@ Rscript code/explore/af_formulations/run_all.R 3 6    # steps 3-6 only
 | 04 | `04_units.R` | One row per admin-2 unit: MapSPAM maize B_obs, dominant Dixon FS1/FS2, AEZ classes, bimodal flag | `units.parquet` |
 | 05 | `05_compute.R` | P(h, s) from Atlas exclusive classes (admin-1 fallback); B_norm; F0–F5 per unit × parameter set | `af_results_maize_historic.parquet`, `units_no_p.csv` |
 | 06 | `06_diagnostics.R` | Sign, gap-scaling, label-flip, strata, severity-mix, bimodal tables | `diagnostics/d1..d6.csv` |
-| 03b | `03b_era_site_years.R` | ERA maize comparisons for the two practices by site × year × season slot | `era_site_years.csv`, `era_comparisons.csv` |
+| 03b | `03b_era_site_years.R` | ERA maize comparisons for the two practices by site × year × season slot; yields to Mg/ha; irrigated trials flagged; ERA file md5 pinned | `era_site_years.csv`, `era_comparisons.csv`, `era_pin.json` |
 | 07 | `07_era_seasons.py` | Classify each ERA site-season by hazard band from observed daily climate (CHIRPS v3 + AgERA5 via Earth Engine, GGCMI maize window, Atlas bands). Needs `GCP_PROJECT_ID` and `PYTHONPATH=../climate-toolkit`; `--limit N` for a dry run, resumable | `era_site_season_hazards.csv` |
 | 08 | `08_era_split.R` | g_norm vs g_stress per practice × hazard; proportional-vs-additive test on stress seasons | `era_split/*.csv` |
 | 09 | `09_obs_vs_atlas.R` | Observed stress frequency at ERA sites vs the Atlas P of the containing admin-2 unit | `era_split/obs_vs_atlas_sites.csv` |
@@ -38,6 +38,8 @@ Rscript code/explore/af_formulations/run_all.R 3 6    # steps 3-6 only
 Library: `R/formulations.R` (formulations, band conversion, expected annual), `R/paths.R`. Tests: `tests/testthat/` (`Rscript -e 'testthat::test_dir("code/explore/af_formulations/tests/testthat")'`). Runtime identity checks that must pass on every run: F1 = F2 = F3 expected totals; expected F1 − F3 gap = −g·B·E[L]; E[L] in 06 equals E[L] in 05.
 
 Steps 03b–13 are the ERA season-classification pilot (science review findings 2 and 4).
+
+**Methods write-up.** `docs/af_formulations/methods.md` is the publication-style account of steps 03b–13 with a code-trace table; the page's Section 3 is the short version.
 
 **Tools.** Season-by-season stress at ERA sites is computed with the [CGIAR climate-toolkit](https://github.com/CGIAR-Climate-Data-Hub/climate-toolkit) (`evaluate_hazards()`; commit `453c12a`): it fetches daily CHIRPS v3 + AgERA5 (or NEX-GDDP) through Earth Engine, runs its soil-water balance, and returns season counts of NDWS / NDWL0 / NTx35 for the window passed in. This repo supplies the windows (03c), converts counts to Atlas monthly-mean bands with Atlas thresholds (07), matches seasons to ERA comparisons and does the statistics (08), and joins to Atlas district frequencies (09, 11). Two toolkit workarounds live in 10: NEX model/scenario via the source module's `DEFAULT_MODEL` / `DEFAULT_SCENARIO`, and fetching to 30 June of the following year for windows crossing 31 December. **The Atlas's own per-season classes are not used (server-only); all stress seasons here are Atlas-style, computed from weather records or climate-model output.**
 
@@ -73,11 +75,11 @@ AF_HAZ_FILE=data/staging/af_formulations/era_site_season_hazards_ggcmi.csv AF_HA
 Rscript code/explore/af_formulations/run_all.R --pilot            # 08, 09, 11, 13, 12
 ```
 
-**Pins.** Atlas tiers and denominator by S3 `versionId` (in `01_fetch_inputs.R`); GAUL 2024 and MapSPAM COGs by version id checked at fetch; HarvestChoice AEZ16 r2.0 by md5; climate-toolkit at commit `453c12a` (2026-07-27) with Earth Engine NEX-GDDP `1.1`; ERA_Derived.rda as fetched by `code/inputs/fetch_era.R` (the copy used here was dated 2026-04-20 and has the `yi`/`pc` issue noted in `03_params.R`). Not pinned: CHIRPS v3 and AgERA5 as served by Earth Engine on the run date (Oct 2026), and the Dixon rasters (local copy).
+**Pins.** Atlas tiers and denominator by S3 `versionId` (in `01_fetch_inputs.R`); GAUL 2024 and MapSPAM COGs by version id checked at fetch; HarvestChoice AEZ16 r2.0 by md5; climate-toolkit at commit `453c12a` (2026-07-27) with Earth Engine NEX-GDDP `1.1`; ERA_Derived.rda as fetched by `code/inputs/fetch_era.R` (the copy used here is pinned by md5 in `data/staging/af_formulations/era_pin.json`, dated 2026-04-20, versions 2018 and 2020; it has the `yi`/`pc` issue noted in `03_params.R`). Not pinned: CHIRPS v3 and AgERA5 as served by Earth Engine on the run date (Oct 2026), and the Dixon rasters (local copy).
 
 **Software.** R ≥ 4.4 with `data.table`, `arrow`, `duckdb`, `terra`, `sf`, `yaml`, `geodata`, `jsonlite`, `ggplot2`, `testthat`. Python 3.12 with `pandas` and the climate-toolkit's requirements (`earthengine-api`, `xarray`, `xee`). An Earth Engine account with a Cloud project.
 
-**Checks a re-run must pass.** The 70 unit tests; 02's identity checks; 05's F1 = F2 = F3 totals; 06's gap identity and E[L] agreement; 12 reproducing `data.js` without a diff when nothing upstream changed.
+**Checks a re-run must pass.** The formulation tests (`test_formulations.R`) and, once the pilot files exist, the pilot invariants (`test_pilot_invariants.R`: one yield unit, one window per site-slot, bands consistent with thresholds, parameters recorded, matched comparisons rainfed); 02's identity checks; 05's F1 = F2 = F3 totals; 06's gap identity and E[L] agreement; 12 reproducing `data.js` without a diff when nothing upstream changed.
 
 ### Environment variables
 

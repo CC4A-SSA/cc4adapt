@@ -19,7 +19,13 @@ if (!dir.exists("code/explore/af_formulations")) stop("Run from the cc4adapt rep
 cfg <- yaml::read_yaml("code/explore/af_formulations/config/params.yaml")
 pr  <- vapply(cfg$practices, `[[`, "", "era_prname")
 
-env <- new.env(); nm <- load("data/inputs/era/ERA_Derived.rda", envir = env)
+era_file <- "data/inputs/era/ERA_Derived.rda"
+env <- new.env(); nm <- load(era_file, envir = env)
+# Pin the ERA input: md5 and the fetch record, so a re-run can confirm the same file.
+src <- if (file.exists(paste0(era_file, ".source.json"))) jsonlite::read_json(paste0(era_file, ".source.json")) else list()
+jsonlite::write_json(list(file = era_file, md5 = unname(tools::md5sum(era_file)), bytes = file.size(era_file),
+                          object = nm[1], versions = sort(unique(as.character(get(nm[1], envir = env)$Version))), source = src),
+                     "data/staging/af_formulations/era_pin.json", auto_unbox = TRUE, pretty = TRUE)
 era <- as.data.table(get(nm[1], envir = env))
 m <- era[Product.Simple == "Maize" & Out.SubInd == "Crop Yield" & PrName %in% pr &
            (is.na(Invalid.Comparison) | Invalid.Comparison != "Y")]
@@ -27,6 +33,12 @@ m[, `:=`(MeanT = as.numeric(MeanT), MeanC = as.numeric(MeanC))]
 m <- m[is.finite(MeanT) & is.finite(MeanC) & MeanT > 0 & MeanC > 0]
 m[, practice := names(pr)[match(PrName, pr)]]
 m[, yr := M.Year.Start]
+# Yields to Mg/ha (ERA holds a minority of rows in kg/ha); irrigation flagged so
+# 08 can exclude trials whose water stress the climate record cannot see.
+stopifnot(all(m$Units %in% c("Mg/ha", "kg/ha", NA)))
+m[Units == "kg/ha", `:=`(MeanC = MeanC / 1000, MeanT = MeanT / 1000, Units = "Mg/ha")]
+m[is.na(Units), Units := "Mg/ha"]
+m[, irrigated := (Irrigation.C %in% TRUE) | (Irrigation.T %in% TRUE)]
 
 sy <- m[, .(lat = Latitude[1], lon = Longitude[1], buffer = Buffer[1], iso = ISO.3166.1.alpha.3[1],
             yr = yr[1], season_idx = Season.Start[1], site_type = Site.Type[1],
@@ -41,7 +53,7 @@ sy[harvest_end == "Inf" | harvest_end == "-Inf", harvest_end := NA_character_]
 OUT <- "data/staging/af_formulations"
 fwrite(sy, file.path(OUT, "era_site_years.csv"))
 fwrite(m[, .(practice, PrName, SubPrName, PrName.Base, Code, Site.Key, M.Year, yr, season_idx = Season.Start,
-             Latitude, Longitude, MeanC, MeanT, Units, Irrigation.C, Irrigation.T, Site.Type, AEZ16simple)],
+             Latitude, Longitude, MeanC, MeanT, Units, irrigated, Irrigation.C, Irrigation.T, Site.Type, AEZ16simple)],
        file.path(OUT, "era_comparisons.csv"))
-cat(sprintf("era_site_years.csv: %d site-years (%d from 1981), %d sites; era_comparisons.csv: %d rows\n",
-            nrow(sy), sum(sy$yr >= 1981, na.rm = TRUE), uniqueN(sy$Site.Key), nrow(m)))
+cat(sprintf("era_site_years.csv: %d practice x site x year rows (%d unique site-years, %d from 1981), %d sites, %d studies; era_comparisons.csv: %d rows (%d irrigated)\n",
+            nrow(sy), uniqueN(sy[, .(Site.Key, M.Year)]), uniqueN(sy[yr >= 1981, .(Site.Key, M.Year)]), uniqueN(sy$Site.Key), uniqueN(m$Code), nrow(m), sum(m$irrigated)))

@@ -17,6 +17,7 @@
 #      month after the driest month. Window = first day of the run's first
 #      month to the last day of the (run length + 1)-th month, capped at
 #      SEASON_MAX_MONTHS, so a 3-month wet run gives a ~4-month maize season.
+#      A site wet in every month gets its wettest SEASON_MAX_MONTHS months.
 #      source = "climatology".
 #   3. GGCMI nearest-point token (first season). source = "ggcmi".
 # Sites whose ERA slot has no matching climatology run are flagged
@@ -45,7 +46,10 @@ colnames(pm) <- sprintf("p%02d", 1:12)
 runs_for <- function(p) {
   if (anyNA(p)) return(list())
   wet <- p >= WET_MM
-  if (all(wet)) return(list(c(1, 12)))
+  if (all(wet)) {  # no dry month: take the wettest SEASON_MAX_MONTHS consecutive months
+    tot <- vapply(1:12, function(k) sum(p[((k:(k + SEASON_MAX_MONTHS - 1)) - 1) %% 12 + 1]), 0)
+    k <- which.max(tot); return(list(c(k, ((k + SEASON_MAX_MONTHS - 2) %% 12) + 1)))
+  }
   if (!any(wet)) return(list())
   k <- which.min(p)                     # start scan after the driest month
   idx <- ((k:(k + 11)) - 1) %% 12 + 1
