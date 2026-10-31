@@ -83,28 +83,58 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0
 @media (min-width: 760px) { .toy-grid { grid-template-columns: 1.2fr 1fr; } }
 .terms { font-size: 0.9rem; }
 .terms b { color: var(--ink); }
+
+/* ---- table of contents ---- */
+html { scroll-behavior: smooth; }
+h2, h3 { scroll-margin-top: 64px; }
+.toc { position: sticky; top: 0; z-index: 5; background: var(--page); border-bottom: 1px solid var(--grid); margin: 0 -16px 16px; padding: 6px 16px; }
+.toc-inner { display: flex; align-items: center; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+.toc-inner::-webkit-scrollbar { display: none; }
+.toc-title { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+.toc ol { list-style: none; display: flex; gap: 2px; margin: 0; padding: 0; }
+.toc li { white-space: nowrap; }
+.toc li.sub { display: none; }
+.toc a { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 0.85rem; color: var(--ink-2); text-decoration: none; }
+.toc a:hover { background: var(--div-mid); color: var(--ink); }
+.toc a.active { background: var(--f3); color: #fff; }
+.toc-top { margin-left: auto; font-size: 0.8rem; color: var(--muted); text-decoration: none; white-space: nowrap; }
+@media (min-width: 1280px) {
+  main { margin-left: 250px; }
+  .toc { position: fixed; top: 24px; left: 16px; width: 210px; margin: 0; padding: 12px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); max-height: calc(100vh - 48px); overflow-y: auto; }
+  .toc-inner { flex-direction: column; align-items: stretch; gap: 4px; overflow: visible; }
+  .toc ol { flex-direction: column; gap: 0; }
+  .toc li { white-space: normal; }
+  .toc li.sub { display: block; }
+  .toc li.sub a { padding-left: 22px; font-size: 0.8rem; }
+  .toc a { display: block; padding: 5px 10px; border-radius: 6px; }
+  .toc-top { margin: 8px 0 0 10px; }
+}
+.term { border-bottom: 1px dotted var(--muted); cursor: help; text-decoration: none; color: inherit; }
+.term:hover, .term:focus { border-bottom-color: var(--f3); outline: none; background: var(--div-mid); border-radius: 2px; }
 footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--grid); padding-top: 12px; }
 .sr { position: absolute; left: -9999px; }
 </style>
 </head>
 <body>
-<main>
+<main id="top">
 
 <h1>Same benefit, different label</h1>
 <p class="lede">A farming practice such as cover crops can raise yields in a good year and protect yields in a bad one. Carbon-finance schemes pay an extra premium only for the second part, the <em>adaptation</em> benefit. This page shows that how much of a practice's benefit counts as "adaptation" depends on a choice of definition, how big that choice is on real African hazard data, and what we learned when we tested it against field trials.</p>
 
 <div class="banner"><strong>Exploratory. Every number is illustrative.</strong> Some inputs are placeholders, some are scenarios, and the trial evidence is thin. Nothing here is an estimate for reporting. See <a href="#limits">What to trust</a>.</div>
 
+<nav class="toc" id="toc" aria-label="Contents"><div class="toc-inner"><span class="toc-title">On this page</span><ol id="toc-list"></ol><a href="#top" class="toc-top">↑ Top</a></div></nav>
+
 <div class="kpis" id="kpis"></div>
 
-<h2 id="terms">The words used on this page</h2>
-<div class="card terms">
+<h2 id="terms" data-nav="Terms">The words used on this page</h2>
+<div class="card terms" id="glossary">
 <div class="tablewrap"><table>
 <tr><th>Term</th><th>Meaning here</th></tr>
 <tr><td><b>Practice</b></td><td>The farming change being credited: cover crops, or reduced tillage. Always compared with a <b>control</b>: the same farm without the practice.</td></tr>
 <tr><td><b>Normal year, stress year</b></td><td>A season without a damaging climate hazard, and one with (for example a dry spell).</td></tr>
 <tr><td><b>Yield gain (g)</b></td><td>How much more the practice yields than the control in a normal year, as a percentage. +16 % means the practice yields 16 % more.</td></tr>
-<tr><td><b>Loss share (L)</b></td><td>The share of its yield the control loses in a stress year. 50 % means a bad year halves the control's yield.</td></tr>
+</td><td>The share of its yield the control loses in a stress year. 50 % means a bad year halves the control's yield.</td></tr>
 <tr><td><b>Buffering (m)</b></td><td>The share of that loss the practice avoids. 0.5 means the practice halves the damage; 0 means it does nothing in a bad year; a negative value means it makes the bad year worse.</td></tr>
 <tr><td><b>Production benefit</b></td><td>The part of the practice's benefit that would exist even in a climate with no shocks.</td></tr>
 <tr><td><b>Adaptation benefit (avoided loss)</b></td><td>The extra benefit that appears only under stress. This is the part claimed as a climate co-benefit.</td></tr>
@@ -115,12 +145,12 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 </table></div>
 </div>
 
-<h2 id="takeaway">The result in one paragraph</h2>
+<h2 id="takeaway" data-nav="Result">The result in one paragraph</h2>
 <p>There are two reasonable ways to define what "no adaptation" means. One says a practice adapts only if it loses <em>fewer tonnes</em> than the control in a bad year. The other says it adapts if it loses a <em>smaller share</em> of its own yield. For a practice that raises yields, the first definition moves roughly a fifth to a third of its benefit out of the adaptation column and into the production column. The total benefit does not change; only the label does. CGIAR's draft indicator uses the first definition. Our current analysis pipeline sits between the two and also over-counts the total.</p>
 <p>How big the shift is follows a simple rule. Per stress year it equals the loss share × the baseline yield × the yield gain. So it is largest where yields are high, gains are large and stress is frequent, and it does not depend on how well the practice buffers. As a share of the adaptation benefit it depends only on the yield gain and the buffering, the same in every place.</p>
 
-<h2 id="toy">Three ways to label one benefit</h2>
-<p>Six labelling rules were compared. They all start from the same facts: the control's yield in a normal year (B), the practice's yield in a normal year (A, which is B plus the gain), the loss share (L) and the buffering (m). Three of them split the stress-year benefit without losing or inventing anything; three do not.</p>
+<h2 id="toy" data-nav="Six rules">Three ways to label one benefit</h2>
+<p>Six labelling rules were compared. They all start from the same facts: the control's yield in a normal year (<span class="term" data-term="B">B</span>), the practice's yield in a normal year (<span class="term" data-term="A">A</span>, which is <span class="term" data-term="B">B</span> plus the gain), the loss share (<span class="term" data-term="L">L</span>) and the buffering (<span class="term" data-term="m">m</span>). Three of them split the stress-year benefit without losing or inventing anything; three do not.</p>
 <div class="card terms"><div class="tablewrap"><table>
 <tr><th>Tag</th><th>Rule</th><th>What counts as adaptation</th><th>Comment</th></tr>
 <tr><td><b>Same tonnes lost</b> (F1)</td><td>The practice adapts only if it loses fewer tonnes than the control.</td><td>Control's tonnes lost minus the practice's tonnes lost.</td><td>This is the CGIAR indicator as drafted. For a high-yielding practice it can go <em>negative</em> even when the practice clearly protects its crop, because a bigger crop loses more tonnes at the same percentage.</td></tr>
@@ -149,7 +179,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 </div>
 </div>
 
-<h2 id="heat">The share of benefit that changes label depends only on the gain and the buffering</h2>
+<h2 id="heat" data-nav="Gain × buffering">The share of benefit that changes label depends only on the gain and the buffering</h2>
 <p>Each cell shows how much smaller the adaptation benefit is under "same tonnes lost" than under "same share lost", as a percentage of the latter. Red means the first rule reports less adaptation. The dashed line is where "same tonnes lost" reports exactly zero adaptation; below and left of it, that rule calls a protective practice maladaptive. Nothing about location enters this chart.</p>
 <div class="card">
 <div class="legend"><span style="--c: var(--div-neg)">"same tonnes" reports less adaptation</span><span style="--c: var(--div-mid)">equal</span><span style="--c: var(--div-pos)">"same tonnes" reports more (only when the practice lowers yield)</span><span class="hollow" style="--c: var(--ink)">zero line</span></div>
@@ -157,7 +187,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <p class="note">Cells beyond ±100 % are clipped to the end colours. With negative buffering the practice makes bad years worse and both rules report negative adaptation.</p>
 </div>
 
-<h2 id="where">Where the difference is large in tonnes</h2>
+<h2 id="where" data-nav="Where it bites">Where the difference is large in tonnes</h2>
 <p>The same difference in tonnes per hectare per year for every maize-growing district in Kenya, Ethiopia and Nigeria, plotted against the district's expected loss (how often stress occurs × how much is lost). The hazard regime explains most of the spread between districts; the yield level explains little.</p>
 <div class="card">
 <div class="controls">
@@ -170,7 +200,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <details><summary>Table view</summary><div class="tablewrap" id="where-table"></div></details>
 </div>
 
-<h2 id="strata">By farming system and country</h2>
+<h2 id="strata" data-nav="By system">By farming system and country</h2>
 <p>The share of a practice's total benefit that counts as adaptation, under each rule, as the median across districts. Hover a bar for the number of districts behind it and the tonnes.</p>
 <div class="card">
 <div class="controls">
@@ -184,7 +214,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <details><summary>Table view</summary><div class="tablewrap" id="st-table"></div></details>
 </div>
 
-<h2 id="flips">How many districts change their main label</h2>
+<h2 id="flips" data-nav="Label flips">How many districts change their main label</h2>
 <p>Call a district "adaptation-led" when its adaptation benefit is larger than its production benefit. For cover crops under dry stress, the blue bars show how many districts are adaptation-led under "same share lost"; the orange and green bars show how many of all districts get a different main label under "same tonnes lost" and under the current pipeline. More buffering, more districts affected.</p>
 <div class="card">
 <div class="legend"><span style="--c: var(--f3)">adaptation-led under "same share lost"</span><span style="--c: var(--f1)">label differs under "same tonnes lost"</span><span style="--c: var(--f5)">label differs under the current pipeline</span></div>
@@ -192,7 +222,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <details><summary>Table view</summary><div class="tablewrap" id="fl-table"></div></details>
 </div>
 
-<h2 id="sev">Why we keep three severity bands</h2>
+<h2 id="sev" data-nav="Severity bands">Why we keep three severity bands</h2>
 <p>If a practice buffers moderate dry spells well but severe ones poorly, the buffering a district actually gets depends on how much of its stress comes from severe seasons. The chart shows that: districts where severe and extreme seasons dominate (right) get far less effective buffering than districts with mostly moderate stress (left). A single stress-or-normal factor would hide this and would not transfer between places; factors kept by severity band do.</p>
 <div class="card">
 <div class="controls"><label>Hazard <select id="sev-h"><option value="dry">dry (water stress)</option><option value="wet">wet (waterlogging)</option></select></label></div>
@@ -200,29 +230,29 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <svg id="sev-svg" viewBox="0 0 640 360" role="img" aria-labelledby="sev-title"><title id="sev-title">Effective buffering against the share of expected loss from extreme seasons</title></svg>
 </div>
 
-<h2 id="era">What the field trials say</h2>
+<h2 id="era" data-nav="Field trials">What the field trials say</h2>
 <p>Everything above uses placeholder loss shares and scenario buffering. To get real evidence we took the ERA maize trials for both practices, worked out from rainfall and temperature records whether each trial season was a stress season or a normal one, and compared the practice's effect in the two kinds of season. Five things came out.</p>
 <div class="card">
-<h3>1. The practices do a little better in stress seasons than in normal ones</h3>
+<h3 id="era-1" data-nav="1 · Stress vs normal">1. The practices do a little better in stress seasons than in normal ones</h3>
 <div class="tablewrap"><table id="era-g"></table></div>
 <p class="note">Average effect across studies in normal seasons and in stress seasons, as a percentage change in yield. "Moderate" and "severe" are the stress thresholds used. Heat stress almost never occurred at these maize sites, so there is no heat estimate.</p>
-<h3>2. In stress seasons the practice effect scales with yield: a share, not a fixed number of tonnes</h3>
+<h3 id="era-2" data-nav="2 · Share, not tonnes">2. In stress seasons the practice effect scales with yield: a share, not a fixed number of tonnes</h3>
 <div class="tablewrap"><table id="era-test"></table></div>
 <p class="note">Two regressions on stress seasons only. If the practice protects a <em>share</em> of yield, its effect as a ratio should not depend on how high the control's yield is; if it protects a fixed number of <em>tonnes</em>, the difference in tonnes should not. The t-statistic says how far each slope is from zero (below 2 is not distinguishable from zero). In three of four cases the ratio is flat and the tonnes are not, which supports "same share lost". The test is weak; the two regressions are not symmetric and the samples are small.</p>
-<h3>3. Stress seasons are rarer in the trial records than the Atlas says</h3>
+<h3 id="era-3" data-nav="3 · Rarer than the Atlas says">3. Stress seasons are rarer in the trial records than the Atlas says</h3>
 <div class="tablewrap"><table id="era-obs"></table></div>
 <p class="note">Share of trial seasons that were stress seasons according to the rainfall and temperature records, against the Atlas's hazard frequency for the district containing each site. "Site window" scores each site on its own growing season (trial dates where recorded, otherwise the local rainfall pattern); "Atlas window" rescores the same sites on the standard maize calendar the Atlas uses. In Kenya the trial record stays near one stress season in five on either window, while the Atlas says two in three.</p>
-<h3>4. The definition of the growing season matters a lot</h3>
+<h3 id="era-4" data-nav="4 · Season window">4. The definition of the growing season matters a lot</h3>
 <div class="tablewrap"><table id="era-win"></table></div>
 <p class="note">Same trial seasons scored both ways. Where the standard maize calendar runs 190–225 days (southern Africa) it takes in dry months before and after the real season and doubles the count of stress seasons; northern Nigeria behaves the same. Where it is the 85–95-day short rains (Kenya) it changes little. The normal-versus-stress comparison in point 1 also changes with the window, so the season definition is part of any adaptation factor, not a detail.</p>
-<h3>5. In Kenya most of the remaining gap is the climate-model data, the rest is the Atlas's own method</h3>
+<h3 id="era-5" data-nav="5 · Kenya gap">5. In Kenya most of the remaining gap is the climate-model data, the rest is the Atlas's own method</h3>
 <div class="legend"><span style="--c: var(--f1)">rainfall and temperature records</span><span style="--c: var(--f5)">climate model ACCESS-CM2</span><span class="hollow" style="--c: var(--f5)">climate model GFDL-ESM4</span><span style="--c: var(--ink)">Atlas, district value</span></div>
 <svg id="gcm-svg" viewBox="0 0 640 420" role="img" aria-labelledby="gcm-title"><title id="gcm-title">Share of stress seasons per Kenyan trial site by climate source, against the Atlas</title></svg>
 <p class="note">One row per Kenyan trial site, sorted by the Atlas value of its district; hover a marker for the numbers. The Atlas builds its hazard frequencies from downscaled climate-model simulations, not from weather records. Scoring the same sites, calendar and years (1995–2013) through the same soil-water calculation shows that the climate models alone take the stress share from under one in five seasons to about one in two, and the Atlas's own calculation adds the rest. Gachoka, near Embu, agrees with the Atlas; the western Kenya sites do not.</p>
 <div class="tablewrap"><table id="era-gcm"></table></div>
 </div>
 
-<h2 id="limits">What to trust</h2>
+<h2 id="limits" data-nav="What to trust">What to trust</h2>
 <div class="card">
 <div class="tablewrap"><table>
 <tr><th>Input</th><th>Status</th></tr>
@@ -239,7 +269,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <li><b>CGIAR's draft indicator is "same tonnes lost" by definition.</b> It measures effects in kilograms per hectare. Reading it as a share is a change request to that team, not a clarification.</li>
 <li><b>The Atlas and the indicator count stress seasons differently.</b> The Atlas's "moderate or worse" band fires in half to four-fifths of seasons; the indicator's benchmarks aim for about one in five. A factor built against one cannot be multiplied by the other.</li>
 </ul>
-<h3>Recommendation for the CCA analysis</h3>
+<h3 id="rec" data-nav="Recommendation">Recommendation for the CCA analysis</h3>
 <ol>
 <li><b>Use "same share lost" (F3).</b> It matches how crop losses behave in the trial data and never calls a protective practice maladaptive. Keep buffering signed, so a practice that worsens bad years shows as negative; do not floor at zero.</li>
 <li><b>Fix the current pipeline.</b> Shrink the normal-year gain in stress years; compute avoided loss on the practice's yield rather than the control's; remove the clamp that forces buffering into 0–1; use normal-season yield gains once they exist per practice.</li>
@@ -248,7 +278,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <li><b>Keep the three severity bands</b> and hand the indicator one factor per hazard by the exact merge. Report hazards separately until co-occurring hazards are handled.</li>
 <li><b>Scope:</b> maize, cover crops and reduced tillage, three countries. Other crops and practices follow once their loss shares have evidence behind them.</li>
 </ol>
-<h3>Questions for the Adaptation Insights team</h3>
+<h3 id="questions" data-nav="Questions">Questions for the Adaptation Insights team</h3>
 <ol>
 <li>When you estimate a practice's effect in stress and normal seasons, will it be a ratio or kilograms per hectare? If kilograms, which yield converts it? (The indicator's reference database is a design, not yet a dataset, so this is still open.)</li>
 <li>Can the control's stress-season loss be recorded alongside each factor? Without it the two readings cannot be converted into each other.</li>
@@ -275,6 +305,23 @@ const fmt = (v, d = 2) => (v == null || isNaN(v)) ? "–" : (+v).toFixed(d);
 const pct = (v, d = 0) => (v == null || isNaN(v)) ? "–" : (100 * v).toFixed(d) + " %";
 const cssv = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
+
+// ---- table of contents -------------------------------------------------------
+{
+  const list = $("#toc-list");
+  const heads = [...document.querySelectorAll("h2[data-nav], h3[data-nav]")];
+  heads.forEach(h => {
+    const li = document.createElement("li"); if (h.tagName === "H3") li.className = "sub";
+    const a = document.createElement("a"); a.href = "#" + h.id; a.textContent = h.dataset.nav; a.dataset.target = h.id;
+    li.appendChild(a); list.appendChild(li);
+  });
+  const links = [...list.querySelectorAll("a")];
+  const setActive = id => { links.forEach(a => a.classList.toggle("active", a.dataset.target === id)); const act = list.querySelector("a.active"); if (act && innerWidth < 1280) act.scrollIntoView({ block: "nearest", inline: "center" }); };
+  const h2s = heads.filter(h => h.tagName === "H2");
+  const onScroll = () => { const y = scrollY + 80; let cur = h2s[0]; for (const h of heads) { if (h.offsetTop <= y) cur = h; } let id = cur.id; if (cur.tagName === "H3" && innerWidth < 1280) { id = cur.closest("div.card")?.previousElementSibling?.closest("h2")?.id || [...h2s].reverse().find(h => h.offsetTop <= y)?.id || id; } setActive(id); };
+  addEventListener("scroll", onScroll, { passive: true }); addEventListener("resize", onScroll); onScroll();
+}
+
 // ---- tooltip ------------------------------------------------------------
 const tt = $("#tt");
 function showTT(ev, rows) {
@@ -291,6 +338,93 @@ function showTT(ev, rows) {
 function moveTT(ev) { const w = tt.offsetWidth, h = tt.offsetHeight; let x = ev.clientX + 14, y = ev.clientY + 14; if (x + w > innerWidth - 8) x = ev.clientX - w - 14; if (y + h > innerHeight - 8) y = ev.clientY - h - 14; tt.style.left = x + "px"; tt.style.top = y + "px"; }
 const hideTT = () => tt.style.display = "none";
 function hover(node, rowsFn) { node.classList.add("mark"); node.setAttribute("tabindex", "0"); node.addEventListener("pointerenter", (e) => showTT(e, rowsFn())); node.addEventListener("pointermove", moveTT); node.addEventListener("pointerleave", hideTT); node.addEventListener("focus", (e) => { const r = node.getBoundingClientRect(); showTT({ clientX: r.left + r.width / 2, clientY: r.top }, rowsFn()); }); node.addEventListener("blur", hideTT); }
+
+
+// ---- hover definitions for technical terms ----------------------------------
+const GLOSS = {
+  "F0": "No split (F0): the earliest rule. The whole stress-year difference is called adaptation, which double counts the normal-year gain.",
+  "F1": "Same tonnes lost (F1): a practice adapts only if it loses fewer tonnes than the control. The CGIAR indicator as drafted. Can go negative for high-yielding practices.",
+  "F2": "Same tonnes, floored (F2): as F1 but negative values are set to zero.",
+  "F3": "Same share lost (F3): a practice adapts if it loses a smaller share of its own yield than the control. The rule this page recommends.",
+  "F4": "Normal-year conversion (F4): a variant of F3 scaled by the normal-year yield. Over-states adaptation; not charted.",
+  "F5": "Current pipeline (F5): what the analysis code does today. Adds the full normal-year gain every year, so the total is too high.",
+  "B": "B: the control's yield in a normal year (tonnes per hectare).",
+  "A": "A: the practice's yield in a normal year, i.e. B plus the yield gain.",
+  "L": "L, loss share: the share of its yield the control loses in a stress year.",
+  "m": "m, buffering: the share of the control's loss that the practice avoids. 1 = full protection, 0 = none, negative = makes bad years worse.",
+  "g": "g, yield gain: how much more the practice yields than the control in a normal year, as a share.",
+  "yield gain": "How much more the practice yields than the control in a normal year, as a percentage (symbol g).",
+  "yield gains": "How much more the practice yields than the control in a normal year, as a percentage (symbol g).",
+  "loss share": "The share of its yield the control loses in a stress year (symbol L).",
+  "loss shares": "The share of its yield the control loses in a stress year (symbol L).",
+  "buffering": "The share of the control's loss that the practice avoids (symbol m). 1 = full protection, 0 = none, negative = makes bad years worse.",
+  "expected loss": "How often stress seasons occur × the share lost in them, summed over severity bands. The control's average loss per year.",
+  "severity band": "Moderate, severe or extreme: the Atlas classes each stress season by fixed thresholds on its hazard index.",
+  "severity bands": "Moderate, severe or extreme: the Atlas classes each stress season by fixed thresholds on its hazard index.",
+  "adaptation benefit": "The extra benefit that appears only under stress; the part claimed as a climate co-benefit. Also called avoided loss.",
+  "avoided loss": "The extra benefit that appears only under stress; the part claimed as a climate co-benefit. Also called the adaptation benefit.",
+  "production benefit": "The part of the practice's benefit that would exist even in a climate with no shocks.",
+  "control": "The same farm without the practice: what the practice is compared against.",
+  "stress season": "A season with a damaging climate hazard, e.g. a dry spell above the moderate threshold.",
+  "stress seasons": "Seasons with a damaging climate hazard, e.g. a dry spell above the moderate threshold.",
+  "stress year": "A year with a damaging climate hazard.",
+  "normal season": "A season without a damaging climate hazard.",
+  "normal seasons": "Seasons without a damaging climate hazard.",
+  "normal year": "A year without a damaging climate hazard.",
+  "hazard frequency": "How often stress seasons occur at a place, as a share of seasons.",
+  "district": "Second-level administrative unit (county sub-unit in Kenya, LGA in Nigeria, woreda in Ethiopia); the smallest area the Atlas publishes for.",
+  "districts": "Second-level administrative units; the smallest areas the Atlas publishes hazard frequency for.",
+  "Atlas": "Africa Agriculture Adaptation Atlas: CGIAR's hazard and exposure data for Africa. Its hazard frequencies come from downscaled climate-model simulations, 1995–2014.",
+  "ERA": "Evidence for Resilient Agriculture: a database of African field trials comparing practices with controls, site by site and season by season.",
+  "MELIAF": "CGIAR's monitoring, evaluation, learning, impact assessment and foresight unit; author of the draft adaptation indicator.",
+  "CGIAR indicator": "MELIAF's draft adaptation indicator: effect in stress seasons minus effect in normal seasons, times how often stress seasons occur.",
+  "Adaptation Insights": "The CGIAR project (Alliance, ILRI, IWMI) that owns the draft adaptation indicator and its evidence synthesis.",
+  "MapSPAM": "A global map of crop area, production and yield at ~10 km; the 2020 Atlas release is used here.",
+  "CHIRPS": "A daily rainfall record from satellites and rain gauges, 1981 to present.",
+  "AgERA5": "A daily temperature and weather record for agriculture derived from the ERA5 reanalysis.",
+  "NEX-GDDP": "Downscaled daily output from global climate models (CMIP6), used by the Atlas for its hazard frequencies.",
+  "NEX-GDDP-CMIP6": "Downscaled daily output from global climate models (CMIP6), used by the Atlas for its hazard frequencies.",
+  "climate model": "A global climate model simulation (here ACCESS-CM2 or GFDL-ESM4 from NEX-GDDP), not a weather record.",
+  "climate models": "Global climate model simulations (here ACCESS-CM2 and GFDL-ESM4 from NEX-GDDP), not weather records.",
+  "standard maize calendar": "The GGCMI rainfed-maize planting-to-maturity window the Atlas uses for every crop and place.",
+  "agro-ecological zone": "HarvestChoice's climate zones for Africa (warm or cool × arid to humid).",
+  "farming system": "Dixon's classification of African farming systems (maize mixed, agropastoral, highland mixed, …).",
+  "t/ha": "Tonnes per hectare.",
+  "cover crops": "Plants grown between or alongside the main crop to cover the soil; here ERA's green-manure trials.",
+  "reduced tillage": "Less or no ploughing; here ERA's no-till and minimum-tillage trials.",
+};
+{
+  const keys = Object.keys(GLOSS).filter(k => k.length > 1).sort((a, b) => b.length - a.length);
+  const esc = k => k.replace(/[.*+?^${}()|[\]\\\/-]/g, "\\$&");
+  const re = new RegExp("(?<![\\w-])(" + keys.map(esc).join("|") + ")(?![\\w-])", "g");
+  const SKIP = new Set(["SVG", "CODE", "NAV", "A", "BUTTON", "LABEL", "OPTION", "SELECT", "OUTPUT", "H1", "SCRIPT", "STYLE", "TITLE"]);
+  const walk = node => {
+    if (node.nodeType === 1) {
+      if (SKIP.has(node.tagName) || node.id === "glossary" || node.id === "tt" || node.classList.contains("term") || node.closest("#glossary")) return;
+      [...node.childNodes].forEach(walk); return;
+    }
+    if (node.nodeType !== 3 || !re.test(node.nodeValue)) return;
+    re.lastIndex = 0;
+    const frag = document.createDocumentFragment(); let last = 0, m;
+    while ((m = re.exec(node.nodeValue))) {
+      frag.appendChild(document.createTextNode(node.nodeValue.slice(last, m.index)));
+      const sp = document.createElement("span"); sp.className = "term"; sp.dataset.term = m[1]; sp.textContent = m[1]; frag.appendChild(sp); last = m.index + m[0].length;
+    }
+    frag.appendChild(document.createTextNode(node.nodeValue.slice(last)));
+    node.parentNode.replaceChild(frag, node);
+  };
+  walk(document.querySelector("main"));
+  document.querySelectorAll(".term").forEach(sp => {
+    const def = GLOSS[sp.dataset.term]; if (!def) return;
+    sp.setAttribute("tabindex", "0"); sp.setAttribute("role", "note"); sp.setAttribute("aria-label", def);
+    sp.addEventListener("pointerenter", e => showTT(e, [[sp.dataset.term, null], [def, null]]));
+    sp.addEventListener("pointermove", moveTT); sp.addEventListener("pointerleave", hideTT);
+    sp.addEventListener("focus", () => { const r = sp.getBoundingClientRect(); showTT({ clientX: r.left, clientY: r.bottom }, [[sp.dataset.term, null], [def, null]]); });
+    sp.addEventListener("blur", hideTT);
+    sp.addEventListener("click", e => { e.stopPropagation(); if (tt.style.display === "block") hideTT(); else showTT(e, [[sp.dataset.term, null], [def, null]]); });
+  });
+  document.addEventListener("click", hideTT);
+}
 
 // ---- formulations (mirror of R/formulations.R) ---------------------------
 function stress(B, g, L, m) {
