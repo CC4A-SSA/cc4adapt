@@ -32,6 +32,8 @@ Rscript code/explore/af_formulations/run_all.R 3 6    # steps 3-6 only
 
 | 10 | `10_gcm_vs_obs.py` | Same sites, window and period (1995–2014) scored on observed climate (`--models ""`) and on NEX-GDDP historical runs (`--models ACCESS-CM2 --tag _access-cm2`, one model per run) | `gcm_vs_obs_sites*.csv` |
 | 11 | `11_gcm_summary.R` | Per-site P(dry ≥ moderate) by source (observed all years, observed ERA years, each GCM) beside the Atlas P of the unit | `era_split/gcm_vs_obs_summary.csv` |
+| 12 | `12_export_page_data.R` | Builds `docs/af_formulations/data.js` for the interactive page from 05, 06, 08, 09, 11 outputs | `docs/af_formulations/data.js` |
+| 13 | `13_kenya_dotplot.R` | Static PNG of the Kenyan per-site comparison | `era_split/kenya_gcm_vs_obs.png` |
 
 Library: `R/formulations.R` (formulations, band conversion, expected annual), `R/paths.R`. Tests: `tests/testthat/` (`Rscript -e 'testthat::test_dir("code/explore/af_formulations/tests/testthat")'`). Runtime identity checks that must pass on every run: F1 = F2 = F3 expected totals; expected F1 − F3 gap = −g·B·E[L]; E[L] in 06 equals E[L] in 05.
 
@@ -41,6 +43,38 @@ Steps 03b–08 are the ERA season-classification pilot (science review findings 
 GCP_PROJECT_ID=ee-peetmate PYTHONPATH=../climate-toolkit python3 code/explore/af_formulations/07_era_seasons.py --workers 2
 ```
 
+## Reproduce from scratch
+
+Everything below the data pulls is deterministic given the pinned inputs. Steps 07 and 10 need an Earth Engine project and take hours; everything else runs in minutes.
+
+```bash
+git clone https://github.com/CC4A-SSA/cc4adapt.git && cd cc4adapt
+git clone https://github.com/CGIAR-Climate-Data-Hub/climate-toolkit.git ../climate-toolkit   # pinned below
+Rscript code/inputs/fetch_era.R                                   # ERA_Derived.rda
+export AF_FS_DIR=/path/to/Farming_systems                         # Dixon FS1/FS2 rasters (ask Pete)
+Rscript code/explore/af_formulations/run_all.R                    # tests, 01-06, page data
+Rscript code/explore/af_formulations/run_all.R --pilot            # 03b, 03c, then it stops and asks for 07
+GCP_PROJECT_ID=<ee-project> PYTHONPATH=../climate-toolkit \
+  python3 code/explore/af_formulations/07_era_seasons.py --workers 2            # ~1 h; resumable
+GCP_PROJECT_ID=<ee-project> PYTHONPATH=../climate-toolkit \
+  python3 code/explore/af_formulations/07_era_seasons.py --window ggcmi --workers 2
+GCP_PROJECT_ID=<ee-project> PYTHONPATH=../climate-toolkit \
+  python3 code/explore/af_formulations/10_gcm_vs_obs.py --iso KEN --models ""                       # observed, ~1 h
+GCP_PROJECT_ID=<ee-project> PYTHONPATH=../climate-toolkit \
+  python3 code/explore/af_formulations/10_gcm_vs_obs.py --iso KEN --models ACCESS-CM2 --tag _access-cm2
+GCP_PROJECT_ID=<ee-project> PYTHONPATH=../climate-toolkit \
+  python3 code/explore/af_formulations/10_gcm_vs_obs.py --iso KEN --models GFDL-ESM4 --tag _gfdl-esm4
+AF_HAZ_FILE=data/staging/af_formulations/era_site_season_hazards_ggcmi.csv AF_HAZ_TAG=_ggcmi Rscript code/explore/af_formulations/08_era_split.R
+AF_HAZ_FILE=data/staging/af_formulations/era_site_season_hazards_ggcmi.csv AF_HAZ_TAG=_ggcmi Rscript code/explore/af_formulations/09_obs_vs_atlas.R
+Rscript code/explore/af_formulations/run_all.R --pilot            # 08, 09, 11, 13, 12
+```
+
+**Pins.** Atlas tiers and denominator by S3 `versionId` (in `01_fetch_inputs.R`); GAUL 2024 and MapSPAM COGs by version id checked at fetch; HarvestChoice AEZ16 r2.0 by md5; climate-toolkit at commit `453c12a` (2026-07-27) with Earth Engine NEX-GDDP `1.1`; ERA_Derived.rda as fetched by `code/inputs/fetch_era.R` (the copy used here was dated 2026-04-20 and has the `yi`/`pc` issue noted in `03_params.R`). Not pinned: CHIRPS v3 and AgERA5 as served by Earth Engine on the run date (Oct 2026), and the Dixon rasters (local copy).
+
+**Software.** R ≥ 4.4 with `data.table`, `arrow`, `duckdb`, `terra`, `sf`, `yaml`, `geodata`, `jsonlite`, `ggplot2`, `testthat`. Python 3.12 with `pandas` and the climate-toolkit's requirements (`earthengine-api`, `xarray`, `xee`). An Earth Engine account with a Cloud project.
+
+**Checks a re-run must pass.** The 70 unit tests; 02's identity checks; 05's F1 = F2 = F3 totals; 06's gap identity and E[L] agreement; 12 reproducing `data.js` without a diff when nothing upstream changed.
+
 ### Environment variables
 
 | Var | Default | Meaning |
@@ -48,7 +82,8 @@ GCP_PROJECT_ID=ee-peetmate PYTHONPATH=../climate-toolkit python3 code/explore/af
 | `AF_OUT_DIR` | `data/outputs/af_formulations` (gitignored) | canonical outputs |
 | `AF_RECORD_DIR` | unset | optional second copy (Pete uses the project `_claude/outputs/adaptation_factor`); only used if set and its parent exists |
 | `AF_FS_DIR` | `../AICCRA_EFA/Data/Farming_systems` | Dixon farming-system rasters (not downloadable; ask Pete) |
-| `GCP_PROJECT_ID` | unset | Earth Engine project for step 07 (CGIAR-Climate-Data-Hub/climate-toolkit checkout on `PYTHONPATH`) |
+| `GCP_PROJECT_ID` | unset | Earth Engine project for steps 07 and 10 (CGIAR-Climate-Data-Hub/climate-toolkit checkout on `PYTHONPATH`) |
+| `AF_HAZ_FILE`, `AF_HAZ_TAG` | site-window file, "" | which 07 classification 08/09 read and how their outputs are suffixed |
 
 ### Prerequisites not fetched by 01
 
