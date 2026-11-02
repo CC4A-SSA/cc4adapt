@@ -22,6 +22,12 @@
 #       adoption fraction.
 #   [D] Negative NPV pixels ARE kept (useful evidence that a practice is
 #       uneconomic in a given location at a given price).
+#   [E] P is Step 3's stress-adjusted production layer (production_adj_*)
+#       when present, else Step 2 dvalue (cca_production_path in
+#       code/common/adaptation_split.R). Since Nov 2026 A is avoided loss on
+#       the practice's own yield and can be negative; A + P then equals the
+#       expected yield gap without double counting. Pairing the new A with the
+#       old dvalue would over-count by (A - B) E[L] per hectare-year.
 #
 # Outputs:
 #   * data/outputs/activity3_neb/npv_<practice>_<iso3>_cp=<cp>_adopt=<a>.tif
@@ -42,6 +48,7 @@ common_dir <- if (nzchar(this_file)) {
 source(file.path(common_dir, "config.R"))
 source(file.path(common_dir, "logging.R"))
 source(file.path(common_dir, "geo_utils.R"))
+source(file.path(common_dir, "adaptation_split.R"))   # cca_production_path
 
 suppressPackageStartupMessages({
   library(terra)
@@ -83,8 +90,7 @@ for (iso3 in CCA_COUNTRIES) {
     }
     M <- terra::rast(M_tif)
     P <- {
-      pt <- file.path(CCA_PATHS$step2_dir,
-                      sprintf("dvalue_%s_%s_%s.tif", practice, iso3, CCA_RES_LABEL))
+      pt <- cca_production_path(practice, iso3)   # production_adj, else dvalue
       if (file.exists(pt)) terra::rast(pt) else M * 0
     }
     A <- {
