@@ -110,7 +110,7 @@ def score(site, lat, lon, source, model, project):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--iso", default="KEN")
+    ap.add_argument("--iso", default="KEN", help="one or more ISO3 codes, comma-separated")
     ap.add_argument("--models", default="ACCESS-CM2,GFDL-ESM4")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--workers", type=int, default=2)
@@ -125,7 +125,8 @@ def main():
         OUT = OUT.with_name(OUT.stem + a.tag + OUT.suffix)
 
     sites = pd.read_csv(SITES)
-    sites = sites[sites["iso3"] == a.iso][["Site.Key"]].drop_duplicates()
+    isos = [x.strip() for x in a.iso.split(",") if x.strip()]
+    sites = sites[sites["iso3"].isin(isos)][["Site.Key"]].drop_duplicates()
     coords = pd.read_csv(SITE_YEARS)[["Site.Key", "lat", "lon"]].drop_duplicates("Site.Key")
     sites = sites.merge(coords, on="Site.Key")
     if a.limit:

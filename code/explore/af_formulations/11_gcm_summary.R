@@ -2,7 +2,7 @@
 # code/explore/af_formulations/11_gcm_summary.R
 #
 # EXPLORATORY. Where does the Atlas-vs-observed stress-frequency gap come from?
-# Per ERA site (Kenya by default), P(dry >= moderate) on the same GGCMI window:
+# Per ERA site (all countries scored by 10), P(dry >= moderate) on the same GGCMI window:
 #   obs_all      observed climate, every season 1995-2014 (10, source paired)
 #   obs_era      observed climate, ERA trial seasons only (07 --window ggcmi)
 #   gcm_<model>  NEX-GDDP historical, 1995-2014 (10, source nex_gddp)
@@ -41,10 +41,13 @@ fwrite(w, file.path(af_out_dir(), "era_split", "gcm_vs_obs_summary.csv"))
 
 srcs <- setdiff(unique(per$src), character(0))
 cat(sprintf("%d sites; sources: %s\n", nrow(w), paste(srcs, collapse = ", ")))
+per <- merge(per, atlas[, .(Site.Key, iso3)], by = "Site.Key")
 summ <- per[, .(sites = uniqueN(Site.Key), seasons = sum(n), p_dry = round(mean(p_dry), 2), p_sev = round(mean(p_sev), 2),
-                ndws_per_month = round(mean(ndws), 1)), by = src]
-summ <- rbind(summ, data.table(src = "atlas", sites = nrow(w), seasons = NA, p_dry = round(mean(w$atlas_p_dry), 2),
-                               p_sev = round(mean(w$atlas_p_sev), 2), ndws_per_month = NA))
+                ndws_per_month = round(mean(ndws), 1)), by = .(iso3, src)]
+summ <- rbind(summ, w[, .(src = "atlas", sites = .N, seasons = NA_integer_, p_dry = round(mean(atlas_p_dry), 2),
+                          p_sev = round(mean(atlas_p_sev), 2), ndws_per_month = NA_real_), by = iso3])
+setorder(summ, iso3, src)
+fwrite(summ, file.path(af_out_dir(), "era_split", "gcm_vs_obs_by_country.csv"))
 print(summ)
 cat("\nsite-level correlations with Atlas P(dry):\n")
 for (s in srcs) { v <- w[[paste0("p_dry_", s)]]; if (!is.null(v)) cat(sprintf("  %-14s r = %.2f (n = %d)\n", s, cor(v, w$atlas_p_dry, use = "complete.obs"), sum(!is.na(v)))) }

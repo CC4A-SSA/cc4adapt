@@ -130,13 +130,21 @@ message(sprintf("P source (unit x hazard): %s; unit-hazard pairs without P: %d (
                 paste(names(table(up$p_source)), table(up$p_source), collapse = ", "),
                 nrow(no_p), uniqueN(no_p$gaul2_code)))
 
-# ---- E[L] per unit x hazard, B_norm ---------------------------------------
+# ---- Stress benchmark ------------------------------------------------------
+# "moderate" (Atlas default): a stress season is any season at or above the
+# moderate band. "severe": moderate-band seasons count as normal years, a
+# rarer benchmark closer to the ~1-in-5 seasons MELIAF's candidate benchmarks
+# aim for. Everything downstream is computed for both; existing summaries use
+# "moderate".
+up <- rbind(copy(up)[, benchmark := "moderate"], copy(up)[, `:=`(p_moderate = 0, benchmark = "severe")])
+
+# ---- E[L] per unit x hazard x benchmark, B_norm -----------------------------
 Ltab <- unique(grid[, .(hazard, severity, L)])
-pl <- melt(up[, .(gaul2_code, hazard, p_moderate, p_severe, p_extreme)],
-           id.vars = c("gaul2_code", "hazard"), variable.name = "severity", value.name = "p_band")
+pl <- melt(up[, .(gaul2_code, hazard, benchmark, p_moderate, p_severe, p_extreme)],
+           id.vars = c("gaul2_code", "hazard", "benchmark"), variable.name = "severity", value.name = "p_band")
 pl[, severity := sub("^p_", "", severity)]
-el <- merge(pl, Ltab, by = c("hazard", "severity"))[, .(EL = sum(p_band * L)), by = .(gaul2_code, hazard)]
-up <- merge(up, el, by = c("gaul2_code", "hazard"))
+el <- merge(pl, Ltab, by = c("hazard", "severity"))[, .(EL = sum(p_band * L)), by = .(gaul2_code, hazard, benchmark)]
+up <- merge(up, el, by = c("gaul2_code", "hazard", "benchmark"))
 up <- merge(up, units[, .(gaul2_code, B_obs = B, aez16simple)], by = "gaul2_code")
 up[, B_norm := B_obs / (1 - EL)]
 
@@ -156,29 +164,29 @@ if (file.exists(split_file)) {
   message("era_norm sets added from ", split_file)
 }
 
-ug <- merge(up[, .(gaul2_code, hazard, aez16simple, B_norm)], sets, by = "hazard", allow.cartesian = TRUE)
+ug <- merge(up[, .(gaul2_code, hazard, benchmark, aez16simple, B_norm)], sets, by = "hazard", allow.cartesian = TRUE)
 ug <- merge(ug, era_strat, by = c("practice", "aez16simple"), all.x = TRUE)
 ug <- merge(ug, era_all, by = "practice", all.x = TRUE)
 ug[g_source == "era_aez", g := fifelse(!is.na(g_strat) & g_stratum_n >= MIN_STRATUM_STUDIES, g_strat, g_all)]
 ug[g_source != "era_aez", g_stratum_n := NA_integer_]
-ug <- ug[!is.na(g), .(gaul2_code, hazard, param_id, practice, g_source, g, g_stratum_n, m_profile, B = B_norm)]
+ug <- ug[!is.na(g), .(gaul2_code, hazard, benchmark, param_id, practice, g_source, g, g_stratum_n, m_profile, B = B_norm)]
 
 # ---- Expand to severity and compute ---------------------------------------
 Lm <- unique(grid[, .(hazard, severity, m_profile, L, m)])
 long <- merge(ug, Lm, by = c("hazard", "m_profile"), allow.cartesian = TRUE)
-long <- merge(long, pl, by = c("gaul2_code", "hazard", "severity"))
+long <- merge(long, pl, by = c("gaul2_code", "hazard", "benchmark", "severity"))
 stopifnot(nrow(long) == 3 * nrow(ug))
-setorder(long, gaul2_code, param_id, severity)
+setorder(long, gaul2_code, benchmark, param_id, severity)
 
-ea <- as.data.table(af_expected_annual(as.data.frame(long), c("gaul2_code", "param_id")))
+ea <- as.data.table(af_expected_annual(as.data.frame(long), c("gaul2_code", "param_id", "benchmark")))
 d12 <- max(abs(ea$F1_total - ea$F3_total)); d23 <- max(abs(ea$F2_total - ea$F3_total))
 if (max(d12, d23) > 1e-9) stop("F1/F2/F3 totals differ: ", signif(max(d12, d23), 3))
 
 # ---- Assemble ------------------------------------------------------------
-res <- merge(ea, unique(ug[, .(gaul2_code, param_id, hazard, practice, g_source, g, g_stratum_n, m_profile)]),
-             by = c("gaul2_code", "param_id"))
-res <- merge(res, up[, .(gaul2_code, hazard, p_source, mono_adj, p_moderate, p_severe, p_extreme,
-                         p_none, p_dry_wet, tier_t, EL, B_obs, B_norm)], by = c("gaul2_code", "hazard"))
+res <- merge(ea, unique(ug[, .(gaul2_code, param_id, benchmark, hazard, practice, g_source, g, g_stratum_n, m_profile)]),
+             by = c("gaul2_code", "param_id", "benchmark"))
+res <- merge(res, up[, .(gaul2_code, hazard, benchmark, p_source, mono_adj, p_moderate, p_severe, p_extreme,
+                         p_none, p_dry_wet, tier_t, EL, B_obs, B_norm)], by = c("gaul2_code", "hazard", "benchmark"))
 res <- merge(units[, .(gaul2_code, gaul1_code, iso3, admin1_name, admin2_name, maize_prod_t,
                        maize_harv_ha, fs1, fs2, aez, aez16simple, bimodal, bimodal_share)],
              res, by = "gaul2_code")
@@ -187,7 +195,7 @@ for (f in AF_FORMULATIONS) {  # robust share, in [-1, 1]; _ashare (al / total) k
   res[, (paste0(f, "_share")) := get(paste0(f, "_al")) / (abs(get(paste0(f, "_prod"))) + abs(get(paste0(f, "_al"))))]
 }
 setcolorder(res, c("iso3", "admin1_name", "admin2_name", "gaul1_code", "gaul2_code",
-                   "practice", "hazard", "g_source", "g", "g_stratum_n", "m_profile", "param_id",
+                   "practice", "hazard", "benchmark", "g_source", "g", "g_stratum_n", "m_profile", "param_id",
                    "p_source", "B_obs", "B_norm", "EL"))
 
 path <- af_write(res, "af_results_maize_historic.parquet")
