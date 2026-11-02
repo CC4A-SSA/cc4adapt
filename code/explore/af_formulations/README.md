@@ -22,7 +22,7 @@ Rscript code/explore/af_formulations/run_all.R 3 6    # steps 3-6 only
 | 03 | `03_params.R` | ERA g per practice (all-SSA and by AEZ16simple); expands the parameter grid | `params/era_g.csv`, `params/param_grid.csv` |
 | 04 | `04_units.R` | One row per admin-2 unit: MapSPAM maize B_obs, dominant Dixon FS1/FS2, AEZ classes, bimodal flag | `units.parquet` |
 | 05 | `05_compute.R` | P(h, s) from Atlas exclusive classes (admin-1 fallback); B_norm; F0–F5 per unit × parameter set | `af_results_maize_historic.parquet`, `units_no_p.csv` |
-| 06 | `06_diagnostics.R` | Sign, gap-scaling, label-flip, strata, severity-mix, bimodal tables | `diagnostics/d1..d6.csv` |
+| 06 | `06_diagnostics.R` | Sign, gap-scaling, label-flip, strata, severity-mix, bimodal tables (moderate benchmark); benchmark sensitivity; cover-crop dry + wet bounds | `diagnostics/d1..d8.csv` |
 | 03b | `03b_era_site_years.R` | ERA maize comparisons for the two practices by site × year × season slot; yields to Mg/ha; irrigated trials flagged; ERA file md5 pinned | `era_site_years.csv`, `era_comparisons.csv`, `era_pin.json` |
 | 07 | `07_era_seasons.py` | Classify each ERA site-season by hazard band from observed daily climate (CHIRPS v3 + AgERA5 via Earth Engine, GGCMI maize window, Atlas bands). Needs `GCP_PROJECT_ID` and `PYTHONPATH=../climate-toolkit`; `--limit N` for a dry run, resumable | `era_site_season_hazards.csv` |
 | 08 | `08_era_split.R` | g_norm vs g_stress per practice × hazard; proportional-vs-additive test on stress seasons | `era_split/*.csv` |
@@ -144,6 +144,7 @@ Decomposition: Δs = Δn − L·Δn + B·L·m + g·B·L·m. F3 puts the hazard b
 | `F*_prod`, `F*_al`, `F*_total` | expected annual production, avoided loss, total, t/ha/yr |
 | `F*_share` | `al / (|prod| + |al|)`, in [−1, 1]; use this |
 | `F*_ashare` | `al / total`; unstable near zero totals; kept for continuity |
+| `benchmark` | `moderate`: stress = season at or above the moderate band (Atlas default; all page charts); `severe`: moderate-band seasons treated as normal years |
 | `F1_minus_F3_al`, `F1_negative` | the gap; F1 < 0 flag |
 | `maize_prod_t`, `maize_harv_ha`, `fs1`, `fs2`, `aez`, `aez16simple`, `bimodal`, `bimodal_share` | unit attributes from 04 |
 

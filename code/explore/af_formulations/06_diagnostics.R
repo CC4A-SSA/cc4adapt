@@ -53,7 +53,10 @@ FS <- c("F1", "F2", "F3", "F5")
 ALLF <- c("F0", "F1", "F2", "F3", "F4", "F5")
 
 cfg <- yaml::read_yaml("code/explore/af_formulations/config/params.yaml")
-r <- as.data.table(arrow::read_parquet(file.path(af_out_dir(), "af_results_maize_historic.parquet")))
+rb <- as.data.table(arrow::read_parquet(file.path(af_out_dir(), "af_results_maize_historic.parquet")))
+if (!"benchmark" %in% names(rb)) rb[, benchmark := "moderate"]
+for (f in c("F0", FS, "F4")) rb[, (paste0(f, "_share")) := get(paste0(f, "_al")) / (abs(get(paste0(f, "_prod"))) + abs(get(paste0(f, "_al"))))]
+r <- rb[benchmark == "moderate"]   # d1-d6 keep the Atlas default benchmark
 r[, B := B_norm]
 grid <- fread(file.path(IN, "params", "param_grid.csv"))
 
@@ -168,6 +171,42 @@ write_diag(d5, "d5_severity_mix.csv")
 # ---- D6 bimodal ----------------------------------------------------------
 d6 <- era[, strata_sum(.SD), by = c(by_vars, "bimodal")]
 write_diag(d6, "d6_bimodal.csv")
+
+# ---- D7 benchmark sensitivity --------------------------------------------
+# Same districts and parameters, stress = >= moderate (Atlas default) vs
+# >= severe (moderate-band seasons treated as normal years).
+b <- rb[g_source == "era" & m_profile %in% REF_PROFILES]
+b[, gap := F1_al - F3_al]
+bsum <- function(d) d[, .(units = .N, p_stress_med = median(p_stress), units_p_stress_ge_099 = sum(p_stress >= 0.99),
+                          EL_med = median(EL), F3_al_med = median(F3_al), gap_med = median(gap),
+                          F1_share_med = median(F1_share, na.rm = TRUE), F3_share_med = median(F3_share, na.rm = TRUE),
+                          F5_share_med = median(F5_share, na.rm = TRUE))]
+d7 <- rbind(b[, bsum(.SD), by = .(practice, hazard, m_profile, benchmark, iso3)][, level := "country"],
+            b[, bsum(.SD), by = .(practice, hazard, m_profile, benchmark)][, `:=`(level = "all", iso3 = "all")], fill = TRUE)
+setcolorder(d7, c("level", "practice", "hazard", "m_profile", "benchmark", "iso3"))
+write_diag(d7, "d7_benchmark.csv")
+
+# ---- D8 combined hazards (cover crops: dry and wet) ------------------------
+# Per-hazard avoided losses cannot simply be summed: a season can be both dry
+# and wet-stressed. Bounds on the combined avoided loss: lower = the larger of
+# the two (full overlap), upper = their sum (no overlap). p_dry_wet is the
+# production-weighted share of seasons stressed by both at the moderate tier.
+cc <- rb[practice == "cover_crops" & g_source == "era" & m_profile %in% REF_PROFILES & benchmark == "moderate",
+         .(gaul2_code, iso3, fs1, hazard, m_profile, F3_al, F1_al, p_stress, p_dry_wet)]
+cw <- dcast(cc, gaul2_code + iso3 + fs1 + m_profile ~ hazard, value.var = c("F3_al", "F1_al", "p_stress", "p_dry_wet"))
+cw <- cw[!is.na(F3_al_dry) & !is.na(F3_al_wet)]
+cw[, `:=`(F3_lower = pmax(F3_al_dry, F3_al_wet), F3_upper = F3_al_dry + F3_al_wet,
+          F1_lower = pmax(F1_al_dry, F1_al_wet), F1_upper = F1_al_dry + F1_al_wet,
+          p_both = p_dry_wet_dry, p_either_max = pmin(1, p_stress_dry + p_stress_wet))]
+d8 <- rbind(cw[, .(units = .N, F3_dry_med = median(F3_al_dry), F3_wet_med = median(F3_al_wet),
+                   F3_lower_med = median(F3_lower), F3_upper_med = median(F3_upper),
+                   upper_over_lower_med = median(F3_upper / F3_lower), p_both_med = median(p_both, na.rm = TRUE)),
+               by = .(m_profile, iso3)],
+            cw[, .(iso3 = "all", units = .N, F3_dry_med = median(F3_al_dry), F3_wet_med = median(F3_al_wet),
+                   F3_lower_med = median(F3_lower), F3_upper_med = median(F3_upper),
+                   upper_over_lower_med = median(F3_upper / F3_lower), p_both_med = median(p_both, na.rm = TRUE)),
+               by = m_profile])
+write_diag(d8, "d8_cooccurrence.csv")
 
 # ---- Console summary -----------------------------------------------------
 cat("\nGap identity holds: max |gap - (-g B E[L])| =", signif(chk, 2), "\n")

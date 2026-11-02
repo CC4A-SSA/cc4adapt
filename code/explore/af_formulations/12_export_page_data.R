@@ -12,6 +12,7 @@ suppressMessages({library(data.table); library(jsonlite)})
 if (!dir.exists("code/explore/af_formulations")) stop("Run from the cc4adapt repo root")
 source("code/explore/af_formulations/R/paths.R")
 r <- as.data.table(arrow::read_parquet(file.path(af_out_dir(), "af_results_maize_historic.parquet")))
+if ("benchmark" %in% names(r)) r <- r[benchmark == "moderate"]   # page charts use the Atlas default benchmark
 D <- file.path(af_out_dir(), "diagnostics")
 d3 <- fread(file.path(D, "d3_label_flips.csv")); d4 <- fread(file.path(D, "d4_strata.csv"))
 units <- unique(r[, .(gaul2_code, iso3, admin1_name, admin2_name, hazard, fs1, aez, aez16simple, bimodal, p_source, p_stress_ge_099,
@@ -68,7 +69,11 @@ gcm_sites <- if (file.exists(gcm_file)) {
          access = round(p_dry_gcm_accesscm2, 2), gfdl = round(p_dry_gcm_gfdlesm4, 2))][order(-atlas)]
 } else NULL
 era_split <- list(g = fread(file.path(E, "era_split_g.csv")), test = fread(file.path(E, "era_split_test.csv")), obs = obs, window = win, gcm = gcm, gcm_sites = gcm_sites)
-out <- list(generated = format(Sys.time(), "%Y-%m-%d"), era_split = era_split, n_units = uniqueN(r$gaul2_code), n_param_sets = uniqueN(r$param_id),
+d7 <- fread(file.path(D, "d7_benchmark.csv"))[practice %in% c("cover_crops", "reduced_tillage")]
+bench <- d7[, .(level, practice, hazard, m_profile, benchmark, iso3, units, p_stress = round(p_stress_med, 2), p1 = units_p_stress_ge_099,
+                EL = round(EL_med, 3), F1 = round(F1_share_med, 3), F3 = round(F3_share_med, 3), F5 = round(F5_share_med, 3), gap = round(gap_med, 4))]
+cooc <- fread(file.path(D, "d8_cooccurrence.csv"))[, lapply(.SD, function(x) if (is.numeric(x)) round(x, 3) else x)]
+out <- list(generated = format(Sys.time(), "%Y-%m-%d"), era_split = era_split, bench = bench, cooc = cooc, n_units = uniqueN(r$gaul2_code), n_param_sets = uniqueN(r$param_id),
             era_g = era_g, m_profiles = m_prof, loss = L, units = units, ref = ref, sevmix = sm, strata = strata, flips = flips)
 writeLines(paste0("window.AF_DATA = ", toJSON(out, dataframe="rows", na="null", auto_unbox=TRUE, digits=NA), ";"), "docs/af_formulations/data.js")
 cat("rows: units", nrow(units), "ref", nrow(ref), "sevmix", nrow(sm), "strata", nrow(strata), "flips", nrow(flips), "\n")

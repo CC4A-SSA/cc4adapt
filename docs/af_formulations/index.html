@@ -255,30 +255,46 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <p class="caption"><b>Figure 6.</b> Buffering a district actually receives (scenario 0.75 / 0.50 / 0.25 by severity) against the share of its expected loss that comes from extreme seasons.</p>
 </div>
 
+<h3 id="bench" data-nav="1.7 Benchmark, combined hazards">1.7 How often is "stress"? Changing the benchmark, and combining hazards</h3>
+<p>Everything above counts a season as stressed if it reaches the Atlas's <em>moderate</em> band, which happens in about two seasons in three in a typical district. The CGIAR indicator's candidate benchmarks aim for about one season in five. Re-running Part 1 with <em>severe</em> as the benchmark (moderate-band seasons counted as normal years) brings the typical share of stress seasons close to that, roughly halves the adaptation share under every rule, and almost removes the districts with no normal year to compare against. The gap between the rules shrinks in tonnes but stays in the same direction.</p>
+<div class="card">
+<div class="controls">
+  <label>Practice × hazard <select id="bench-ph"></select></label>
+  <label>Buffering scenario <select id="bench-prof"><option value="decl_mid">weakens with severity (0.75 / 0.50 / 0.25)</option><option value="const_0.50">constant 0.50</option></select></label>
+</div>
+<p class="caption"><b>Table 1.</b> Share of seasons counted as stress, and the median share of the benefit counted as adaptation under each rule, with the moderate and the severe benchmark, by country. ERA yield gain.</p>
+<div class="tablewrap"><table id="bench-table"></table></div>
+</div>
+<p>Cover crops respond to both dry and wet stress, but the two adaptation benefits cannot simply be added: some seasons are both dry- and wet-stressed (about one in six in a typical district). Adding them assumes no season is stressed by both; taking the larger assumes they always coincide. The truth lies between, and the range is narrow: the upper bound is about a fifth above the lower.</p>
+<div class="card">
+<p class="caption"><b>Table 2.</b> Cover crops, "same share lost": median adaptation benefit from dry and from wet stress per district, and the bounds on their combination (t/ha/yr), with the share of seasons stressed by both. Moderate benchmark, ERA yield gain.</p>
+<div class="tablewrap"><table id="cooc-table"></table></div>
+</div>
+
 <h2 id="part2" data-nav="Part 2 · Field trials">Part 2 · What the field trials show</h2>
 <p>Part 1 uses placeholder loss shares, scenario buffering and a yield gain pooled over all seasons. Part 2 goes to the evidence: the ERA maize trials for both practices (1,245 comparisons, 106 studies, 111 sites). For every trial season we worked out from rainfall and temperature records whether it was a stress season or a normal one, then measured the practice's effect in each kind of season. This is site-level evidence, not a map; it feeds Part 1's yield gain and tests Part 1's assumptions. Five things came out.</p>
 <div class="card">
 <h3 id="era-1" data-nav="2.1 Stress vs normal">2.1 The practices do better in stress seasons than in normal ones, on few studies</h3>
-<p class="caption"><b>Table 1.</b> Practice effect on maize yield in normal and stress seasons, by hazard and stress threshold.</p>
+<p class="caption"><b>Table 3.</b> Practice effect on maize yield in normal and stress seasons, by hazard and stress threshold.</p>
 <div class="tablewrap"><table id="era-g"></table></div>
 <p class="note">Average effect across studies in normal seasons and in stress seasons, as a percentage change in yield, rainfed trials only. "Moderate" and "severe" are the stress thresholds used. Cover crops under dry stress rest on about a dozen studies at the moderate threshold and a handful at the severe one. Heat stress almost never occurred at these maize sites on site windows, so there is no heat estimate.</p>
 <h3 id="era-2" data-nav="2.2 Share or tonnes?">2.2 Does the stress-season effect scale with yield? The trials do not settle it</h3>
-<p class="caption"><b>Table 2.</b> Scaling test on stress seasons: does the effect depend on the control's yield level?</p>
+<p class="caption"><b>Table 4.</b> Scaling test on stress seasons: does the effect depend on the control's yield level?</p>
 <div class="tablewrap"><table id="era-test"></table></div>
 <p class="note">Two regressions on stress seasons only, rainfed trials, yields in Mg/ha. If the practice protects a <em>share</em> of yield, its effect as a ratio should not depend on how high the control's yield is; if it protects a fixed number of <em>tonnes</em>, the difference in tonnes should not. The t-statistic says how far each slope is from zero (below 2 is not distinguishable from zero). The four cases split: reduced tillage under dry stress behaves like a share, cover crops under waterlogging like fixed tonnes, cover crops under dry stress is ambiguous, and for reduced tillage under waterlogging both slopes are non-zero, so neither simple model fits. An earlier version of this table mixed kg/ha and Mg/ha rows and wrongly favoured "same share"; this is the corrected result. The test is weak; the two regressions are not symmetric and the samples are small.</p>
 <h3 id="era-3" data-nav="2.3 Rarer than the Atlas says">2.3 Stress seasons are rarer in the trial records than the Atlas says</h3>
-<p class="caption"><b>Table 3.</b> Share of trial seasons classed as stress seasons, from weather records on two season definitions, against the Atlas frequency for the containing district.</p>
+<p class="caption"><b>Table 5.</b> Share of trial seasons classed as stress seasons, from weather records on two season definitions, against the Atlas frequency for the containing district.</p>
 <div class="tablewrap"><table id="era-obs"></table></div>
 <p class="note">Share of trial seasons that were stress seasons according to the rainfall and temperature records, against the Atlas's hazard frequency for the district containing each site. "Site window" scores each site on its own growing season (trial dates where recorded, otherwise the local rainfall pattern); "Atlas-style window" rescores the same sites on the standard maize calendar the Atlas uses, still from weather records. In Kenya the trial record stays near one stress season in five on either window, while the Atlas's district frequency says two in three.</p>
 <h3 id="era-4" data-nav="2.4 Season window">2.4 The definition of the growing season matters a lot</h3>
-<p class="caption"><b>Table 4.</b> The same trial seasons scored on the site window and on the standard maize calendar, by country.</p>
+<p class="caption"><b>Table 6.</b> The same trial seasons scored on the site window and on the standard maize calendar, by country.</p>
 <div class="tablewrap"><table id="era-win"></table></div>
 <p class="note">Same trial seasons scored both ways. Where the standard maize calendar runs 190–225 days (southern Africa) it takes in dry months before and after the real season and doubles the count of stress seasons; northern Nigeria behaves the same. Where it is the 85–95-day short rains (Kenya) it changes little. The normal-versus-stress comparison in point 1 also changes with the window, so the season definition is part of any adaptation factor, not a detail.</p>
 <h3 id="era-5" data-nav="2.5 Kenya gap">2.5 In Kenya most of the remaining gap is the climate-model data, the rest is the Atlas's own method</h3>
 <div class="legend"><span style="--c: var(--f1)">rainfall and temperature records</span><span style="--c: var(--f5)">climate model ACCESS-CM2</span><span class="hollow" style="--c: var(--f5)">climate model GFDL-ESM4</span><span style="--c: var(--ink)">Atlas, district value</span></div>
 <svg id="gcm-svg" viewBox="0 0 640 420" role="img" aria-labelledby="gcm-title"><title id="gcm-title">Share of stress seasons per Kenyan trial site by climate source, against the Atlas</title></svg>
 <p class="caption"><b>Figure 7.</b> Share of stress seasons at each Kenyan trial site, 1995–2013, standard maize calendar, from weather records and from two climate models, against the Atlas value for the district. One row per site, sorted by the Atlas value; hover a marker for the numbers. The Atlas builds its hazard frequencies from downscaled climate-model simulations, not from weather records. Scoring the same sites, calendar and years (1995–2013) through the same soil-water calculation shows that the climate models alone take the stress share from under one in five seasons to about one in two, and the Atlas's own calculation adds the rest. Gachoka, near Embu, agrees with the Atlas; the western Kenya sites do not.</p>
-<p class="caption"><b>Table 5.</b> The same comparison summarised across the 15 sites, with the correlation of each source with the Atlas across sites.</p>
+<p class="caption"><b>Table 7.</b> The same comparison summarised across the 15 sites, with the correlation of each source with the Atlas across sites.</p>
 <div class="tablewrap"><table id="era-gcm"></table></div>
 </div>
 
@@ -298,7 +314,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <ol>
 <li><b>ERA planting and harvest dates</b> where the trial recorded them (33 of 128 site-seasons). For a site with several dated years the most common planting and harvest day-of-year was used.</li>
 <li><b>The local rainfall pattern</b> otherwise (95 site-seasons). From the WorldClim monthly rainfall climatology at the site, a month is "wet" if it averages 60 mm or more; a run of two or more wet months is a rainy season; the window runs from the first wet month to one month after the run ends, capped at five months, so a three-month rainy season gives a four-month maize season; a site wet all year gets its wettest five months. Where the climatology shows two rainy seasons, ERA's season 1 is matched to the earlier run and season 2 to the later one. Thirteen site-seasons are marked season 2 at sites whose climatology shows only one rainy season; they were scored on that single season and flagged.</li>
-<li><b>The standard maize calendar</b> (GGCMI, the one the Atlas uses) as a last resort, and as the deliberate alternative in the "Atlas-style window" runs. That calendar has one season per place, so in those runs the second-season trials at bimodal sites (193 comparisons) have no matching season and drop out; Tables 3 and 4 and the cover-crop reversal in 2.4 carry that caveat.</li>
+<li><b>The standard maize calendar</b> (GGCMI, the one the Atlas uses) as a last resort, and as the deliberate alternative in the "Atlas-style window" runs. That calendar has one season per place, so in those runs the second-season trials at bimodal sites (193 comparisons) have no matching season and drop out; Tables 5 and 6 and the cover-crop reversal in 2.4 carry that caveat.</li>
 </ol>
 
 <h3 id="m-climate" data-nav="3.4 Climate and water balance">3.4 Climate records and the water balance</h3>
@@ -363,7 +379,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <ul>
 <li><b>Most of the page is a sensitivity test, not a measurement.</b> The stress-year yields are constructed from the loss share and the buffering, which builds in "same share lost". The field-trial test in 2.2 is the first real evidence, and it is split and weak.</li>
 <li><b>CGIAR's draft indicator is "same tonnes lost" by definition.</b> It measures effects in kilograms per hectare. Reading it as a share is a change request to that team, not a clarification.</li>
-<li><b>The Atlas and the indicator count stress seasons differently.</b> The Atlas's "moderate or worse" band fires in half to four-fifths of seasons; the indicator's benchmarks aim for about one in five. A factor built against one cannot be multiplied by the other.</li>
+<li><b>The Atlas and the indicator count stress seasons differently.</b> The Atlas's "moderate or worse" band fires in half to four-fifths of seasons; the indicator's benchmarks aim for about one in five, which the Atlas's "severe or worse" band roughly matches (Section 1.7). A factor built against one benchmark cannot be multiplied by the frequency of another.</li>
 </ul>
 </div>
 <h2 id="rec" data-nav="5 · Recommendation">5 · Recommendation for the CCA analysis</h2>
@@ -699,6 +715,26 @@ function drawStrata() {
   $("#st-table").replaceChildren(t);
 }
 ["#st-ph", "#st-prof", "#st-g", "#st-level"].forEach(s => $(s).addEventListener("change", drawStrata)); document.querySelectorAll("#st-rules input").forEach(i => i.addEventListener("change", drawStrata)); drawStrata();
+
+
+// ---- benchmark and co-occurrence (1.7) ---------------------------------------
+{
+  const PHB = [["cover_crops", "dry", "Cover crops × dry"], ["cover_crops", "wet", "Cover crops × wet"], ["reduced_tillage", "dry", "Reduced tillage × dry"]];
+  const sel = $("#bench-ph"); sel.replaceChildren(...PHB.map(([p, h, l]) => { const o = document.createElement("option"); o.value = p + "|" + h; o.textContent = l; return o; }));
+  const mk = (tbl, head, rows) => { tbl.replaceChildren(); const tr = document.createElement("tr"); head.forEach(([t, num]) => { const th = document.createElement("th"); if (num) th.className = "num"; th.textContent = t; tr.appendChild(th); }); tbl.appendChild(tr); rows.forEach(r => { const tr2 = document.createElement("tr"); r.forEach((v, i) => { const td = document.createElement("td"); if (head[i][1]) td.className = "num"; td.textContent = v; tr2.appendChild(td); }); tbl.appendChild(tr2); }); };
+  const country = { ETH: "Ethiopia", KEN: "Kenya", NGA: "Nigeria", all: "All three" };
+  const draw = () => {
+    const [p, h] = sel.value.split("|"), prof = $("#bench-prof").value;
+    const rows = (D.bench || []).filter(r => r.practice === p && r.hazard === h && r.m_profile === prof)
+      .sort((a, b) => (a.iso3 === "all") - (b.iso3 === "all") || a.iso3.localeCompare(b.iso3) || a.benchmark.localeCompare(b.benchmark));
+    mk($("#bench-table"), [["Country"], ["Benchmark"], ["districts", 1], ["share of seasons stressed", 1], ["stressed every season", 1], ["same tonnes lost", 1], ["same share lost", 1], ["current pipeline", 1], ["difference t/ha/yr", 1]],
+       rows.map(r => [country[r.iso3] || r.iso3, r.benchmark === "moderate" ? "moderate or worse" : "severe or worse", r.units, fmt(r.p_stress, 2), r.p1, pct(r.F1), pct(r.F3), pct(r.F5), fmt(r.gap, 3)]));
+  };
+  sel.addEventListener("change", draw); $("#bench-prof").addEventListener("change", draw); draw();
+  const cr = (D.cooc || []).filter(r => r.m_profile === "decl_mid").sort((a, b) => (a.iso3 === "all") - (b.iso3 === "all") || a.iso3.localeCompare(b.iso3));
+  mk($("#cooc-table"), [["Country"], ["districts", 1], ["dry stress", 1], ["wet stress", 1], ["combined, if always together", 1], ["combined, if never together", 1], ["upper ÷ lower", 1], ["share of seasons stressed by both", 1]],
+     cr.map(r => [country[r.iso3] || r.iso3, r.units, fmt(r.F3_dry_med, 3), fmt(r.F3_wet_med, 3), fmt(r.F3_lower_med, 3), fmt(r.F3_upper_med, 3), fmt(r.upper_over_lower_med, 2), fmt(r.p_both_med, 2)]));
+}
 
 // ---- Flips -----------------------------------------------------------------
 {
