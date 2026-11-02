@@ -38,8 +38,8 @@ cca_project_root <- function() {
       script_dir <- normalizePath(dirname(path), mustWork = FALSE)
       # Walk up until we hit a directory named "ccadapt" (the repo root we want).
       wd <- script_dir
-      while (basename(wd) != "ccadapt" && dirname(wd) != wd) wd <- dirname(wd)
-      if (basename(wd) == "ccadapt") return(wd)
+      while (basename(wd) != "cc4adapt" && dirname(wd) != wd) wd <- dirname(wd)
+      if (basename(wd) == "cc4adapt") return(wd)
     }
   }
   # source()'d: the active top frame may have an $ofile attribute
@@ -48,16 +48,16 @@ cca_project_root <- function() {
     of <- tryCatch(frames[[i]]$ofile, error = function(e) NULL)
     if (!is.null(of) && nzchar(of)) {
       wd <- normalizePath(dirname(of), mustWork = FALSE)
-      while (basename(wd) != "ccadapt" && dirname(wd) != wd) wd <- dirname(wd)
-      if (basename(wd) == "ccadapt") return(wd)
+      while (basename(wd) != "cc4adapt" && dirname(wd) != wd) wd <- dirname(wd)
+      if (basename(wd) == "cc4adapt") return(wd)
     }
   }
   # Last resort: walk up from cwd.
   wd <- normalizePath(getwd(), mustWork = FALSE)
-  while (basename(wd) != "ccadapt" && dirname(wd) != wd) wd <- dirname(wd)
-  if (basename(wd) != "ccadapt") {
-    stop("[CCA] Cannot locate the ccadapt project root. Run Rscript from inside ",
-         "the ccadapt folder or its subdirectories.")
+  while (basename(wd) != "cc4adapt" && dirname(wd) != wd) wd <- dirname(wd)
+  if (basename(wd) != "cc4adapt") {
+    stop("[CCA] Cannot locate the cc4adapt project root. ",
+         "Run Rscript from inside the cc4adapt folder or its subdirectories.")
   }
   wd
 }
