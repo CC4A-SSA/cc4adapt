@@ -152,7 +152,13 @@ def main():
             log.write(json.dumps(status, default=str) + "\n"); log.flush()
             print(f"[{i}/{len(todo)}] {status}", flush=True)
             if rows:
-                pd.DataFrame(rows).to_csv(out, mode="a", header=not out.exists(), index=False)
+                new = pd.DataFrame(rows)
+                if out.exists():  # keep one schema if columns were added since the file was started
+                    old = pd.read_csv(out)
+                    if list(old.columns) != list(new.columns):
+                        pd.concat([old, new], ignore_index=True)[list(dict.fromkeys(list(new.columns) + list(old.columns)))].to_csv(out, index=False)
+                        continue
+                new.to_csv(out, mode="a", header=not out.exists(), index=False)
     print("done", flush=True)
 
 

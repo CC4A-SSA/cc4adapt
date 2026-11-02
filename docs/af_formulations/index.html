@@ -290,11 +290,13 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <p class="caption"><b>Table 6.</b> The same trial seasons scored on the site window and on the standard maize calendar, by country.</p>
 <div class="tablewrap"><table id="era-win"></table></div>
 <p class="note">Same trial seasons scored both ways. Where the standard maize calendar runs 190–225 days (southern Africa) it takes in dry months before and after the real season and doubles the count of stress seasons; northern Nigeria behaves the same. Where it is the 85–95-day short rains (Kenya) it changes little. The normal-versus-stress comparison in point 1 also changes with the window, so the season definition is part of any adaptation factor, not a detail.</p>
-<h3 id="era-5" data-nav="2.5 Kenya gap">2.5 In Kenya most of the remaining gap is the climate-model data, the rest is the Atlas's own method</h3>
+<h3 id="era-5" data-nav="2.5 Where the gap comes from">2.5 Where the gap comes from: climate-model data in Kenya and Nigeria, the Atlas's own method mainly in Kenya</h3>
+<p>Every trial site inside a maize-growing district of the three countries (38 sites) was re-scored over 1995–2013 on the standard maize calendar, through the same soil-water calculation, from weather records and from two of the climate models the Atlas uses. In Ethiopia all sources agree with the Atlas. In Nigeria the climate models are drier than the weather records and account for most of the gap; the Atlas sits just above them. In Kenya the climate models account for about half of the gap and the Atlas adds the rest, including a severe-stress share far above any other source. That Kenyan excess is now with the Atlas hazards team (hazards_prototype#55).</p>
+<div class="controls"><label>Country <select id="gcm-iso"><option value="KEN">Kenya</option><option value="NGA">Nigeria</option><option value="ETH">Ethiopia</option></select></label></div>
 <div class="legend"><span style="--c: var(--f1)">rainfall and temperature records</span><span style="--c: var(--f5)">climate model ACCESS-CM2</span><span class="hollow" style="--c: var(--f5)">climate model GFDL-ESM4</span><span style="--c: var(--ink)">Atlas, district value</span></div>
 <svg id="gcm-svg" viewBox="0 0 640 420" role="img" aria-labelledby="gcm-title"><title id="gcm-title">Share of stress seasons per Kenyan trial site by climate source, against the Atlas</title></svg>
-<p class="caption"><b>Figure 7.</b> Share of stress seasons at each Kenyan trial site, 1995–2013, standard maize calendar, from weather records and from two climate models, against the Atlas value for the district. One row per site, sorted by the Atlas value; hover a marker for the numbers. The Atlas builds its hazard frequencies from downscaled climate-model simulations, not from weather records. Scoring the same sites, calendar and years (1995–2013) through the same soil-water calculation shows that the climate models alone take the stress share from under one in five seasons to about one in two, and the Atlas's own calculation adds the rest. Gachoka, near Embu, agrees with the Atlas; the western Kenya sites do not.</p>
-<p class="caption"><b>Table 7.</b> The same comparison summarised across the 15 sites, with the correlation of each source with the Atlas across sites.</p>
+<p class="caption"><b>Figure 7.</b> Share of stress seasons at each trial site in the selected country, 1995–2013, standard maize calendar, from weather records and from two climate models, against the Atlas value for the district. One row per site, sorted by the Atlas value; hover a marker for the numbers. The Atlas builds its hazard frequencies from downscaled climate-model simulations, not from weather records. In Kenya, Gachoka near Embu agrees with the Atlas; the western Kenya sites do not.</p>
+<p class="caption"><b>Table 7.</b> The same comparison by country, with the correlation of each source with the Atlas across sites.</p>
 <div class="tablewrap"><table id="era-gcm"></table></div>
 </div>
 
@@ -388,7 +390,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 <li><b>Use "same share lost" (F3), on first principles rather than on the trial evidence.</b> It is the rule that never calls a protective practice maladaptive and that matches how crop-loss evidence is usually expressed (as shares). The trial test in 2.2 does not decide between share and tonnes; it is split and underpowered. Keep buffering signed, so a practice that worsens bad years shows as negative; do not floor at zero.</li>
 <li><b>Fix the current pipeline.</b> Shrink the normal-year gain in stress years; compute avoided loss on the practice's yield rather than the control's; remove the clamp that forces buffering into 0–1; use normal-season yield gains once they exist per practice.</li>
 <li><b>Treat the growing-season definition as part of the factor.</b> Record the season window with every factor, and give the Atlas hazard tiers crop- and region-specific seasons before using them as stress frequencies.</li>
-<li><b>Do not multiply trial-based factors by the Atlas hazard frequency without reconciling the two.</b> In Kenya the Atlas counts three to four times as many stress seasons as the weather records. Use an observed-climate frequency (the hazards team's planned observed baseline), or state which benchmark a factor was estimated against and apply that one.</li>
+<li><b>Do not multiply trial-based factors by the Atlas hazard frequency without reconciling the two.</b> In Kenya the Atlas counts about four times as many stress seasons as the weather records, and in Nigeria about one and a half times; in Ethiopia they agree. Use an observed-climate frequency (the hazards team's planned observed baseline), or state which benchmark a factor was estimated against and apply that one.</li>
 <li><b>Keep the three severity bands</b> and hand the indicator one factor per hazard by the exact merge. Report hazards separately until co-occurring hazards are handled.</li>
 <li><b>Scope:</b> maize, cover crops and reduced tillage, three countries. Other crops and practices follow once their loss shares have evidence behind them.</li>
 </ol>
@@ -772,16 +774,18 @@ function drawStrata() {
   tbl("#era-obs", [{t:"Country"},{t:"trial sites",num:1},{t:"trial seasons",num:1},{t:"dry stress: records, site window",num:1},{t:"dry stress: records, Atlas-style window",num:1},{t:"dry stress: Atlas",num:1},{t:"severe dry: records",num:1},{t:"severe dry: Atlas",num:1},{t:"waterlogging: records",num:1},{t:"waterlogging: Atlas",num:1}],
       (E.obs || []).map(r => [r.iso3, r.sites, r.seasons, fmt(r.obs_dry, 2), fmt(r.obs_dry_ggcmi, 2), fmt(r.atlas_dry, 2), fmt(r.obs_dry_sev, 2), fmt(r.atlas_dry_sev, 2), fmt(r.obs_wet, 2), fmt(r.atlas_wet, 2)]));
   const srcName = { obs_all: "weather records, all seasons", obs_era: "weather records, trial seasons only", gcm_accesscm2: "climate model ACCESS-CM2", gcm_gfdlesm4: "climate model GFDL-ESM4", atlas: "Atlas, district value" };
-  tbl("#era-gcm", [{t:"Source"},{t:"sites",num:1},{t:"seasons",num:1},{t:"share of seasons with dry stress",num:1},{t:"share with severe dry stress",num:1},{t:"water-stress days per month",num:1},{t:"correlation with Atlas across sites",num:1}],
-      (E.gcm || []).map(r => [srcName[r.src] || r.src, r.sites, r.seasons ?? "–", fmt(r.p_dry, 2), fmt(r.p_sev, 2), r.ndws == null ? "–" : fmt(r.ndws, 1), r.r_atlas == null ? "–" : fmt(r.r_atlas, 2)]));
+  tbl("#era-gcm", [{t:"Country"},{t:"Source"},{t:"sites",num:1},{t:"seasons",num:1},{t:"share of seasons with dry stress",num:1},{t:"share with severe dry stress",num:1},{t:"water-stress days per month",num:1},{t:"correlation with Atlas across sites",num:1}],
+      (E.gcm || []).map(r => [({ETH: "Ethiopia", KEN: "Kenya", NGA: "Nigeria", all: "All three"})[r.iso3] || r.iso3, srcName[r.src] || r.src, r.sites, r.seasons ?? "–", fmt(r.p_dry, 2), fmt(r.p_sev, 2), r.ndws == null ? "–" : fmt(r.ndws, 1), r.r_atlas == null ? "–" : fmt(r.r_atlas, 2)]));
   tbl("#era-win", [{t:"Country"},{t:"trial sites",num:1},{t:"trial seasons",num:1},{t:"season length, site window",num:1},{t:"season length, standard maize calendar",num:1},{t:"share of stress seasons, site window",num:1},{t:"share of stress seasons, standard calendar",num:1}],
       (E.window || []).map(r => [r.iso, r.sites, r.seasons, r.days_site, r.days_ggcmi, fmt(r.p_dry_site, 2), fmt(r.p_dry_ggcmi, 2)]));
 }
 
 // ---- GCM vs observed per site --------------------------------------------------
 {
-  const rows = ((D.era_split || {}).gcm_sites || []);
-  const svg = $("#gcm-svg");
+  const drawGcm = () => {
+  const iso = $("#gcm-iso").value;
+  const rows = ((D.era_split || {}).gcm_sites || []).filter(r => r.iso3 === iso);
+  const svg = $("#gcm-svg"); svg.innerHTML = '<title id="gcm-title">Share of stress seasons per trial site by climate source, against the Atlas</title>';
   if (svg && rows.length) {
     const W = 640, left = 150, right = 20, top = 14, rh = 24, pw = W - left - right, H = top + rows.length * rh + 44;
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
@@ -804,6 +808,8 @@ function drawStrata() {
       });
     });
   }
+  };
+  $("#gcm-iso").addEventListener("change", drawGcm); drawGcm();
 }
 
 // ---- Severity mix ------------------------------------------------------------
