@@ -54,20 +54,19 @@ win <- pw[, .(sites = uniqueN(Site.Key), seasons = .N, days_site = round(median(
 obs_g <- fread(file.path(E, "obs_vs_atlas_sites_ggcmi.csv"))[, .(obs_dry_ggcmi = round(weighted.mean(p_dry_obs, n_seasons), 2)), by = iso3]
 obs <- merge(obs, obs_g, by = "iso3", all.x = TRUE)
 gcm_file <- file.path(E, "gcm_vs_obs_summary.csv")
-gcm <- if (file.exists(gcm_file)) {
+gcm <- gcm_sites <- NULL
+if (file.exists(gcm_file)) {
   gs <- fread(gcm_file); srcs <- sub("^p_dry_", "", grep("^p_dry_", names(gs), value = TRUE))
-  rbindlist(lapply(srcs, function(sv) data.table(src = sv, sites = sum(!is.na(gs[[paste0("p_dry_", sv)]])),
-    seasons = sum(gs[[paste0("n_", sv)]], na.rm = TRUE), p_dry = round(mean(gs[[paste0("p_dry_", sv)]], na.rm = TRUE), 2),
-    p_sev = round(mean(gs[[paste0("p_sev_", sv)]], na.rm = TRUE), 2), ndws = round(mean(gs[[paste0("ndws_", sv)]], na.rm = TRUE), 1),
-    r_atlas = round(cor(gs[[paste0("p_dry_", sv)]], gs$atlas_p_dry, use = "complete.obs"), 2))))[
-    , rbind(.SD, data.table(src = "atlas", sites = nrow(gs), seasons = NA, p_dry = round(mean(gs$atlas_p_dry), 2), p_sev = round(mean(gs$atlas_p_sev), 2), ndws = NA, r_atlas = NA))]
-} else NULL
-gcm_sites <- if (file.exists(gcm_file)) {
-  gs <- fread(gcm_file)
-  gs[, .(site = Site.Key, admin2 = admin2_name, atlas = round(atlas_p_dry, 2), atlas_sev = round(atlas_p_sev, 2), p_source = atlas_p_source,
-         obs_all = round(p_dry_obs_all, 2), obs_era = round(p_dry_obs_era, 2), n_era = n_obs_era,
-         access = round(p_dry_gcm_accesscm2, 2), gfdl = round(p_dry_gcm_gfdlesm4, 2))][order(-atlas)]
-} else NULL
+  per_iso <- function(d) rbind(rbindlist(lapply(srcs, function(sv) data.table(src = sv, sites = sum(!is.na(d[[paste0("p_dry_", sv)]])),
+      seasons = sum(d[[paste0("n_", sv)]], na.rm = TRUE), p_dry = round(mean(d[[paste0("p_dry_", sv)]], na.rm = TRUE), 2),
+      p_sev = round(mean(d[[paste0("p_sev_", sv)]], na.rm = TRUE), 2), ndws = round(mean(d[[paste0("ndws_", sv)]], na.rm = TRUE), 1),
+      r_atlas = if (nrow(d) > 2) round(cor(d[[paste0("p_dry_", sv)]], d$atlas_p_dry, use = "complete.obs"), 2) else NA_real_))),
+    data.table(src = "atlas", sites = nrow(d), seasons = NA, p_dry = round(mean(d$atlas_p_dry), 2), p_sev = round(mean(d$atlas_p_sev), 2), ndws = NA, r_atlas = NA))
+  gcm <- rbind(gs[, per_iso(.SD), by = iso3], per_iso(gs)[, iso3 := "all"])
+  gcm_sites <- gs[, .(iso3, site = Site.Key, admin2 = admin2_name, atlas = round(atlas_p_dry, 2), atlas_sev = round(atlas_p_sev, 2), p_source = atlas_p_source,
+                      obs_all = round(p_dry_obs_all, 2), obs_era = round(p_dry_obs_era, 2), n_era = n_obs_era,
+                      access = round(p_dry_gcm_accesscm2, 2), gfdl = round(p_dry_gcm_gfdlesm4, 2))][order(iso3, -atlas)]
+}
 era_split <- list(g = fread(file.path(E, "era_split_g.csv")), test = fread(file.path(E, "era_split_test.csv")), obs = obs, window = win, gcm = gcm, gcm_sites = gcm_sites)
 d7 <- fread(file.path(D, "d7_benchmark.csv"))[practice %in% c("cover_crops", "reduced_tillage")]
 bench <- d7[, .(level, practice, hazard, m_profile, benchmark, iso3, units, p_stress = round(p_stress_med, 2), p1 = units_p_stress_ge_099,
