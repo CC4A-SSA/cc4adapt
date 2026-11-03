@@ -3,16 +3,43 @@
 #
 # Activity 2 Step 3: adaptation benefit (avoided loss) at each pixel.
 #
-# Formula (per pixel, per practice):
+# Formula (per pixel, per practice) -- "same share lost" (F3) split, adopted
+# Nov 2026 (issue CC4A-SSA/cc4adapt#1; af_formulations page section 5):
 #
 #   avoided_loss_usd_ha_yr =
-#       sum_{hazard,severity} [
+#       sum_{crop,hazard,severity} [
 #         P(hazard, severity)
-#       * yield_loss_frac(hazard, severity, crop)
-#       * buffer_frac(practice, hazard, severity, crop)
-#       * baseline_yield_t_ha(crop)
+#       * yield_loss_frac(hazard, severity, crop)            L
+#       * buffer_frac(practice, hazard, severity, crop)      m (SIGNED)
+#       * practice_yield_t_ha(crop)                          A = B * (1 + g)
 #       * price_usd_tonne(crop, country)
 #       ]
+#
+#   production_adj_usd_ha_yr =                              (new layer)
+#       dvalue (Step 2, = sum_crop (A - B) * price)
+#     - sum_crop (A - B) * E[L_crop] * price
+#     = sum_crop (A - B) * (1 - E[L_crop]) * price
+#   with E[L_crop] = 1 - prod_hazard (1 - sum_severity P * L)   (see [E]).
+#
+# What changed from the previous version (which the exploration calls F5):
+#   * avoided loss used the CONTROL's yield B; it now uses the practice's own
+#     yield A = B * (1 + g), with g from the same ERA source and rule as
+#     Step 2 (code/common/era_yield_effects.R). Avoided loss rises by (1 + g).
+#   * buffer_frac was clamped to [0, 1]; it is now signed (negative = the
+#     practice makes bad years worse) with a sanity bound of [-1, 1] that
+#     logs a warning when hit (cca_signed_buffer).
+#   * the accumulated avoided loss was floored at 0; the floor is removed, so
+#     negative avoided loss (maladaptation) now reaches the output. A
+#     symmetric +/-10000 USD/ha/yr sanity bound remains.
+#   * Step 2 counts the full normal-year gain every year; under F3 the gain
+#     is bitten by the same share L as the control. That correction is
+#     written here as production_adj_* because this step owns the hazard
+#     inputs; Steps 4-5 and Activity 3 prefer it over dvalue when present.
+#   The old total over-counted by L (A - B)(1 - m) per stress year; now
+#   production + avoided loss equals the stress-year yield gap exactly
+#   (single hazard; see [E] for several).
+#   Algebra and tests: code/common/adaptation_split.R,
+#   tests/testthat/test_adaptation_split.R.
 #
 # Inputs:
 #   * Step-1 mitigation mask (eligibility anchor).
@@ -34,10 +61,20 @@
 #   * MapSPAM yield and FAO prices (same loaders as Step 2).
 #   * Hazard-specific yield_loss_frac table (embedded below; editable).
 #
-# Outputs:
+#   * ERA_Derived.rda (same loader as Step 2) for the practice gain g.
+#   * Step 2 dvalue_<practice>_<iso3>_5arcmin.tif (only for production_adj).
+#
+# Outputs (file names and units unchanged; one new layer):
 #   * data/outputs/step3_adaptation/avoidedloss_<practice>_<iso3>_5arcmin.tif
+#     USD/ha/yr; may now be negative.
+#   * data/outputs/step3_adaptation/production_adj_<practice>_<iso3>_5arcmin.tif
+#     NEW. USD/ha/yr, expected annual production benefit after the hazard
+#     bite. Written only when Step 2 dvalue exists and at least one hazard
+#     raster was found. If Step 2 is re-run later, re-run Step 3 too
+#     (CCA_FORCE=1) or this layer is stale.
 #   * data/outputs/step3_adaptation/adaptation_admin_<iso3>.csv
-#     (per-hazard contribution columns preserved for auditability).
+#     (per-hazard contribution columns preserved for auditability; new
+#     column `g` = ERA relative yield gain used for A).
 #
 # Design notes:
 #
@@ -47,13 +84,39 @@
 #       unit chain transparent makes NEB easy to audit.
 #
 #   [B] Hazards are iterated in a fixed order {drought, heat, waterlogging,
-#       variability}. We sum contributions assuming independence -- documented
-#       as an open question for the stakeholder workshop (plan 8.*). A
-#       correlated-hazard formulation is a future extension point.
+#       variability}. We sum avoided-loss contributions over hazards (no
+#       joint-year correction) -- documented as an open question for the
+#       stakeholder workshop (plan 8.*). Hazard co-occurrence is unresolved
+#       project-wide; a correlated-hazard formulation is a future extension
+#       point.
 #
 #   [C] Where buffer_frac is flagged `confidence_tier = "Low"` we still use
 #       it (the pipeline must produce a layer), but Step 5 Monte Carlo later
 #       widens the P10-P90 envelope proportionally.
+#
+#   [D] g comes from cca_era_yield_effect(), the function Step 2 uses, so A
+#       here and A - B in Step 2 are the same quantity. Where ERA has no
+#       evidence for a (practice, crop) pair Step 2 contributes no production
+#       for that crop, i.e. g = 0; Step 3 then uses g = 0 (A = B) for that
+#       crop too. If ERA_Derived.rda is missing altogether, g = 0 for every
+#       crop (avoided loss falls back to the control yield) and a WARN is
+#       logged. g is pooled across all ERA seasons (stress and normal); a
+#       season-split g is NOT implemented here.
+#
+#   [E] Production adjustment across hazards. Per hazard, the expected loss
+#       share is E[L_h] = sum_s P(h, s) L(h, s) (severity bands are disjoint,
+#       see build_hazard_frequencies.R). Hazards are combined as
+#       E[L] = 1 - prod_h (1 - E[L_h]), which ASSUMES hazards occur
+#       independently and compound multiplicatively within a year. Set
+#       SPLIT_HAZARD_COMBINE <- "additive" below to use min(1, sum_h E[L_h])
+#       instead, the rule implied by summing avoided loss over hazards in [B]
+#       (with it, production + avoided loss equals the expected F3 gap
+#       exactly). The two differ only by second-order joint-hazard terms. The
+#       bite applies whatever m is, including where buffer_frac = 0.
+#
+#   [F] MapSPAM yield is used as B. The exploration found it is a mean-year
+#       (not normal-year) yield and suggests B_norm = B / (1 - E[L]); that
+#       correction is NOT implemented here.
 # ------------------------------------------------------------------------------
 
 # ---- Preamble -----------------------------------------------------------
@@ -70,6 +133,8 @@ common_dir <- if (nzchar(this_file)) {
 source(file.path(common_dir, "config.R"))
 source(file.path(common_dir, "logging.R"))
 source(file.path(common_dir, "geo_utils.R"))
+source(file.path(common_dir, "era_yield_effects.R"))
+source(file.path(common_dir, "adaptation_split.R"))
 
 suppressPackageStartupMessages({
   library(terra)
@@ -168,16 +233,17 @@ buffer_lookup <- function(practice, hazard, severity, crop) {
   }
   if (!nrow(r)) return(0)
   v <- suppressWarnings(mean(as.numeric(r$buffer_frac), na.rm = TRUE))
-  # mean() of an all-NA / empty numeric is NaN; coerce to 0 so downstream
-  # arithmetic and `== 0` checks behave (NaN || 0 -> NaN, which crashes
-  # the contribution-skip predicate). Cap at [0, 1] -- buffer_frac > 1 in
-  # build_buffering_coefficients.R means an ERA study reported the
-  # treatment EXCEEDING the control under hazard stress (RR_mean > 0),
-  # which physically means a practice that avoids 100% of the loss AND
-  # adds a yield bonus on top. The yield bonus belongs in Step 2
-  # (production benefit), not Step 3 (avoided loss); so we cap at 1.0
-  # here to avoid double-counting.
-  if (!is.finite(v)) 0 else max(0, min(1, v))
+  # mean() of an all-NA / empty numeric is NaN; coerce to 0 (no evidence =
+  # no buffering) so downstream arithmetic and `== 0` checks behave.
+  # m is SIGNED since Nov 2026: a negative value means the practice makes
+  # stress years worse and must reach the output as negative avoided loss.
+  # The old [0, 1] clamp is replaced by a [-1, 1] sanity bound that logs a
+  # warning (cca_signed_buffer). The old clamp also guarded against counting
+  # a yield bonus twice; under the F3 split the bonus sits in production as
+  # (A - B)(1 - L) and avoided loss is A L m, which together equal the
+  # stress-year gap exactly, so no clamp at 1 is needed for that reason.
+  if (!is.finite(v)) return(0)
+  cca_signed_buffer(v, label = sprintf("buffer_frac %s/%s/%s", practice, hazard, severity))
 }
 
 loss_lookup <- function(hazard, severity, crop) {
@@ -207,6 +273,26 @@ find_haz_raster <- function(crop, hazard, severity) {
   if (!length(hits)) NA_character_ else hits[1]
 }
 
+# ERA yield effect (same source and rule as Step 2) -> practice gain g.
+era_y <- cca_load_era_yield(c(
+  file.path(CCA_PATHS$inputs_root, "era", "ERA_Derived.rda"),
+  normalizePath(file.path(CCA_ROOT, "..", "solutions", "data", "ERA_Derived.rda"),
+                mustWork = FALSE)
+))
+if (is.null(era_y)) {
+  cca_log("ERA_Derived.rda not found -- practice gain g = 0 for every crop, so ",
+          "avoided loss uses the control yield and no production adjustment is ",
+          "made. Run code/inputs/fetch_era.R.", level = "WARN")
+}
+gain_lookup <- function(practice, crop) {
+  eff <- cca_era_yield_effect(era_y, practice, crop)
+  if (is.null(eff) || !is.finite(eff$pc)) 0 else eff$pc
+}
+
+# How per-hazard expected loss shares are combined for the production
+# adjustment; see design note [E]. "independent" or "additive".
+SPLIT_HAZARD_COMBINE <- "independent"
+
 # ---- Driver -------------------------------------------------------------
 hazards <- c("drought", "heat", "waterlogging")
 severities <- c("moderate", "severe", "extreme")
@@ -216,7 +302,7 @@ crops      <- c("maiz", "rice", "sorg")         # keep in sync with loss_table
 price_csv <- file.path(CCA_PATHS$staging_root, "faostat",
                        "fao_producer_prices_usd_per_tonne_2022_2024.csv")
 prices <- if (file.exists(price_csv)) utils::read.csv(price_csv, stringsAsFactors = FALSE) else NULL
-spam_to_fao <- c(maiz = "Maize (corn)", rice = "Rice", sorg = "Sorghum")
+spam_to_fao <- SPAM_TO_FAO   # shared with Step 2 (code/common/era_yield_effects.R)
 mean_price <- function(area, item) {
   if (is.null(prices)) return(NA_real_)
   hits <- prices[prices$Area == area & prices$Item == item, ]
@@ -240,7 +326,13 @@ for (iso3 in CCA_COUNTRIES) {
   for (practice in wanted) {
     out_tif <- file.path(CCA_PATHS$step3_dir,
                          sprintf("avoidedloss_%s_%s_%s.tif", practice, iso3, CCA_RES_LABEL))
-    if (cca_skip_if_exists(out_tif, tag = sprintf("step3 %s/%s", practice, iso3))) next
+    padj_tif <- file.path(CCA_PATHS$step3_dir,
+                          sprintf("production_adj_%s_%s_%s.tif", practice, iso3, CCA_RES_LABEL))
+    dvalue_tif <- file.path(CCA_PATHS$step2_dir,
+                            sprintf("dvalue_%s_%s_%s.tif", practice, iso3, CCA_RES_LABEL))
+    # Re-run when production_adj is missing but could be built (Step 2 done).
+    skip_paths <- if (file.exists(dvalue_tif)) c(out_tif, padj_tif) else out_tif
+    if (cca_skip_if_exists(skip_paths, tag = sprintf("step3 %s/%s", practice, iso3))) next
 
     step1_tif <- file.path(CCA_PATHS$step1_dir,
                            sprintf("mitigation_%s_%s_%s.tif", practice, iso3, CCA_RES_LABEL))
@@ -252,6 +344,9 @@ for (iso3 in CCA_COUNTRIES) {
 
     avoid_accum <- terra::rast(template); terra::values(avoid_accum) <- 0
     touched <- FALSE
+    # Production lost to hazards, sum_crop (A - B) E[L_crop] price (USD/ha/yr).
+    bite_accum <- terra::rast(template); terra::values(bite_accum) <- 0
+    hazard_seen <- FALSE
 
     for (crop in crops) {
       # Baseline yield
@@ -275,15 +370,28 @@ for (iso3 in CCA_COUNTRIES) {
                 level = "WARN"); next
       }
 
+      # Practice yield A = B (1 + g); g as in Step 2 (design note [D]).
+      g_c  <- gain_lookup(practice, crop)
+      y_pr <- cca_practice_yield(y, g_c)
+
+      el_by_hazard <- list()   # E[L_h] = sum_s P(h, s) L(h, s), per hazard
       for (hazard in hazards) {
+        el_h <- NULL
         for (severity in severities) {
           haz_tif <- find_haz_raster(crop, hazard, severity)
           if (is.na(haz_tif)) next
           phs <- terra::project(terra::rast(haz_tif), template, method = "bilinear")
-          loss_f   <- loss_lookup(hazard, severity, crop)
+          loss_f <- loss_lookup(hazard, severity, crop)
+          if (is.na(loss_f)) next
+          # Expected loss share for the production bite: accumulated for every
+          # band with a loss fraction, whatever the practice's buffering.
+          pl   <- terra::ifel(is.na(phs), 0, phs * loss_f)
+          el_h <- if (is.null(el_h)) pl else el_h + pl
+
           buffer_f <- buffer_lookup(practice, hazard, severity, crop)
-          if (is.na(loss_f) || buffer_f == 0) next
-          contrib <- phs * loss_f * buffer_f * y * p_usd
+          if (buffer_f == 0) next
+          # F3 avoided loss on the practice's own yield A; signed.
+          contrib <- phs * cca_f3_avoided_loss(y_pr, loss_f, buffer_f) * p_usd
           contrib <- terra::ifel(is.na(contrib), 0, contrib)
           avoid_accum <- avoid_accum + contrib
           touched <- TRUE
@@ -291,12 +399,50 @@ for (iso3 in CCA_COUNTRIES) {
           admin_rows[[length(admin_rows) + 1L]] <- data.frame(
             iso3 = iso3, practice = practice, crop = crop,
             hazard = hazard, severity = severity,
-            loss_frac = loss_f, buffer_frac = buffer_f,
+            loss_frac = loss_f, buffer_frac = buffer_f, g = g_c,
             mean_usd_ha_yr = as.numeric(terra::global(contrib, "mean", na.rm = TRUE)),
             stringsAsFactors = FALSE
           )
         }
+        if (!is.null(el_h)) el_by_hazard[[hazard]] <- el_h
       }
+
+      # Production bite for this crop:
+      #   (A - B) - cca_f3_production(A, B, E[L]) = (A - B) E[L].
+      if (length(el_by_hazard)) {
+        hazard_seen <- TRUE
+        if (g_c != 0) {
+          el_c <- cca_combine_expected_loss(el_by_hazard, method = SPLIT_HAZARD_COMBINE)
+          bite <- (y_pr - y) * el_c * p_usd
+          bite <- terra::ifel(is.na(bite), 0, bite)
+          bite_accum <- bite_accum + bite
+        }
+      }
+    }
+
+    # ---- Stress-adjusted production layer (design note [E]) ----------------
+    # production_adj = dvalue - bite = sum_crop (A - B)(1 - E[L]) price.
+    # Crops Step 2 covers but this step does not (no loss_table rows) keep
+    # their full dvalue contribution, i.e. E[L] = 0 for them.
+    if (hazard_seen && file.exists(dvalue_tif)) {
+      dv <- terra::rast(dvalue_tif)
+      if (!isTRUE(terra::compareGeom(dv, template, stopOnError = FALSE))) {
+        dv <- terra::project(dv, template, method = "bilinear")
+      }
+      dv   <- terra::mask(dv, anchor, maskvalues = FALSE)
+      padj <- dv - bite_accum
+      cca_assert_not_allna(padj, name = sprintf("production_adj %s/%s", practice, iso3))
+      cca_write_cog(padj, padj_tif)
+      cca_log(sprintf("production_adj %s/%s: mean %.2f USD/ha/yr (dvalue mean %.2f)",
+                      practice, iso3,
+                      as.numeric(terra::global(padj, "mean", na.rm = TRUE)),
+                      as.numeric(terra::global(dv,   "mean", na.rm = TRUE))))
+    } else if (!file.exists(dvalue_tif)) {
+      cca_log(sprintf("No Step 2 dvalue for %s/%s -- production_adj not written",
+                      practice, iso3), level = "WARN")
+    } else {
+      cca_log(sprintf("No hazard rasters for %s/%s -- production_adj not written",
+                      practice, iso3), level = "WARN")
     }
 
     if (!touched) {
@@ -304,12 +450,14 @@ for (iso3 in CCA_COUNTRIES) {
                       practice, iso3), level = "WARN"); next
     }
     avoid_accum <- terra::mask(avoid_accum, anchor, maskvalues = FALSE)
-    # Cap avoided loss at baseline VoP (documented as a guard in the plan):
-    # avoid cannot exceed the total value of baseline production on the pixel.
-    # We implement it conservatively as min(avoid_accum, y*p) summed across
-    # crops touched -- approximated here by clipping at 10000 USD/ha/yr as a
-    # sanity ceiling. The real cap is enforced in Activity 3 NEB.
-    avoid_accum <- terra::clamp(avoid_accum, 0, 10000, values = TRUE)
+    # Sanity bound only. The old lower bound of 0 is removed: avoided loss is
+    # negative where the practice makes stress years worse (m < 0). The
+    # +/-10000 USD/ha/yr magnitude ceiling stands in for the plan's "cannot
+    # exceed baseline value of production" guard; the real cap is enforced in
+    # Activity 3 NEB. Values hitting it are logged.
+    cca_assert_range(avoid_accum, -10000, 10000,
+                     name = sprintf("avoidedloss %s/%s", practice, iso3))
+    avoid_accum <- terra::clamp(avoid_accum, -10000, 10000, values = TRUE)
     cca_assert_not_allna(avoid_accum, name = sprintf("avoidedloss %s/%s", practice, iso3))
     cca_write_cog(avoid_accum, out_tif)
   }

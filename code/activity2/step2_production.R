@@ -36,16 +36,27 @@
 #       This mirrors atlas/solutions/R/ERAAnalyze.R back-transform.
 #
 #   [C] Per-practice mapping from CCA practice -> ERA practice label lives in
-#       a lookup table at the top of the script (editable by analysts without
-#       touching code). Unmapped practices log a WARN and are skipped.
+#       a lookup table in code/common/era_yield_effects.R (shared with Step 3,
+#       editable by analysts without touching step code). Unmapped practices
+#       log a WARN and are skipped.
 #
 #   [D] FAO producer prices are joined at the Area x Item level. MapSPAM
-#       crop codes (4-letter) are mapped to FAO Item strings in a second
-#       lookup at the top. Prices are averaged across the available years
+#       crop codes (4-letter) are mapped to FAO Item strings via SPAM_TO_FAO
+#       in code/common/era_yield_effects.R. Prices are averaged across the available years
 #       per (country, item) because FAOSTAT reporting is uneven.
 #
 #   [E] No implicit masking. Price gaps produce NA dvalue, never a silently
 #       imputed value. Downstream NEB propagates NAs cleanly.
+#
+#   [F] Production/adaptation split (2026-11). dvalue is still the normal-
+#       year gain (A - B) * price applied every year. Under the "same share
+#       lost" (F3) split the gain is itself bitten in stress years, so expected
+#       production is (A - B)(1 - E[L]). Step 3 has the hazard inputs and
+#       writes that stress-adjusted layer as
+#       data/outputs/step3_adaptation/production_adj_<practice>_<iso3>_5arcmin.tif;
+#       Steps 4-5 and Activity 3 prefer it over dvalue when present. dvalue is
+#       kept unchanged for auditability and as the fallback. See
+#       code/common/adaptation_split.R.
 # ------------------------------------------------------------------------------
 
 # ---- Preamble -----------------------------------------------------------
@@ -62,6 +73,7 @@ common_dir <- if (nzchar(this_file)) {
 source(file.path(common_dir, "config.R"))
 source(file.path(common_dir, "logging.R"))
 source(file.path(common_dir, "geo_utils.R"))
+source(file.path(common_dir, "era_yield_effects.R"))
 
 suppressPackageStartupMessages({
   library(terra)
@@ -77,42 +89,11 @@ practices_yaml <- yaml::read_yaml(
 practice_defs     <- practices_yaml$practices
 country_practices <- practices_yaml$country_practices
 
-# CCA practice key -> ERA PrName (as they appear in ERA_Derived.rda).
-# Compound ERA labels (e.g. "Alleycropping-Intercropping") are handled via
-# substring match.
-cca_to_era <- list(
-  agroforestry_cropland       = c("Agroforestry", "Alleycropping", "Hedgerow", "Parklands", "Silvopasture"),
-  cover_crops                 = c("Green Manure", "Cover Crop", "Crop Residue Incorporation"),
-  biochar                     = c("Biochar"),
-  awd_rice                    = c("Improved Rice Management", "Alternate Wetting and Drying"),
-  enhanced_rock_weathering    = c("Silicate", "Enhanced Weathering", "Rock Amendment"),
-  grassland_soil_carbon       = c("Grazing Management", "Improved Grazing"),
-  grassland_reduced_emissions = c("Grazing Management"),
-  grassland_restoration       = c("Grassland Restoration", "Pasture Restoration"),
-  savanna_agroforestry        = c("Agroforestry", "Parklands")
-)
-
-# MapSPAM 4-letter code -> FAO Item string (as FAOSTAT spells them).
-spam_to_fao <- c(
-  maiz = "Maize (corn)",
-  whea = "Wheat",
-  rice = "Rice",
-  barl = "Barley",
-  sorg = "Sorghum",
-  mill = "Millet",
-  soyb = "Soya beans",
-  grou = "Groundnuts, excluding shelled",
-  cnut = "Coconuts, in shell",
-  cott = "Cotton lint, ginned",
-  sunf = "Sunflower seed",
-  rape = "Rape or colza seed",
-  pota = "Potatoes",
-  cass = "Cassava, fresh",
-  yams = "Yams",
-  swpo = "Sweet potatoes",
-  bana = "Bananas",
-  sugc = "Sugar cane"
-)
+# CCA practice -> ERA label map (CCA_TO_ERA) and MapSPAM -> FAO item map
+# (SPAM_TO_FAO) now live in code/common/era_yield_effects.R so Step 3 uses
+# exactly the same lookup. Local aliases keep the rest of this script as it was.
+cca_to_era  <- CCA_TO_ERA
+spam_to_fao <- SPAM_TO_FAO
 
 # ---- Prices join -------------------------------------------------------
 price_csv <- file.path(CCA_PATHS$staging_root, "faostat",
@@ -148,46 +129,17 @@ if (is.na(era_rda)) {
           "file into data/inputs/era/. Step 2 aborted.", level = "ERROR")
   quit(status = 0)
 }
-env <- new.env(); load(era_rda, envir = env)
-era <- NULL
-for (nm in ls(env)) {
-  x <- get(nm, envir = env)
-  if (inherits(x, "data.frame") || inherits(x, "data.table")) { era <- x; break }
+era_y <- cca_load_era_yield(era_rda)
+if (is.null(era_y)) {
+  cca_log("No tabular object found in ", era_rda, ". Step 2 aborted.", level = "ERROR")
+  quit(status = 0)
 }
-cca_log(sprintf("ERA table: %d rows", nrow(era)))
 
-# Derive aggregate RR per (practice family, crop) using only yield outcomes.
-yield_mask <- grepl("yield|productivity", era$Out.SubInd, ignore.case = TRUE)
-era_y <- era[yield_mask &
-             !is.na(era$MeanT) & !is.na(era$MeanC) &
-             era$MeanT > 0 & era$MeanC > 0, ,drop = FALSE]
-era_y$RR <- log(era_y$MeanT / era_y$MeanC)
-
+# Aggregate RR per (practice family, crop) using only yield outcomes:
+# pc = exp(mean RR) - 1. Implementation shared with Step 3 via
+# code/common/era_yield_effects.R (cca_era_yield_effect).
 era_effect <- function(cca_practice, spam_code) {
-  # Match CCA practice -> ERA labels; crop -> ERA Product via SPAM->FAO
-  # (close-enough substring match on Product). Return a list with pc
-  # (percent change), n_obs, ci_low, ci_high.
-  era_labels <- cca_to_era[[cca_practice]]
-  if (is.null(era_labels)) return(NULL)
-  fao_name <- spam_to_fao[spam_code]
-  if (is.na(fao_name)) fao_name <- spam_code
-  rows <- era_y[vapply(era_y$PrName, function(x) {
-                  any(vapply(era_labels, function(lbl) grepl(lbl, x, fixed = TRUE),
-                             logical(1)))
-                }, logical(1)) &
-                (grepl(spam_code, era_y$Product, ignore.case = TRUE) |
-                 grepl(fao_name,   era_y$Product, ignore.case = TRUE)), , drop = FALSE]
-  if (!nrow(rows)) return(NULL)
-  mu  <- mean(rows$RR, na.rm = TRUE)
-  sdv <- stats::sd(rows$RR, na.rm = TRUE)
-  n   <- sum(!is.na(rows$RR))
-  ci  <- 1.96 * (sdv / sqrt(max(n, 1)))
-  list(
-    pc = exp(mu) - 1,
-    n_obs = n,
-    ci_low  = exp(mu - ci) - 1,
-    ci_high = exp(mu + ci) - 1
-  )
+  cca_era_yield_effect(era_y, cca_practice, spam_code)
 }
 
 # ---- MapSPAM inputs ----------------------------------------------------

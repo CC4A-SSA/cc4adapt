@@ -6,8 +6,15 @@
 #
 # Inputs  (per practice x country):
 #   M = Step 1 mitigation tCO2e/ha/yr
-#   P = Step 2 dvalue USD/ha/yr  (production benefit, summed across crops)
-#   A = Step 3 avoided-loss USD/ha/yr (adaptation benefit)
+#   P = production benefit USD/ha/yr, summed across crops. Since Nov 2026
+#       this is Step 3's production_adj_<practice>_<iso3>_5arcmin.tif when it
+#       exists -- the normal-year gain reduced in stress years by the same
+#       share the control loses, (A - B)(1 - E[L]) -- and Step 2's dvalue
+#       otherwise. Using dvalue together with the new avoided loss would
+#       count the hazard bite on the gain twice. See
+#       code/common/adaptation_split.R (cca_production_path).
+#   A = Step 3 avoided-loss USD/ha/yr (adaptation benefit; can be negative
+#       where the practice makes stress years worse).
 #
 # Method:
 #   1. Normalise each layer to [0, 1] within country by rank, to remove
@@ -43,6 +50,7 @@ common_dir <- if (nzchar(this_file)) {
 source(file.path(common_dir, "config.R"))
 source(file.path(common_dir, "logging.R"))
 source(file.path(common_dir, "geo_utils.R"))
+source(file.path(common_dir, "adaptation_split.R"))   # cca_production_path
 
 suppressPackageStartupMessages({
   library(terra)
@@ -83,8 +91,7 @@ for (iso3 in CCA_COUNTRIES) {
 
     M_tif <- file.path(CCA_PATHS$step1_dir,
                        sprintf("mitigation_%s_%s_%s.tif", practice, iso3, CCA_RES_LABEL))
-    P_tif <- file.path(CCA_PATHS$step2_dir,
-                       sprintf("dvalue_%s_%s_%s.tif",     practice, iso3, CCA_RES_LABEL))
+    P_tif <- cca_production_path(practice, iso3)   # production_adj, else dvalue
     A_tif <- file.path(CCA_PATHS$step3_dir,
                        sprintf("avoidedloss_%s_%s_%s.tif", practice, iso3, CCA_RES_LABEL))
 

@@ -27,6 +27,11 @@
 #
 #   * Confidence tier: High / Medium / Low from a simple rule-based combiner
 #     of CV x n_studies (as carried in the Step 2 admin CSV).
+#
+#   * P is the stress-adjusted production layer from Step 3
+#     (production_adj_*) when present, else Step 2 dvalue -- the same choice
+#     Step 4 makes (cca_production_path in code/common/adaptation_split.R).
+#     A can be negative since Nov 2026; the multiplicative draws keep its sign.
 # ------------------------------------------------------------------------------
 
 # ---- Preamble ----------------------------------------------------------
@@ -43,6 +48,7 @@ common_dir <- if (nzchar(this_file)) {
 source(file.path(common_dir, "config.R"))
 source(file.path(common_dir, "logging.R"))
 source(file.path(common_dir, "geo_utils.R"))
+source(file.path(common_dir, "adaptation_split.R"))   # cca_production_path
 
 suppressPackageStartupMessages({
   library(terra)
@@ -88,8 +94,7 @@ for (iso3 in CCA_COUNTRIES) {
 
     M_tif <- file.path(CCA_PATHS$step1_dir,
                        sprintf("mitigation_%s_%s_%s.tif", practice, iso3, CCA_RES_LABEL))
-    P_tif <- file.path(CCA_PATHS$step2_dir,
-                       sprintf("dvalue_%s_%s_%s.tif",     practice, iso3, CCA_RES_LABEL))
+    P_tif <- cca_production_path(practice, iso3)   # production_adj, else dvalue
     A_tif <- file.path(CCA_PATHS$step3_dir,
                        sprintf("avoidedloss_%s_%s_%s.tif", practice, iso3, CCA_RES_LABEL))
 
