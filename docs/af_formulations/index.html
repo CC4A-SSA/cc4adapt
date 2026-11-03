@@ -174,7 +174,24 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 </div>
 
 <h2 id="part1" data-nav="Part 1 · Districts">Part 1 · The labelling choice, generalised across districts</h2>
-<p>Inputs: Atlas hazard frequencies by district (1995–2014, three severity bands), MapSPAM 2020 maize yields, ERA yield gains, a placeholder loss-share table and ten buffering scenarios. Every district is run through all six rules. Nothing in Part 1 is an estimate; it is a sensitivity test of the labelling rule.</p>
+<p>Every maize-growing district is run through all six rules with the inputs below. Nothing in Part 1 is an estimate; it is a sensitivity test of the labelling rule.</p>
+<div class="card terms" id="data-used">
+<h3 id="data-atlas" data-nav="1.0 Atlas data used">1.0 Exactly which Atlas data Part 1 uses</h3>
+<div class="tablewrap"><table>
+<tr><th>What</th><th>Setting used</th></tr>
+<tr><td><b>Product</b></td><td>Africa Agriculture Adaptation Atlas, hazard × exposure tables, <code>africa-hazard-exposure-nexgddp</code>, production tier (<code>variable=prod_t</code>: hazard frequency weighted by MapSPAM 2020 maize production). Published 19 October 2026; the three files used are pinned by S3 version in <code>01_fetch_inputs.R</code>.</td></tr>
+<tr><td><b>Files</b></td><td><code>s3://digital-atlas/domain=hazard_exposure/source=nex-gddp-cmip6/region=ssa/processing=hazard-risk-exposure/variable=prod_t/period=jagermeyr/model=ENSEMBLEmean/severity={moderate|severe|extreme}/int=multi-hazard.parquet</code></td></tr>
+<tr><td><b>Season</b></td><td><code>period=jagermeyr</code>: the GGCMI Phase 3 rainfed-maize crop calendar, planting month to maturity month, one season per year. <b>Not</b> the Atlas's <code>annual</code> period (12 months from planting), which takes in dry-season months and roughly doubles the drought share for maize.</td></tr>
+<tr><td><b>Climate</b></td><td>NEX-GDDP-CMIP6, mean of the 18-model ensemble, historic baseline 1995–2014 (19 seasons). Future scenarios are in the same files but not used.</td></tr>
+<tr><td><b>Hazards</b></td><td>Hazard set <code>NDWS+NTx35+NDWL0</code> with the Atlas's generic thresholds (days per month, averaged over the season months): <b>drought</b> = water-stress days (NDWS) above 15 / 20 / 25; <b>heat</b> = days above 35 °C (NTx35) above 7 / 14 / 21; <b>waterlogging</b> = waterlogging days (NDWL0) above 2 / 5 / 8, for moderate / severe / extreme. The crop-specific heat set is not used.</td></tr>
+<tr><td><b>"Any drought", not combinations</b></td><td>The Atlas files are split into seven mutually exclusive combination classes (drought only, heat only, wet only, drought + heat, …). Part 1 uses each hazard on its own: <b>any drought</b> = all classes that include drought, added together, so a season that was dry <em>and</em> hot counts as a drought season. Likewise any heat and any waterlogging. The combination classes themselves are used only in 1.7, to bound drought plus waterlogging together.</td></tr>
+<tr><td><b>Which hazards</b></td><td>Cover crops: drought and waterlogging. Reduced tillage: drought. Heat is available but no practice here is expected to buffer it, so it is not run in Part 1; Part 2 scores heat at the trial sites.</td></tr>
+<tr><td><b>Severity</b></td><td>The three files are cumulative ("moderate" means moderate or worse). Bands are obtained by subtraction: moderate-only = moderate or worse − severe or worse, and so on.</td></tr>
+<tr><td><b>Unit</b></td><td>GAUL 2024 second-level districts. The value per district is the maize-production-weighted share of seasons in the class. Where the Atlas grid (0.25°) cannot resolve a district or it has under 100 t of maize, the province's value is used (about a third of district–hazard pairs).</td></tr>
+<tr><td><b>Yields</b></td><td>MapSPAM 2020, Atlas SSA release, maize production ÷ harvested area per district, adjusted to a normal-year yield with the expected loss.</td></tr>
+</table></div>
+<p class="note">Not used: the Atlas's per-pixel or per-season classifications (not public), the <code>annual</code> period, the crop-specific hazard sets, the other exposure tiers (value of production, area), and the separate <code>source=atlas_cmip6</code> product.</p>
+</div>
 
 <h3 id="toy" data-nav="1.1 Six rules">1.1 Six rules for one benefit</h3>
 <p>Six labelling rules were compared. They all start from the same facts: the control's yield in a normal year (<span class="term" data-term="B">B</span>), the practice's yield in a normal year (<span class="term" data-term="A">A</span>, which is <span class="term" data-term="B">B</span> plus the gain), the loss share (<span class="term" data-term="L">L</span>) and the buffering (<span class="term" data-term="m">m</span>). Three of them split the stress-year benefit without losing or inventing anything; three do not.</p>
