@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Avoided-loss formulations</title>
 <meta name="description" content="How the choice of avoided-loss formulation moves a practice's benefit between the production and adaptation labels, tested on Atlas hazard regimes for maize in Kenya, Ethiopia and Nigeria. Exploratory.">
+<script>try{var t=localStorage.getItem("af-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <style>
 :root {
   color-scheme: light;
@@ -114,6 +115,20 @@ h2, h3 { scroll-margin-top: 64px; }
 }
 .term { border-bottom: 1px dotted var(--muted); cursor: help; text-decoration: none; color: inherit; }
 .term:hover, .term:focus { border-bottom-color: var(--f3); outline: none; background: var(--div-mid); border-radius: 2px; }
+/* ---- theme toggle and comments ---- */
+.toc-btn { font: inherit; font-size: 0.8rem; color: var(--ink-2); background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; cursor: pointer; white-space: nowrap; }
+.toc-btn:hover { color: var(--ink); background: var(--div-mid); }
+.cbtn { font: 500 0.72rem system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; margin-left: 10px; vertical-align: 3px; cursor: pointer; letter-spacing: 0; }
+.cbtn:hover, .cbtn:focus-visible { color: var(--f3); border-color: var(--f3); outline: none; }
+.cbtn.on { color: #fff; background: var(--f3); border-color: var(--f3); }
+#cdrawer { position: fixed; z-index: 30; background: var(--surface); color: var(--ink); border: 1px solid var(--border); box-shadow: 0 8px 32px rgba(0,0,0,0.25); overflow-y: auto; right: 0; left: 0; bottom: 0; max-height: 72vh; border-radius: 12px 12px 0 0; padding: 12px 16px 24px; }
+#cdrawer[hidden] { display: none; }
+@media (min-width: 1000px) { #cdrawer { left: auto; top: 0; bottom: 0; width: 440px; max-height: none; border-radius: 0; } }
+.cd-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; position: sticky; top: -12px; background: var(--surface); padding: 6px 0 8px; }
+.cd-kicker { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+#cd-close { font-size: 1.4rem; line-height: 1; background: transparent; border: 0; color: var(--ink-2); cursor: pointer; padding: 0 4px; }
+.cd-note { font-size: 0.8rem; color: var(--muted); margin: 4px 0 10px; }
+.giscus { min-height: 160px; }
 footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--grid); padding-top: 12px; }
 .sr { position: absolute; left: -9999px; }
 </style>
@@ -126,7 +141,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 
 <div class="banner"><strong>Exploratory. Every number is illustrative.</strong> Some inputs are placeholders, some are scenarios, and the trial evidence is thin. Nothing here is an estimate for reporting. See <a href="#limits">What to trust</a>.</div>
 
-<nav class="toc" id="toc" aria-label="Contents"><div class="toc-inner"><span class="toc-title">On this page</span><ol id="toc-list"></ol><a href="#top" class="toc-top">↑ Top</a></div></nav>
+<nav class="toc" id="toc" aria-label="Contents"><div class="toc-inner"><span class="toc-title">On this page</span><ol id="toc-list"></ol><button type="button" id="theme-btn" class="toc-btn" aria-label="Colour theme">◐ Auto</button><a href="#top" class="toc-top">↑ Top</a></div></nav>
 
 <div class="kpis" id="kpis"></div>
 
@@ -407,10 +422,15 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 
 <footer>
 <p id="prov"></p>
-<p>Code, data pins and tests: <code>CC4A-SSA/cc4adapt</code>, <code>code/explore/af_formulations/</code>; tracking issue CC4A-SSA/cc4adapt#1. Hazard frequencies: Africa Agriculture Adaptation Atlas hazard × exposure tables (CC-BY-4.0), pinned by version. Yields: MapSPAM 2020, Atlas release. Trials: ERA. Farming systems: Dixon et al. (FAO). Agro-ecological zones: HarvestChoice. Weather records: CHIRPS v3 rainfall, AgERA5 temperature. Climate models: NEX-GDDP-CMIP6. Results on this page: CC BY 4.0. Code: MIT. Layers that incorporate TNC/Naturebase inputs follow the consortium data-sharing agreement (to be confirmed with TNC on 5 Nov).</p>
+<p>Code, data pins and tests: <code>CC4A-SSA/cc4adapt</code>, <code>code/explore/af_formulations/</code>; tracking issue CC4A-SSA/cc4adapt#1. Hazard frequencies: Africa Agriculture Adaptation Atlas hazard × exposure tables (CC-BY-4.0), pinned by version. Yields: MapSPAM 2020, Atlas release. Trials: ERA. Farming systems: Dixon et al. (FAO). Agro-ecological zones: HarvestChoice. Weather records: CHIRPS v3 rainfall, AgERA5 temperature. Climate models: NEX-GDDP-CMIP6. Comments are GitHub Discussions on the repository, via giscus. Results on this page: CC BY 4.0. Code: MIT. Layers that incorporate TNC/Naturebase inputs follow the consortium data-sharing agreement (to be confirmed with TNC on 5 Nov).</p>
 </footer>
 </main>
 <div class="tt" id="tt" role="status" aria-live="polite"></div>
+<aside id="cdrawer" aria-label="Comments" hidden>
+  <div class="cd-head"><div><span class="cd-kicker">Comments on</span><br><b id="cd-label"></b></div><button type="button" id="cd-close" aria-label="Close comments">×</button></div>
+  <p class="cd-note">Sign in with GitHub to comment or react. Each subsection has its own thread, stored as a GitHub Discussion on <a href="https://github.com/CC4A-SSA/cc4adapt/discussions" target="_blank" rel="noopener">CC4A-SSA/cc4adapt</a>.</p>
+  <div class="giscus"></div>
+</aside>
 <script src="data.js"></script>
 <script>
 (() => {
@@ -457,6 +477,55 @@ function moveTT(ev) { const w = tt.offsetWidth, h = tt.offsetHeight; let x = ev.
 const hideTT = () => tt.style.display = "none";
 function hover(node, rowsFn) { node.classList.add("mark"); node.setAttribute("tabindex", "0"); node.addEventListener("pointerenter", (e) => showTT(e, rowsFn())); node.addEventListener("pointermove", moveTT); node.addEventListener("pointerleave", hideTT); node.addEventListener("focus", (e) => { const r = node.getBoundingClientRect(); showTT({ clientX: r.left + r.width / 2, clientY: r.top }, rowsFn()); }); node.addEventListener("blur", hideTT); }
 
+
+
+// ---- colour theme -------------------------------------------------------------
+const giscusTheme = () => (document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark" ? "dark_dimmed" : "light";
+function setGiscusTheme() { const f = document.querySelector("iframe.giscus-frame"); if (f) f.contentWindow.postMessage({ giscus: { setConfig: { theme: giscusTheme() } } }, "https://giscus.app"); }
+{
+  const btn = $("#theme-btn"), order = ["auto", "light", "dark"], label = { auto: "◐ Auto", light: "☀ Light", dark: "☾ Dark" };
+  let cur = "auto"; try { const t = localStorage.getItem("af-theme"); if (order.includes(t)) cur = t; } catch (e) {}
+  const apply = t => {
+    cur = t;
+    if (t === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", t);
+    try { localStorage.setItem("af-theme", t); } catch (e) {}
+    btn.textContent = label[t]; btn.setAttribute("aria-label", "Colour theme: " + t + " (click to change)");
+    if (typeof drawHeat === "function") drawHeat();
+    setGiscusTheme();
+  };
+  btn.addEventListener("click", () => apply(order[(order.indexOf(cur) + 1) % order.length]));
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (cur === "auto") { drawHeat(); setGiscusTheme(); } });
+  btn.textContent = label[cur];
+}
+
+// ---- per-subsection comments (giscus, GitHub Discussions) ---------------------
+{
+  const G = { repo: "CC4A-SSA/cc4adapt", repoId: "R_kgDOSFFFUA", cat: "Announcements", catId: "DIC_kwDOSFFFUM4DJ6ag" };
+  const drawer = $("#cdrawer"), box = drawer.querySelector(".giscus");
+  let activeBtn = null;
+  const termOf = id => "AF formulations page — " + id;   // keyed on the stable heading id, not its number
+  const load = (id, label) => {
+    $("#cd-label").textContent = label;
+    drawer.hidden = false;
+    const term = termOf(id), f = drawer.querySelector("iframe.giscus-frame");
+    if (f) { f.contentWindow.postMessage({ giscus: { setConfig: { term, theme: giscusTheme() } } }, "https://giscus.app"); return; }
+    box.innerHTML = "";
+    const sc = document.createElement("script"); sc.src = "https://giscus.app/client.js";
+    Object.entries({ "data-repo": G.repo, "data-repo-id": G.repoId, "data-category": G.cat, "data-category-id": G.catId,
+      "data-mapping": "specific", "data-term": term, "data-strict": "1", "data-reactions-enabled": "1", "data-emit-metadata": "0",
+      "data-input-position": "top", "data-theme": giscusTheme(), "data-lang": "en", "data-loading": "eager" }).forEach(([k, v]) => sc.setAttribute(k, v));
+    sc.crossOrigin = "anonymous"; sc.async = true; box.appendChild(sc);
+  };
+  document.querySelectorAll("main h2[id], main h3[id]").forEach(h => {
+    const label = h.textContent.trim();
+    const b = document.createElement("button"); b.type = "button"; b.className = "cbtn"; b.textContent = "Comment";
+    b.setAttribute("aria-label", "Comment on: " + label);
+    b.addEventListener("click", e => { e.stopPropagation(); if (activeBtn) activeBtn.classList.remove("on"); activeBtn = b; b.classList.add("on"); load(h.id, label); });
+    h.appendChild(b);
+  });
+  $("#cd-close").addEventListener("click", () => { drawer.hidden = true; if (activeBtn) activeBtn.classList.remove("on"); activeBtn = null; });
+  addEventListener("keydown", e => { if (e.key === "Escape" && !drawer.hidden) $("#cd-close").click(); });
+}
 
 // ---- hover definitions for technical terms ----------------------------------
 const GLOSS = {
@@ -609,8 +678,8 @@ function niceTicks(lo, hi, n) { const span = hi - lo; const step0 = span / n; co
 drawToy();
 
 // ---- Heat map ------------------------------------------------------------
-{
-  const svg = $("#heat-svg");
+function drawHeat() {
+  const svg = $("#heat-svg"); svg.innerHTML = '<title id="heat-title">Relative gap between F1 and F3 by normal-year gain and buffering</title>';
   const gs = [-0.2, -0.1, 0, 0.05, 0.1, 0.16, 0.25, 0.5, 0.75, 1.0];
   const ms = [-0.2, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.75, 0.9, 1.0];
   const W = 640, left = 70, top = 20, cw = (W - left - 110) / ms.length, ch = 28;
@@ -637,6 +706,7 @@ drawToy();
   el("polyline", { points: pts.join(" "), fill: "none", stroke: "var(--ink)", "stroke-width": 2, "stroke-dasharray": "4 3" }, g);
   txt(g, mx(gs[0] / (1 + gs[0])) - 6, top - 6, "\"same tonnes lost\" reports zero adaptation on this line", { fill: "var(--ink)", "text-anchor": "start" });
 }
+drawHeat();
 
 // ---- Where: scatter of gap vs E[L] --------------------------------------
 const PH = [["cover_crops", "dry", "Cover crops × dry"], ["cover_crops", "wet", "Cover crops × wet"], ["reduced_tillage", "dry", "Reduced tillage × dry"]];
