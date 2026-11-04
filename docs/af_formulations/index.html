@@ -437,6 +437,12 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
 </ol>
 </div>
 
+<h2 id="history" data-nav="7 · Version history">7 · Version history</h2>
+<div class="card">
+<p>Each version is kept as it was when published. Pick one from the <b>Version</b> menu at the top of the page, or follow the links below. Versions marked <b>results changed</b> revised numbers or conclusions. The full record, with links to the code, is in <a href="CHANGELOG.md">CHANGELOG.md</a>.</p>
+<div id="vhistory"><p>Loading the version list…</p></div>
+</div>
+
 <footer>
 <p id="prov"></p>
 <p>Code, data pins and tests: <code>CC4A-SSA/cc4adapt</code>, <code>code/explore/af_formulations/</code>; tracking issue CC4A-SSA/cc4adapt#1. Hazard frequencies: Africa Agriculture Adaptation Atlas hazard × exposure tables (CC-BY-4.0), pinned by version. Yields: MapSPAM 2020, Atlas release. Trials: ERA. Farming systems: Dixon et al. (FAO). Agro-ecological zones: HarvestChoice. Weather records: CHIRPS v3 rainfall, AgERA5 temperature. Climate models: NEX-GDDP-CMIP6. Comments are GitHub Discussions on the repository, via giscus. Results on this page: CC BY 4.0. Code: MIT. Layers that incorporate TNC/Naturebase inputs follow the consortium data-sharing agreement (to be confirmed with TNC on 5 Nov).</p>
@@ -449,6 +455,7 @@ footer { margin-top: 56px; font-size: 0.85rem; color: var(--muted); border-top: 
   <div class="giscus"></div>
 </aside>
 <script src="data.js"></script>
+<script src="versions.js" data-version="latest" data-root="./"></script>
 <script>
 (() => {
 const D = window.AF_DATA;

@@ -34,6 +34,7 @@ Rscript code/explore/af_formulations/run_all.R 3 6    # steps 3-6 only
 | 11 | `11_gcm_summary.R` | Per-site P(dry ≥ moderate) by source (observed all years, observed ERA years, each GCM) beside the Atlas P of the unit | `era_split/gcm_vs_obs_summary.csv` |
 | 12 | `12_export_page_data.R` | Builds `docs/af_formulations/data.js` for the interactive page from 05, 06, 08, 09, 11 outputs | `docs/af_formulations/data.js` |
 | 13 | `13_kenya_dotplot.R` | Static PNG of the Kenyan per-site comparison | `era_split/kenya_gcm_vs_obs.png` |
+| 14 | `14_snapshot_page.py` | Freezes earlier page versions listed in `docs/af_formulations/versions.json` from git into `versions/<id>/` (version menu, banner, comments closed) and writes the change history. Run after adding a version to the JSON | `docs/af_formulations/versions/`, `CHANGELOG.md` |
 
 Library: `R/formulations.R` (formulations, band conversion, expected annual), `R/paths.R`. Tests: `tests/testthat/` (`Rscript -e 'testthat::test_dir("code/explore/af_formulations/tests/testthat")'`). Runtime identity checks that must pass on every run: F1 = F2 = F3 expected totals; expected F1 − F3 gap = −g·B·E[L]; E[L] in 06 equals E[L] in 05.
 
