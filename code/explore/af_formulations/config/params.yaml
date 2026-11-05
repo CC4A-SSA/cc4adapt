@@ -17,7 +17,8 @@ hazard_map:
   wet: waterlogging   # NDWL0
 
 # Control yield loss share per severity BAND, maize (bronze placeholder copied
-# from code/activity2/step3_adaptation.R loss_table). Read as the loss in a
+# from code/activity2/step3_adaptation.R loss_table, now archived in
+# CC4A-SSA/cc4adapt-pipeline-v0). Read as the loss in a
 # season whose index falls in that band; applied to band probabilities
 # obtained by differencing the Atlas cumulative tiers.
 loss_frac:
